@@ -29,7 +29,7 @@ Nada do EvolutionOS pode ser construído com confiança antes de existir o esque
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 | --------------------- | --------------- | --------- | ---------- |
-| Nome do event type de registro | `io.evolutionos.project.registered.v1`, derivado do padrão documentado `io.evolutionos.<domain>.<fact>.v1` | O event contract define o padrão mas não lista este type; segue o exemplo `io.evolutionos.project.snapshot.observed.v1` | n |
+| Nome do event type de registro | `io.evolutionos.project.project.registered.v1` | Taxonomia `io.evolutionos.<context>.<entity>.<past-tense-event>.v1` com este type listado explicitamente em `docs/02-architecture/10-api-event-model.md` §5 | y |
 | Stack e tooling concretos (frameworks, filas, engine de workflow) | Diferidos para a fase Design deste slice, respeitando ADR-003 (Next.js console/BFF), ADR-004 (monólito modular), ADR-005 (relacional) e ADR-006 (outbox + workflows duráveis) | Specify captura O QUE; escolhas de ferramenta são decisão de Design com os ADRs como restrição | n |
 | Identidade em M0 | OIDC real ou dev identity aceitável, conforme deliverable M0 "OIDC/dev identity" | O roadmap admite dev identity no M0; produção exige OIDC (ADR-014) | n |
 | Persistência do walking skeleton | Postgres (perfil team) com perfil Lite/SQLite preservado como requisito de compatibilidade, não implementado neste slice | ADR-002/ADR-004 e perfis do README; implementar dois storages no M0 viola o corte mínimo | n |
@@ -48,7 +48,7 @@ Nada do EvolutionOS pode ser construído com confiança antes de existir o esque
 
 **Acceptance Criteria**:
 
-1. WHEN an authenticated user submits the register-project command in the console THEN the system SHALL persist the project and SHALL emit a CloudEvents envelope of type `io.evolutionos.project.registered.v1` through the transactional outbox in the same transaction.
+1. WHEN an authenticated user submits the register-project command in the console THEN the system SHALL persist the project and SHALL emit a CloudEvents envelope of type `io.evolutionos.project.project.registered.v1` through the transactional outbox in the same transaction.
 2. WHEN the projection consumes the registration event THEN the console SHALL display the registered project from the projected read model.
 3. The registration event SHALL carry the required extensions `tenantid`, `workspaceid`, `projectid`, `correlationid`, `classification` and `schemaversion`.
 4. IF the same register-project command is resubmitted with the same idempotency key and digest THEN the system SHALL return the prior result without emitting a duplicate event.
