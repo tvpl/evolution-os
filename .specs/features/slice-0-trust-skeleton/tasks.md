@@ -225,10 +225,10 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Capability sem grant → Deny com reason; com grant → Allow
-- [ ] Negação gera entrada de audit com actor/action/resource/reason
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Capability sem grant → Deny com reason; com grant → Allow
+- [x] Negação gera entrada de audit com actor/action/resource/reason
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
