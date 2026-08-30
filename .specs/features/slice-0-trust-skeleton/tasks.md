@@ -282,11 +282,11 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Evento pendente vira linha em `projects_view`; `GET /projects` retorna o projeto
-- [ ] Entrega duplicada do mesmo evento → no-op (inbox dedup)
-- [ ] Dispatcher parado → evento fica pendente e é entregue após retomada, sem perda
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] Evento pendente vira linha em `projects_view`; `GET /projects` retorna o projeto
+- [x] Entrega duplicada do mesmo evento → no-op (inbox dedup)
+- [x] Dispatcher parado → evento fica pendente e é entregue após retomada, sem perda
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full

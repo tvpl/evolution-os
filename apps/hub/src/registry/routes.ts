@@ -54,6 +54,32 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     }
   });
 
+  app.get("/projects", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const decision = await enforceCapability(
+      pool,
+      scope,
+      "project.read",
+      "projects",
+      req.correlationId,
+    );
+    if (!decision.allowed) {
+      return problem(reply, 403, "capability_denied", decision.reason, {
+        correlationId: req.correlationId,
+      });
+    }
+    // Leitura da PROJEÇÃO (walking skeleton UI→API→outbox→projection→UI),
+    // sempre filtrada pelo escopo da sessão.
+    const rows = await pool.query(
+      `select project_id, name, type, registered_at from projects_view
+        where org_id = $1 and workspace_id = $2
+        order by registered_at desc`,
+      [scope.orgId, scope.workspaceId],
+    );
+    return reply.send({ projects: rows.rows });
+  });
+
   app.get("/projects/:id", async (req, reply) => {
     const scope = requireScope(req, reply);
     if (!scope) return reply;
