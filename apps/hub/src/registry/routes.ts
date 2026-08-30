@@ -27,12 +27,11 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       });
     }
 
-    const traceparent = req.headers["traceparent"];
     const outcome = await registerProject(pool, scope, {
       manifest: (req.body ?? {}) as Record<string, unknown>,
       idempotencyKey,
       correlationId: req.correlationId,
-      ...(typeof traceparent === "string" ? { traceparent } : {}),
+      ...(req.traceparent !== undefined ? { traceparent: req.traceparent } : {}),
     });
 
     switch (outcome.kind) {

@@ -1,10 +1,15 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "./identity/session.js";
 
+import type { Span } from "@evolution-os/telemetry";
+
 declare module "fastify" {
   interface FastifyRequest {
     scope: AuthScope | null;
     correlationId: string;
+    /** traceparent do span ativo desta requisição (propagado ao outbox). */
+    traceparent: string | undefined;
+    otelSpan: Span | undefined;
   }
 }
 

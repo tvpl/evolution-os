@@ -310,10 +310,10 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Teste captura spans de command/dispatch/projection com o MESMO trace_id
-- [ ] `correlationid` do evento presente como atributo nos spans
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] Teste captura spans de command/dispatch/projection com o MESMO trace_id
+- [x] `correlationid` do evento presente como atributo nos spans
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import Fastify, { type FastifyInstance } from "fastify";
+import { contextFromTraceparent, tracer, traceparentOf } from "@evolution-os/telemetry";
 import type { DbPool } from "./platform/db.js";
 import { problem, requireScope } from "./http.js";
 import { signSession, verifySession, type AuthScope } from "./identity/session.js";
@@ -16,6 +17,16 @@ export function buildServer({ pool }: ServerOptions): FastifyInstance {
   app.addHook("onRequest", async (req) => {
     const header = req.headers["x-correlation-id"];
     req.correlationId = typeof header === "string" && header ? header : `req_${randomUUID()}`;
+    // TRUST-10: span do comando HTTP, continuando o trace do cliente quando
+    // um traceparent W3C chega; o traceparent do span segue para o outbox.
+    const incoming = req.headers["traceparent"];
+    const span = tracer().startSpan(
+      `http ${req.method} ${req.url.split("?")[0]}`,
+      { attributes: { correlationid: req.correlationId, "http.method": req.method } },
+      contextFromTraceparent(typeof incoming === "string" ? incoming : undefined),
+    );
+    req.otelSpan = span;
+    req.traceparent = traceparentOf(span) ?? (typeof incoming === "string" ? incoming : undefined);
     // O escopo deriva EXCLUSIVAMENTE do token de sessão; qualquer tenant em
     // header/payload é ignorado (ADR-014).
     const auth = req.headers.authorization;
@@ -25,6 +36,13 @@ export function buildServer({ pool }: ServerOptions): FastifyInstance {
 
   app.addHook("onSend", async (req, reply) => {
     reply.header("x-correlation-id", req.correlationId);
+  });
+
+  app.addHook("onResponse", async (req, reply) => {
+    if (req.otelSpan) {
+      req.otelSpan.setAttribute("http.status_code", reply.statusCode);
+      req.otelSpan.end();
+    }
   });
 
   app.setErrorHandler((err: Error & { statusCode?: number }, req, reply) => {

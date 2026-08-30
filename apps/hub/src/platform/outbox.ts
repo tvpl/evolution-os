@@ -1,5 +1,6 @@
 import type { EventEnvelope } from "@evolution-os/contracts";
 import { EVENT_TYPES } from "@evolution-os/contracts";
+import { contextFromTraceparent, inSpan } from "@evolution-os/telemetry";
 import { withTx, type DbClient, type DbPool } from "./db.js";
 
 export type EventHandler = (client: DbClient, envelope: EventEnvelope) => Promise<void>;
@@ -54,21 +55,30 @@ export async function runDispatcherOnce(
     traceparent: string | null;
   }>) {
     const envelope = row.payload;
+    // TRUST-10: o span do consumer continua o trace do comando via o
+    // traceparent persistido na linha do outbox (parent remoto).
+    const parentCtx = contextFromTraceparent(row.traceparent);
     let allOk = true;
     for (const { consumer, handler } of router.subscriptionsFor(envelope.type)) {
       try {
-        await withTx(pool, async (client) => {
-          const inserted = await client.query(
-            "insert into inbox (consumer, event_id) values ($1, $2) on conflict do nothing",
-            [consumer, row.event_id],
-          );
-          if (!inserted.rowCount) {
-            stats.deduplicated += 1;
-            return;
-          }
-          await handler(client, envelope);
-          stats.delivered += 1;
-        });
+        await inSpan(
+          `consume ${consumer}`,
+          parentCtx,
+          { correlationid: envelope.correlationid, "event.type": envelope.type },
+          () =>
+            withTx(pool, async (client) => {
+              const inserted = await client.query(
+                "insert into inbox (consumer, event_id) values ($1, $2) on conflict do nothing",
+                [consumer, row.event_id],
+              );
+              if (!inserted.rowCount) {
+                stats.deduplicated += 1;
+                return;
+              }
+              await handler(client, envelope);
+              stats.delivered += 1;
+            }),
+        );
       } catch {
         allOk = false;
         stats.failed += 1;
