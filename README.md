@@ -32,7 +32,7 @@ Este repositório documental foi preparado para iniciar construção com agentes
 3. Use o [`PRD da plataforma`](docs/01-product/PRD-001-core-platform.md) como contrato de produto.
 4. Consulte a [`arquitetura do sistema`](docs/02-architecture/01-system-architecture.md) e o [`runtime agentic`](docs/02-architecture/04-agentic-runtime.md).
 5. Antes de implementar, leia todos os [`ADRs`](docs/04-decisions/README.md).
-6. Converta o [`roadmap`](docs/06-delivery/01-mvp-and-roadmap.md) em issues usando os [`épicos`](docs/06-delivery/02-implementation-epics.md).
+6. Converta o [`roadmap`](docs/06-delivery/01-mvp-and-roadmap.md) em issues usando os [`épicos`](docs/06-delivery/02-implementation-epics.md); a ordem executável por feature está no [`plano de execução spec-driven`](docs/06-delivery/09-spec-driven-execution-plan.md).
 7. Revise o [`landscape`](docs/08-research/01-landscape-and-sources.md) e a [`contestação crítica`](docs/08-research/03-critical-review.md) antes de ampliar o escopo.
 8. Entregue o repositório a um coding agent junto com [`AGENTS.md`](AGENTS.md) e o [`playbook de bootstrap`](docs/06-delivery/07-ai-build-bootstrap.md).
 
