@@ -1,0 +1,89 @@
+apiVersion: evolutionos.io/v1alpha1
+kind: EvolutionModule
+metadata:
+  id: io.evolutionos.modules.technology-scout
+  name: Technology Scout
+  description: Coleta mudanças tecnológicas e produz sinais de relevância rastreáveis.
+  version: 0.3.0
+  publisher: io.evolutionos.foundation
+  license: Apache-2.0
+  releaseChannel: community
+compatibility:
+  hubProtocol: ">=0.4 <1.0"
+  nodeProtocol: ">=0.4 <1.0"
+  runtimes: [container]
+  architectures: [amd64, arm64]
+  schemaVersions: [evolutionos.io/v1alpha1]
+components:
+  - id: release-feed-sensor
+    type: sensor
+    entrypoint: components/release-feed
+    inputSchema: schemas/source-config.json
+    outputSchema: schemas/evidence-record.json
+    executionLocation: either
+    runtime: container
+    timeoutSeconds: 120
+    resourceLimits:
+      cpu: "1"
+      memory: 512Mi
+    capabilities:
+      - network.read:declared-domains
+      - evidence.write:module-namespace
+    acceptsClassification: [public]
+    producesClassification: [public]
+    networkDestinations: [configured-source-domains]
+    sideEffects: [external-read, internal-evidence-write]
+    idempotency: source-uri-and-version
+  - id: relevance-analyzer
+    type: analyzer
+    entrypoint: components/relevance-analyzer
+    inputSchema: schemas/evidence-set.json
+    outputSchema: schemas/relevance-signal.json
+    executionLocation: either
+    runtime: container
+    timeoutSeconds: 300
+    capabilities:
+      - evidence.read:project-scope
+      - signal.write:module-namespace
+      - model.invoke:approved-profile
+    acceptsClassification: [public, internal]
+    producesClassification: [internal]
+    networkDestinations: []
+    sideEffects: [internal-signal-write]
+    idempotency: project-snapshot-and-module-digest
+skills:
+  - path: skills/assess-technology-relevance/SKILL.md
+    activation: >-
+      Use quando um projeto precisa avaliar se uma mudança externa altera suas hipóteses,
+      arquitetura, harness ou roadmap.
+    allowedAgentRoles: [external-scout, relevance-analyst]
+    taskClasses: [technology-review]
+    capabilities:
+      - evidence.read:project-scope
+      - signal.write:module-namespace
+    outputSchema: schemas/relevance-signal.json
+    evalRefs: [evals/relevance-grounding.yaml]
+security:
+  packageDigest: sha256:example-digest-replaced-at-release
+  signatures:
+    - cosign://io.evolutionos.modules.technology-scout@0.3.0
+  sbom: sbom/module.spdx.json
+  provenance: attestations/slsa-provenance.json
+  vulnerabilityScan:
+    ref: scans/0.3.0.json
+    scannedAt: 2026-08-28T00:00:00Z
+  publisherTrustTier: community
+  dataHandling: No raw project data is sent to source domains.
+permissions:
+  - capability: network.read:declared-domains
+    reason: Consultar apenas fontes explicitamente configuradas.
+    constraints:
+      methods: [GET, HEAD]
+      redirects: same-origin
+evals:
+  contractTests: [evals/contracts.yaml]
+  activationTests: [evals/activation.yaml]
+  adversarialTests: [evals/prompt-injection.yaml, evals/source-poisoning.yaml]
+  fixture: fixtures/sample-project
+  expectedArtifacts: [evidence-record, relevance-signal]
+

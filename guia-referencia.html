@@ -1,0 +1,1838 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Guia de referência do EvolutionOS: ecossistema agêntico para criar, monitorar e evoluir produtos, sistemas e harnesses de IA.">
+  <meta name="color-scheme" content="dark light">
+  <title>EvolutionOS — Guia de Referência</title>
+  <style>
+    :root {
+      --bg: #07100f;
+      --bg-elevated: #0b1715;
+      --surface: rgba(16, 32, 29, .74);
+      --surface-strong: #11231f;
+      --surface-soft: rgba(255,255,255,.035);
+      --border: rgba(194, 255, 229, .13);
+      --border-strong: rgba(194, 255, 229, .28);
+      --text: #effaf5;
+      --muted: #9db5ab;
+      --faint: #6e887d;
+      --mint: #6ef0bb;
+      --mint-strong: #24cf90;
+      --cyan: #5ad8ea;
+      --violet: #aa8cff;
+      --amber: #f3c969;
+      --rose: #ff809f;
+      --danger: #ff6b78;
+      --success: #67e8a7;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .32);
+      --radius-xs: 10px;
+      --radius-sm: 16px;
+      --radius-md: 24px;
+      --radius-lg: 34px;
+      --sidebar: 284px;
+      --max: 1240px;
+      --font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    html[data-theme="light"] {
+      --bg: #edf5f1;
+      --bg-elevated: #f8fbf9;
+      --surface: rgba(255,255,255,.78);
+      --surface-strong: #ffffff;
+      --surface-soft: rgba(10, 50, 39, .045);
+      --border: rgba(15, 76, 59, .14);
+      --border-strong: rgba(15, 76, 59, .27);
+      --text: #10211c;
+      --muted: #506b61;
+      --faint: #71867f;
+      --mint: #087f57;
+      --mint-strong: #0aa56f;
+      --cyan: #087f93;
+      --violet: #6f50d6;
+      --amber: #9b6c00;
+      --rose: #ba3e64;
+      --danger: #bd3844;
+      --success: #087f57;
+      --shadow: 0 24px 80px rgba(24, 68, 53, .12);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 28px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 72% -10%, rgba(90,216,234,.14), transparent 30rem),
+        radial-gradient(circle at 8% 28%, rgba(110,240,187,.09), transparent 26rem),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.62;
+      letter-spacing: -.008em;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+      z-index: -2;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    img, svg { max-width: 100%; }
+    ::selection { background: rgba(110,240,187,.25); color: var(--text); }
+    :focus-visible { outline: 3px solid var(--mint); outline-offset: 4px; border-radius: 6px; }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: -80px;
+      z-index: 1000;
+      background: var(--mint);
+      color: #04100c;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 800;
+      transition: top .2s;
+    }
+    .skip-link:focus { top: 16px; }
+
+    .progress-track {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 3px;
+      background: rgba(255,255,255,.05);
+      z-index: 999;
+    }
+    .progress-bar {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--mint), var(--cyan), var(--violet));
+      box-shadow: 0 0 18px var(--mint);
+    }
+
+    .shell { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px 20px;
+      border-right: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(18px);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 8px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-mark {
+      width: 42px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), transparent 12%),
+        conic-gradient(from 210deg, var(--mint), var(--cyan), var(--violet), var(--mint));
+      box-shadow: inset 0 0 0 6px var(--bg-elevated), 0 0 30px rgba(110,240,187,.14);
+      color: transparent;
+    }
+    .brand strong { display: block; font-size: 15px; letter-spacing: .02em; }
+    .brand small { display: block; color: var(--muted); font-size: 11px; }
+
+    .nav-label {
+      margin: 20px 10px 8px;
+      color: var(--faint);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-weight: 800;
+    }
+    .nav-list { display: grid; gap: 3px; }
+    .nav-link {
+      position: relative;
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      gap: 7px;
+      align-items: center;
+      padding: 9px 10px;
+      color: var(--muted);
+      border-radius: 11px;
+      font-size: 12px;
+      font-weight: 640;
+      transition: background .2s, color .2s, transform .2s;
+    }
+    .nav-link span:first-child {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 9px;
+    }
+    .nav-link:hover { color: var(--text); background: var(--surface-soft); transform: translateX(2px); }
+    .nav-link.active { color: var(--text); background: rgba(110,240,187,.09); }
+    .nav-link.active::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      width: 3px;
+      height: 23px;
+      border-radius: 6px;
+      background: var(--mint);
+      box-shadow: 0 0 14px var(--mint);
+    }
+
+    .sidebar-actions {
+      margin-top: auto;
+      padding-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .icon-btn, .button {
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .2s;
+    }
+    .icon-btn {
+      min-height: 40px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .icon-btn:hover, .button:hover { border-color: var(--border-strong); background: rgba(110,240,187,.08); transform: translateY(-1px); }
+
+    .content { min-width: 0; }
+    .page { width: min(var(--max), calc(100% - 64px)); margin: 0 auto; }
+    .section { position: relative; padding: 104px 0; border-top: 1px solid var(--border); }
+    .section:first-of-type { border-top: 0; }
+    .section-anchor { position: absolute; top: 0; }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      align-items: center;
+      padding: 76px 0 68px;
+      border: 0;
+      overflow: hidden;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr);
+      gap: 56px;
+      align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--mint);
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      font-size: 11px;
+      font-weight: 850;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
+    }
+    h1, h2, h3, h4, p { margin-top: 0; }
+    h1 {
+      margin: 22px 0;
+      font-size: clamp(3.3rem, 7.2vw, 7.3rem);
+      line-height: .88;
+      letter-spacing: -.073em;
+      max-width: 900px;
+    }
+    .gradient-text {
+      display: block;
+      color: transparent;
+      background: linear-gradient(112deg, var(--mint) 10%, var(--cyan) 55%, var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    .hero-lead {
+      max-width: 700px;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 0; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .button.primary {
+      background: var(--mint);
+      border-color: transparent;
+      color: #04110c;
+      box-shadow: 0 12px 35px rgba(36,207,144,.2);
+    }
+    .button.primary:hover { background: color-mix(in srgb, var(--mint) 86%, white); }
+    .hero-note { margin-top: 22px; color: var(--faint); font-size: 12px; }
+
+    .hero-visual {
+      position: relative;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      min-height: 460px;
+    }
+    .orb-stage {
+      position: relative;
+      width: min(520px, 100%);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+    .orb-stage::before {
+      content: "";
+      position: absolute;
+      inset: 6%;
+      background: radial-gradient(circle, rgba(110,240,187,.12), transparent 64%);
+      filter: blur(16px);
+      z-index: -2;
+    }
+    .orbit {
+      position: absolute;
+      inset: var(--inset);
+      border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+      border-radius: 50%;
+      transform: rotate(var(--rotate));
+    }
+    .orbit::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dot);
+      box-shadow: 0 0 18px var(--dot);
+    }
+    .core-orb {
+      width: 158px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background:
+        radial-gradient(circle at 36% 30%, rgba(255,255,255,.38), transparent 11%),
+        radial-gradient(circle at center, rgba(20,76,61,.98), #081511 68%);
+      border: 1px solid rgba(110,240,187,.4);
+      box-shadow: 0 0 0 18px rgba(110,240,187,.025), 0 0 80px rgba(110,240,187,.22), inset 0 0 45px rgba(110,240,187,.12);
+      z-index: 4;
+    }
+    .core-orb strong { display: block; font-size: 18px; letter-spacing: -.03em; }
+    .core-orb small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; }
+    .satellite {
+      position: absolute;
+      z-index: 5;
+      min-width: 112px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--surface-strong) 82%, transparent);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 780;
+    }
+    .satellite small { display: block; color: var(--faint); font-size: 8px; text-transform: uppercase; letter-spacing: .12em; }
+    .satellite.hub { top: 7%; left: 38%; }
+    .satellite.node { right: 2%; top: 42%; }
+    .satellite.modules { bottom: 9%; left: 38%; }
+    .satellite.protocol { left: 1%; top: 42%; }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, .45fr) minmax(0, .55fr);
+      gap: 36px;
+      align-items: end;
+      margin-bottom: 48px;
+    }
+    .kicker { color: var(--mint); font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    h2 {
+      margin: 8px 0 0;
+      font-size: clamp(2.4rem, 5vw, 5.1rem);
+      line-height: .96;
+      letter-spacing: -.06em;
+    }
+    .section-intro { margin: 0; color: var(--muted); font-size: 1.05rem; max-width: 650px; }
+    h3 { font-size: 1.36rem; line-height: 1.15; letter-spacing: -.035em; }
+    h4 { font-size: 1rem; line-height: 1.2; }
+
+    .grid-2, .grid-3, .grid-4 { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, var(--surface), color-mix(in srgb, var(--surface-strong) 82%, transparent));
+      box-shadow: 0 16px 50px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -65% 30%;
+      height: 140px;
+      pointer-events: none;
+      background: radial-gradient(circle, var(--glow, rgba(110,240,187,.08)), transparent 70%);
+    }
+    .card-body { padding: 25px; position: relative; z-index: 1; }
+    .card p:last-child { margin-bottom: 0; }
+    .card-number { color: var(--faint); font-family: var(--mono); font-size: 10px; }
+    .card-icon {
+      width: 42px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin-bottom: 28px;
+      border-radius: 13px;
+      color: var(--accent, var(--mint));
+      background: color-mix(in srgb, var(--accent, var(--mint)) 11%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent, var(--mint)) 28%, transparent);
+      font-family: var(--mono);
+      font-weight: 900;
+    }
+    .card p, .muted { color: var(--muted); }
+    .card-list { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+    .card-list li { position: relative; padding-left: 18px; color: var(--muted); font-size: 13px; }
+    .card-list li::before { content: ""; position: absolute; left: 0; top: .67em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent, var(--mint)); }
+
+    .callout {
+      position: relative;
+      padding: 24px 26px 24px 58px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface-soft);
+      color: var(--muted);
+    }
+    .callout::before {
+      content: "↳";
+      position: absolute;
+      left: 23px;
+      top: 22px;
+      color: var(--mint);
+      font-size: 22px;
+      font-weight: 900;
+    }
+    .callout strong { color: var(--text); }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 760;
+      letter-spacing: .02em;
+    }
+    .pill.fact { color: var(--mint); }
+    .pill.inference { color: var(--violet); }
+    .pill.expected { color: var(--cyan); }
+    .pill.risk { color: var(--rose); }
+
+    .diagram {
+      position: relative;
+      min-height: 420px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+        color-mix(in srgb, var(--surface-strong) 72%, transparent);
+      background-size: 28px 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .node-box {
+      position: absolute;
+      min-width: 140px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+      box-shadow: 0 16px 40px rgba(0,0,0,.18);
+      z-index: 3;
+    }
+    .node-box strong { display: block; font-size: 12px; }
+    .node-box small { display: block; color: var(--faint); font-size: 9px; margin-top: 3px; }
+    .line-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 1; }
+    .line-svg path { fill: none; stroke: var(--border-strong); stroke-width: 1.4; }
+    .line-svg .pulse { stroke: var(--mint); stroke-width: 2.2; stroke-dasharray: 8 18; filter: drop-shadow(0 0 5px var(--mint)); animation: dash 3s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -52; } }
+
+    .tabs {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .tab-list {
+      display: flex;
+      gap: 4px;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab-button {
+      flex: 1 0 auto;
+      min-height: 42px;
+      padding: 0 15px;
+      border: 0;
+      border-radius: 11px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .tab-button[aria-selected="true"] { background: rgba(110,240,187,.1); color: var(--text); }
+    .tab-panel { display: none; padding: 28px; }
+    .tab-panel.active { display: block; animation: panelIn .3s ease both; }
+    @keyframes panelIn { from { opacity: 0; transform: translateY(8px); } }
+
+    .flow-layout { display: grid; grid-template-columns: 320px minmax(0,1fr); gap: 28px; align-items: start; }
+    .flow-nav { position: sticky; top: 26px; display: grid; gap: 7px; }
+    .flow-step-btn {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+    }
+    .flow-step-btn .index {
+      width: 30px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 9px;
+    }
+    .flow-step-btn strong { font-size: 12px; }
+    .flow-step-btn.active { color: var(--text); border-color: var(--border); background: var(--surface-soft); }
+    .flow-step-btn.active .index { color: #04100c; border-color: var(--mint); background: var(--mint); }
+    .flow-cards { display: grid; gap: 22px; }
+    .flow-card { min-height: 370px; padding: 34px; scroll-margin-top: 24px; }
+    .flow-card .step-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 50px; }
+    .flow-card h3 { font-size: clamp(1.8rem,3vw,3rem); }
+    .flow-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+
+    .matrix-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { padding: 15px 17px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--faint); background: var(--surface-soft); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+    td { color: var(--muted); font-size: 12px; }
+    td strong { color: var(--text); }
+    tr:last-child td { border-bottom: 0; }
+
+    .timeline { position: relative; display: grid; gap: 18px; padding-left: 34px; }
+    .timeline::before { content: ""; position: absolute; left: 10px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(var(--mint), var(--cyan), var(--violet)); }
+    .timeline-item { position: relative; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
+    .timeline-item::before { content: ""; position: absolute; left: -30px; top: 27px; width: 11px; height: 11px; border: 3px solid var(--bg); border-radius: 50%; background: var(--mint); box-shadow: 0 0 15px var(--mint); }
+    .timeline-item small { color: var(--mint); font-family: var(--mono); font-size: 10px; }
+
+    .autonomy-ladder { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; align-items: end; }
+    .level {
+      min-height: calc(120px + var(--height));
+      padding: 16px 13px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(to top, color-mix(in srgb, var(--accent) 12%, var(--surface-strong)), var(--surface));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .level b { color: var(--accent); font-family: var(--mono); font-size: 21px; }
+    .level strong { font-size: 11px; }
+    .level small { color: var(--faint); font-size: 9px; margin-top: 6px; }
+
+    .metric-strip { display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .metric { padding: 22px; background: var(--surface-soft); border-right: 1px solid var(--border); }
+    .metric:last-child { border-right: 0; }
+    .metric strong { display: block; font-size: 1.45rem; letter-spacing: -.04em; }
+    .metric small { display: block; color: var(--muted); font-size: 10px; margin-top: 6px; }
+
+    .modal {
+      width: min(760px, calc(100% - 32px));
+      max-height: 86vh;
+      padding: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 24px;
+      background: var(--surface-strong);
+      color: var(--text);
+      box-shadow: 0 40px 120px rgba(0,0,0,.5);
+      overflow: auto;
+    }
+    .modal::backdrop { background: rgba(1,8,6,.78); backdrop-filter: blur(8px); }
+    .modal-head { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 20px 24px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong) 92%, transparent); backdrop-filter: blur(18px); z-index: 2; }
+    .modal-head h3 { margin: 0; }
+    .modal-body { padding: 26px; }
+    .modal-close { width: 38px; aspect-ratio: 1; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-soft); cursor: pointer; }
+
+    .faq { display: grid; gap: 10px; }
+    details { border: 1px solid var(--border); border-radius: 15px; background: var(--surface-soft); }
+    summary { padding: 18px 20px; cursor: pointer; font-weight: 800; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; float: right; color: var(--mint); }
+    details[open] summary::after { content: "−"; }
+    details p, details ul { margin: 0; padding: 0 20px 20px; color: var(--muted); }
+
+    .source-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .source-link { display: block; padding: 14px 15px; border: 1px solid var(--border); border-radius: 13px; color: var(--muted); font-size: 11px; background: var(--surface-soft); }
+    .source-link:hover { color: var(--text); border-color: var(--border-strong); }
+
+    .footer { padding: 56px 0 80px; border-top: 1px solid var(--border); color: var(--muted); }
+    .footer-grid { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: end; }
+    .footer strong { color: var(--text); display: block; font-size: 1.4rem; }
+    .footer small { display: block; margin-top: 6px; }
+
+    .mobile-topbar { display: none; }
+    .reveal { opacity: 1; transform: none; }
+    .js .reveal { opacity: 0; transform: translateY(24px); }
+
+    @media (max-width: 1060px) {
+      :root { --sidebar: 240px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 400px; max-width: 600px; margin: 0 auto; width: 100%; }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .section-head { grid-template-columns: 1fr; }
+      .flow-layout { grid-template-columns: 1fr; }
+      .flow-nav { position: static; grid-template-columns: repeat(5, minmax(0,1fr)); overflow-x: auto; }
+      .flow-step-btn { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .autonomy-ladder { grid-template-columns: repeat(3,1fr); }
+    }
+
+    @media (max-width: 780px) {
+      .shell { display: block; }
+      .sidebar { position: fixed; inset: 0 auto 0 0; width: min(88vw, 320px); transform: translateX(-105%); transition: transform .28s ease; box-shadow: var(--shadow); }
+      body.nav-open .sidebar { transform: translateX(0); }
+      .mobile-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 25;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 58px;
+        padding: 0 16px;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(16px);
+      }
+      .mobile-topbar button { border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); width: 38px; height: 38px; }
+      .page { width: min(100% - 32px, var(--max)); }
+      .section { padding: 76px 0; }
+      h1 { font-size: clamp(3.5rem, 18vw, 5.7rem); }
+      h2 { font-size: clamp(2.5rem, 12vw, 4.2rem); }
+      .hero { padding-top: 42px; }
+      .hero-visual { min-height: 340px; }
+      .satellite { min-width: 90px; padding: 8px; font-size: 9px; }
+      .core-orb { width: 120px; }
+      .diagram {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        min-height: 0 !important;
+        padding: 16px;
+        overflow: visible;
+      }
+      .diagram .line-svg { display: none; }
+      .diagram .node-box {
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+        width: 100%;
+        min-width: 0 !important;
+        text-align: left !important;
+      }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .flow-card-grid { grid-template-columns: 1fr; }
+      .metric-strip { grid-template-columns: 1fr 1fr; }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+      .autonomy-ladder { grid-template-columns: 1fr 1fr; align-items: stretch; }
+      .level { min-height: 145px; }
+      .source-list { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      .js .reveal { opacity: 1; transform: none; }
+    }
+
+    @media print {
+      :root { --text: #111; --muted: #444; --faint: #666; --bg: #fff; --surface: #fff; --surface-strong: #fff; --border: #d8dedb; }
+      body { background: #fff; font-size: 10pt; }
+      body::before, .sidebar, .mobile-topbar, .progress-track, .hero-actions, .orb-stage, .no-print { display: none !important; }
+      .shell { display: block; }
+      .page { width: 100%; max-width: none; }
+      .section, .hero { min-height: 0; padding: 28px 0; break-inside: auto; }
+      .card, .timeline-item, .flow-card, .callout, details { break-inside: avoid; box-shadow: none; }
+      .diagram { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-height: 0 !important; padding: 10px; background: none; box-shadow: none; }
+      .diagram .line-svg { display: none; }
+      .diagram .node-box { position: static !important; inset: auto !important; transform: none !important; min-width: 0 !important; text-align: left !important; }
+      .reveal, .js .reveal { opacity: 1 !important; transform: none !important; }
+      h1 { font-size: 42pt; }
+      h2 { font-size: 27pt; }
+      a { text-decoration: underline; }
+    }
+  </style>
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <div class="progress-track" aria-hidden="true"><span class="progress-bar"></span></div>
+
+  <div class="mobile-topbar">
+    <button id="navToggle" aria-label="Abrir navegação" aria-expanded="false">☰</button>
+    <strong>EvolutionOS</strong>
+    <button class="theme-toggle" aria-label="Alternar tema">◐</button>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="Navegação do guia">
+      <a class="brand" href="#inicio">
+        <span class="brand-mark" aria-hidden="true">E</span>
+        <span><strong>EvolutionOS</strong><small>Guia de referência · v1.0</small></span>
+      </a>
+
+      <div class="nav-label">Compreender</div>
+      <nav class="nav-list">
+        <a class="nav-link active" href="#inicio"><span>00</span><span>Visão geral</span></a>
+        <a class="nav-link" href="#problema"><span>01</span><span>O problema</span></a>
+        <a class="nav-link" href="#modelo"><span>02</span><span>Modelo mental</span></a>
+        <a class="nav-link" href="#operacao"><span>03</span><span>Como é instalado</span></a>
+        <a class="nav-link" href="#fluxo"><span>04</span><span>Fluxo cronológico</span></a>
+      </nav>
+
+      <div class="nav-label">Aprofundar</div>
+      <nav class="nav-list">
+        <a class="nav-link" href="#twin"><span>05</span><span>Project Twin</span></a>
+        <a class="nav-link" href="#agentes"><span>06</span><span>Agentes e runtime</span></a>
+        <a class="nav-link" href="#extensoes"><span>07</span><span>Módulos, Skills e MCP</span></a>
+        <a class="nav-link" href="#autonomia"><span>08</span><span>Autonomia e segurança</span></a>
+        <a class="nav-link" href="#experiencia"><span>09</span><span>Dashboards</span></a>
+      </nav>
+
+      <div class="nav-label">Aplicar</div>
+      <nav class="nav-list">
+        <a class="nav-link" href="#cenarios"><span>10</span><span>Cenários por escala</span></a>
+        <a class="nav-link" href="#roadmap"><span>11</span><span>Roadmap</span></a>
+        <a class="nav-link" href="#critica"><span>12</span><span>Riscos e premortem</span></a>
+        <a class="nav-link" href="#comecar"><span>13</span><span>Como começar</span></a>
+        <a class="nav-link" href="#referencias"><span>14</span><span>Referências e FAQ</span></a>
+      </nav>
+
+      <div class="sidebar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="Alternar tema">Tema</button>
+        <button class="icon-btn" type="button" onclick="window.print()">Imprimir</button>
+      </div>
+    </aside>
+
+    <div class="content">
+      <main id="conteudo">
+        <section class="hero section" id="inicio">
+          <div class="page hero-grid">
+            <div class="hero-copy">
+              <span class="eyebrow">Sistema operacional de evolução justificável</span>
+              <h1>Construa.<span class="gradient-text">Observe. Evolua.</span></h1>
+              <p class="hero-lead">Um ecossistema agêntico que mantém a intenção, a arquitetura, o código, o harness de IA e as decisões de um produto conectados ao que muda dentro e fora dele.</p>
+              <div class="hero-actions">
+                <a class="button primary" href="#fluxo">Percorrer o fluxo <span aria-hidden="true">↓</span></a>
+                <button class="button" type="button" data-open-modal="mentalModelModal">Entender em 90 segundos</button>
+              </div>
+              <p class="hero-note">Não é um atualizador automático. É uma camada de evidência, decisão, experimento e aprendizado.</p>
+            </div>
+
+            <div class="hero-visual" aria-label="Representação visual das quatro superfícies do EvolutionOS">
+              <div class="orb-stage">
+                <div class="orbit" style="--inset:8%;--rotate:12deg;--dot:var(--mint)"></div>
+                <div class="orbit" style="--inset:20%;--rotate:88deg;--dot:var(--cyan)"></div>
+                <div class="orbit" style="--inset:31%;--rotate:152deg;--dot:var(--violet)"></div>
+                <div class="core-orb"><div><strong>Project Twin</strong><small>memória viva</small></div></div>
+                <div class="satellite hub"><small>Control Plane</small>Evolution Hub</div>
+                <div class="satellite node"><small>Data Plane</small>Evolution Node</div>
+                <div class="satellite modules"><small>Capabilities</small>Modules</div>
+                <div class="satellite protocol"><small>Contracts</small>Protocol</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="problema">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">01 · O problema</span><h2>Inovação tem meia-vida.</h2></div>
+              <p class="section-intro">Uma ideia pode nascer moderna e perder relevância rapidamente. O risco não é apenas uma dependência antiga: produto, arquitetura, operação e harness de IA envelhecem em velocidades diferentes.</p>
+            </header>
+
+            <div class="grid-4">
+              <article class="card reveal" data-tilt style="--accent:var(--mint)">
+                <div class="card-body">
+                  <div class="card-icon">01</div>
+                  <h3>Mudança externa</h3>
+                  <p>Novos concorrentes, regulações, modelos, padrões, APIs e capacidades alteram o contexto em que a ideia fazia sentido.</p>
+                  <ul class="card-list">
+                    <li>Release, EOL ou vulnerabilidade</li>
+                    <li>Nova capability substituta</li>
+                    <li>Mudança de comportamento do cliente</li>
+                  </ul>
+                </div>
+              </article>
+              <article class="card reveal" data-tilt style="--accent:var(--cyan)">
+                <div class="card-body">
+                  <div class="card-icon">02</div>
+                  <h3>Deriva interna</h3>
+                  <p>Decisões locais, exceções e entregas rápidas afastam o sistema da intenção e da arquitetura originais.</p>
+                  <ul class="card-list">
+                    <li>Arquitetura declarada ≠ observada</li>
+                    <li>Documentação desatualizada</li>
+                    <li>Dívida cognitiva e operacional</li>
+                  </ul>
+                </div>
+              </article>
+              <article class="card reveal" data-tilt style="--accent:var(--violet)">
+                <div class="card-body">
+                  <div class="card-icon">03</div>
+                  <h3>Harness envelhecido</h3>
+                  <p>Prompts, Skills, MCPs, modelos e evals acumulam workarounds que um runtime mais novo talvez já não precise.</p>
+                  <ul class="card-list">
+                    <li>Skills redundantes ou incompatíveis</li>
+                    <li>Modelo atualizado sem regressão testada</li>
+                    <li>Permissões maiores que a necessidade</li>
+                  </ul>
+                </div>
+              </article>
+              <article class="card reveal" data-tilt style="--accent:var(--rose)">
+                <div class="card-body">
+                  <div class="card-icon">04</div>
+                  <h3>Memória fragmentada</h3>
+                  <p>PRDs, ADRs, repositórios, incidentes e pesquisas ficam separados. Cada nova análise reconstrói o contexto parcialmente.</p>
+                  <ul class="card-list">
+                    <li>Decisões rejeitadas reaparecem</li>
+                    <li>Recomendações parecem genéricas</li>
+                    <li>Não se sabe se a mudança melhorou</li>
+                  </ul>
+                </div>
+              </article>
+            </div>
+
+            <div class="callout reveal" style="margin-top:24px">
+              <strong>A pergunta correta não é “qual tecnologia nova devo instalar?”.</strong> É “o que mudou, por que isso afeta este projeto, quais opções existem, como testar e como comprovar que melhorou?”.
+            </div>
+
+            <div class="metric-strip reveal" style="margin-top:24px">
+              <div class="metric"><strong>Relevância</strong><small>Mais importante que novidade</small></div>
+              <div class="metric"><strong>Evidência</strong><small>Mais forte que persuasão</small></div>
+              <div class="metric"><strong>Reversibilidade</strong><small>Antes de autonomia</small></div>
+              <div class="metric"><strong>Aprendizado</strong><small>Além do merge</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="modelo">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">02 · Modelo mental</span><h2>Quatro superfícies. Uma memória.</h2></div>
+              <p class="section-intro">O ecossistema separa coordenação, execução local, extensões e contratos. O Project Twin conecta essas superfícies sem transformar um dashboard ou um modelo de IA em fonte absoluta de verdade.</p>
+            </header>
+
+            <div class="diagram reveal" aria-label="Arquitetura conceitual Hub, Node, Modules e Protocol">
+              <svg class="line-svg" viewBox="0 0 1000 440" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M500 85 C500 140 500 165 500 205"></path>
+                <path d="M500 250 C500 300 500 315 500 362"></path>
+                <path d="M320 220 C400 220 420 220 455 220"></path>
+                <path d="M545 220 C620 220 670 220 735 220"></path>
+                <path class="pulse" d="M500 85 C500 140 500 165 500 205 C500 300 500 315 500 362"></path>
+                <path class="pulse" d="M320 220 C400 220 420 220 455 220 C620 220 670 220 735 220"></path>
+              </svg>
+              <div class="node-box" style="left:50%;top:10%;transform:translateX(-50%);border-color:color-mix(in srgb,var(--mint) 45%,transparent)">
+                <strong>Evolution Hub</strong><small>coordenação · portfólio · políticas</small>
+              </div>
+              <div class="node-box" style="left:50%;top:50%;transform:translate(-50%,-50%);min-width:180px;text-align:center;border-color:color-mix(in srgb,var(--cyan) 45%,transparent)">
+                <strong>Project Twin</strong><small>intenção · sistema · decisão · outcome</small>
+              </div>
+              <div class="node-box" style="left:9%;top:50%;transform:translateY(-50%);border-color:color-mix(in srgb,var(--violet) 45%,transparent)">
+                <strong>Evolution Modules</strong><small>sensores · Skills · MCPs · evals</small>
+              </div>
+              <div class="node-box" style="right:8%;top:50%;transform:translateY(-50%);border-color:color-mix(in srgb,var(--amber) 45%,transparent)">
+                <strong>Evolution Protocol</strong><small>manifest · event · proposal · proof</small>
+              </div>
+              <div class="node-box" style="left:50%;bottom:9%;transform:translateX(-50%);border-color:color-mix(in srgb,var(--rose) 45%,transparent)">
+                <strong>Evolution Node</strong><small>execução local · sandbox · sync</small>
+              </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:22px">
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">CONTROL PLANE</span>
+                  <h3>Evolution Hub</h3>
+                  <p>É a torre de controle opcional: registra projetos, organiza evidências, apresenta dashboards, aplica governança e coordena campanhas entre equipes.</p>
+                  <div class="pill-row"><span class="pill">Registry</span><span class="pill">Portfolio</span><span class="pill">Policies</span><span class="pill">Decisions</span></div>
+                </div>
+              </article>
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">DATA PLANE</span>
+                  <h3>Evolution Node</h3>
+                  <p>É o piloto próximo do projeto. Observa código e dados locais, executa módulos, cria snapshots, prepara experimentos e devolve somente artefatos autorizados.</p>
+                  <div class="pill-row"><span class="pill">Local-first</span><span class="pill">Sandbox</span><span class="pill">Capability broker</span></div>
+                </div>
+              </article>
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">EXTENSION PLANE</span>
+                  <h3>Evolution Modules</h3>
+                  <p>São unidades instaláveis, versionadas e avaliadas. Podem incluir sensores, analisadores, Skills, MCP adapters, policies, UI e executores.</p>
+                  <div class="pill-row"><span class="pill">Signed</span><span class="pill">SBOM</span><span class="pill">Evals</span><span class="pill">Rollback</span></div>
+                </div>
+              </article>
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">CONTRACT PLANE</span>
+                  <h3>Evolution Protocol</h3>
+                  <p>É o idioma portável do ecossistema: schemas e envelopes que impedem o conhecimento de ficar preso ao Hub, ao Node ou a um fornecedor.</p>
+                  <div class="pill-row"><span class="pill">Open contracts</span><span class="pill">CloudEvents</span><span class="pill">Exportable</span></div>
+                </div>
+              </article>
+            </div>
+
+            <div class="callout reveal" style="margin-top:22px">
+              <strong>Imagem mental definitiva:</strong> o Hub é a torre de controle; o Node é o piloto local; os módulos são instrumentos e capacidades; o Protocol é o idioma comum; o Project Twin é a memória viva.
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="operacao">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">03 · Instalação e operação</span><h2>Ele roda ao lado, não dentro.</h2></div>
+              <p class="section-intro">EvolutionOS não entra no caminho crítico da aplicação. O Node roda em paralelo como CLI, daemon, container, job de CI ou serviço de cluster. O Hub pode existir na nuvem, self-hosted ou nem existir.</p>
+            </header>
+
+            <div class="tabs reveal" data-tabs>
+              <div class="tab-list" role="tablist" aria-label="Perfis de operação">
+                <button class="tab-button" role="tab" aria-selected="true" aria-controls="tab-idea">Ideia</button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-solo">Projeto local</button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-team">Equipe</button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-enterprise">Enterprise</button>
+              </div>
+              <div class="tab-panel active" id="tab-idea" role="tabpanel">
+                <div class="grid-2">
+                  <div><span class="kicker">Sem código, sem problema</span><h3 style="font-size:2rem;margin-top:10px">Workspace de descoberta</h3><p class="muted">O projeto nasce no Hub ou num workspace local com problema, público, outcomes, hipóteses, restrições e evidências externas. Não há exigência de stack ou repositório.</p></div>
+                  <div class="callout"><strong>Primeiro valor:</strong> descobrir se a ideia continua relevante, quais substitutos existem e qual hipótese deve ser testada antes de construir.</div>
+                </div>
+              </div>
+              <div class="tab-panel" id="tab-solo" role="tabpanel">
+                <div class="grid-2">
+                  <div><span class="kicker">Standalone</span><h3 style="font-size:2rem;margin-top:10px">Node no repositório</h3><p class="muted">Uma CLI inicializa o manifesto, constrói o snapshot e gera relatório/proposta localmente. SQLite e artefatos locais bastam; conta ou upload não são obrigatórios.</p></div>
+                  <div class="callout"><strong>Forma típica:</strong> execução manual ou agendada no Mac, container Docker ou job local de CI. O Node dorme entre os ciclos.</div>
+                </div>
+              </div>
+              <div class="tab-panel" id="tab-team" role="tabpanel">
+                <div class="grid-2">
+                  <div><span class="kicker">Colaboração</span><h3 style="font-size:2rem;margin-top:10px">Hub compartilhado + Nodes</h3><p class="muted">O Hub concentra inbox, decisões, módulos e políticas. Um ou mais Nodes cobrem os repositórios e ambientes do time, mantendo execução sensível perto do projeto.</p></div>
+                  <div class="callout"><strong>Forma típica:</strong> Hub com PostgreSQL e workers; Node como runner; integração com GitHub/GitLab, CI, observability e issue tracker.</div>
+                </div>
+              </div>
+              <div class="tab-panel" id="tab-enterprise" role="tabpanel">
+                <div class="grid-2">
+                  <div><span class="kicker">Federação</span><h3 style="font-size:2rem;margin-top:10px">Nodes por domínio ou zona</h3><p class="muted">O Hub coordena portfólio e campanhas. Nodes ficam em redes, regiões ou domínios de negócio diferentes. Não é necessário um Node por microserviço.</p></div>
+                  <div class="callout"><strong>Forma típica:</strong> SaaS federado ou Hub self-hosted, SSO/SCIM, KMS, registry privado, SIEM, policy packs e sincronização mínima.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:24px">
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">O NODE É ACIONADO POR</span>
+                  <h3>Eventos e agenda</h3>
+                  <ul class="card-list">
+                    <li>Registro ou atualização do manifesto</li>
+                    <li>Commit, pull request, CI ou deploy</li>
+                    <li>Nova vulnerabilidade, EOL ou release</li>
+                    <li>Mudança em modelo, Skill, MCP ou policy</li>
+                    <li>Queda de métrica, incidente ou feedback</li>
+                    <li>Execução manual, diária ou semanal</li>
+                  </ul>
+                </div>
+              </article>
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">O NODE NÃO É</span>
+                  <h3>Parte do request da aplicação</h3>
+                  <ul class="card-list" style="--accent:var(--rose)">
+                    <li>Não atende tráfego de cliente</li>
+                    <li>Não substitui CI, observability ou SCM</li>
+                    <li>Não injeta um agente permanente em produção</li>
+                    <li>Não abre acesso irrestrito aos modelos</li>
+                    <li>Não envia código ao Hub por padrão</li>
+                    <li>Não atualiza tudo que ficou “antigo”</li>
+                  </ul>
+                </div>
+              </article>
+            </div>
+
+            <div class="matrix-wrap reveal" style="margin-top:24px">
+              <table>
+                <thead><tr><th>Modo de sincronização</th><th>O que chega ao Hub</th><th>Quando usar</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Standalone</strong></td><td>Nada. Twin, evidência e propostas permanecem locais.</td><td>Uso pessoal, air-gap ou primeiro teste.</td></tr>
+                  <tr><td><strong>metadata-only</strong></td><td>Identidade, versões, status, coverage e health mínimos.</td><td>Ambiente restrito com portfolio view limitada.</td></tr>
+                  <tr><td><strong>derived-only</strong></td><td>Findings e métricas derivados, sem código/log bruto.</td><td>Enterprise federado; default recomendado.</td></tr>
+                  <tr><td><strong>artifact-approved</strong></td><td>Artefatos específicos após aprovação explícita.</td><td>Dados confidenciais ou investigações controladas.</td></tr>
+                  <tr><td><strong>full-sync</strong></td><td>Conteúdo completo permitido pela política.</td><td>Ambiente próprio/controlado ou projeto público.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="fluxo">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">04 · Cronologia</span><h2>Do sinal ao aprendizado.</h2></div>
+              <p class="section-intro">O coração do EvolutionOS é um loop fechado. Detectar algo novo é só o início; a decisão só termina depois que o resultado foi verificado e incorporado à memória.</p>
+            </header>
+
+            <div class="flow-layout">
+              <nav class="flow-nav reveal" aria-label="Etapas do fluxo">
+                <button class="flow-step-btn active" data-target="flow-0"><span class="index">00</span><strong>Registrar</strong></button>
+                <button class="flow-step-btn" data-target="flow-1"><span class="index">01</span><strong>Observar</strong></button>
+                <button class="flow-step-btn" data-target="flow-2"><span class="index">02</span><strong>Compreender</strong></button>
+                <button class="flow-step-btn" data-target="flow-3"><span class="index">03</span><strong>Curar evidência</strong></button>
+                <button class="flow-step-btn" data-target="flow-4"><span class="index">04</span><strong>Avaliar relevância</strong></button>
+                <button class="flow-step-btn" data-target="flow-5"><span class="index">05</span><strong>Desafiar</strong></button>
+                <button class="flow-step-btn" data-target="flow-6"><span class="index">06</span><strong>Propor</strong></button>
+                <button class="flow-step-btn" data-target="flow-7"><span class="index">07</span><strong>Decidir</strong></button>
+                <button class="flow-step-btn" data-target="flow-8"><span class="index">08</span><strong>Experimentar</strong></button>
+                <button class="flow-step-btn" data-target="flow-9"><span class="index">09</span><strong>Verificar e aprender</strong></button>
+              </nav>
+
+              <div class="flow-cards">
+                <article class="card flow-card reveal" id="flow-0">
+                  <div class="step-meta"><span class="pill fact">Declarado</span><span class="pill">Manifest</span><span class="pill">Humano no comando</span></div>
+                  <h3>00. Registrar intenção e limites</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">O projeto recebe identidade, problema, público, outcomes, hipóteses, restrições, owners, fontes, arquitetura, harness e teto de autonomia. Uma ideia pode declarar explicitamente o que ainda é desconhecido.</p>
+                    <div class="callout"><strong>Saída:</strong> Project Manifest versionado e um Twin skeleton. Secrets e tokens nunca entram no manifesto.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-1">
+                  <div class="step-meta"><span class="pill fact">Sensor</span><span class="pill">A0</span><span class="pill">Read-only</span></div>
+                  <h3>01. Observar o mundo e o sistema</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">Sensores internos leem repositório, CI, IaC, SBOM, telemetria, incidentes e harness. Sensores externos acompanham documentação oficial, advisories, padrões, mercado e pesquisa.</p>
+                    <div class="callout"><strong>Regra:</strong> conteúdo externo é dado não confiável, nunca instrução. Cada leitura produz source snapshot, hash, data e classificação.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-2">
+                  <div class="step-meta"><span class="pill">Cartography</span><span class="pill inference">Inferência controlada</span><span class="pill">Snapshot</span></div>
+                  <h3>02. Compreender o estado atual</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">O Project Cartographer e analisadores determinísticos constroem entidades e relações: serviços, módulos, APIs, eventos, dependências, decisões, políticas e componentes do harness.</p>
+                    <div class="callout"><strong>Saída:</strong> snapshot imutável, coverage e freshness. O sistema mostra o que não conseguiu observar.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-3">
+                  <div class="step-meta"><span class="pill fact">Evidence</span><span class="pill">Claims</span><span class="pill risk">Contradições</span></div>
+                  <h3>03. Curar evidência, não copiar notícias</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">O Evidence Curator separa claims, origem, autoridade, validade, recência e contraditório. Marketing de fornecedor não recebe o mesmo peso que especificação, advisory ou medição própria.</p>
+                    <div class="callout"><strong>Saída:</strong> Evidence Records ligados ao snapshot. Contradições permanecem visíveis e não são resumidas como consenso.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-4">
+                  <div class="step-meta"><span class="pill inference">Contextual</span><span class="pill">Impact graph</span><span class="pill">No hype</span></div>
+                  <h3>04. Calcular relevância para este projeto</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">A análise considera evidência, exposição real, alinhamento estratégico, urgência, confiança, custo da mudança, risco e reversibilidade. Não existe uma nota universal de obsolescência.</p>
+                    <div class="callout"><strong>Saída:</strong> Finding contextualizado com score decomposto, afetados, “por que agora?” e custo de não agir.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-5">
+                  <div class="step-meta"><span class="pill risk">Red team</span><span class="pill">Falsificação</span><span class="pill">Alternativas</span></div>
+                  <h3>05. Procurar motivos para não mudar</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">O Challenger busca evidência contrária, dependências ocultas, custos omitidos e explicações alternativas. Diversidade vem de métodos e fontes diferentes, não apenas de várias personas usando o mesmo modelo.</p>
+                    <div class="callout"><strong>Gate:</strong> se o contexto for insuficiente, o fluxo volta para investigação. “Não sabemos” é uma saída válida.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-6">
+                  <div class="step-meta"><span class="pill expected">Proposal</span><span class="pill">Options</span><span class="pill">Proof plan</span></div>
+                  <h3>06. Criar uma Evolution Proposal</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">A proposta explica problema, trigger, claims, alternativas, recomendação, contraditório, impacto em produto/arquitetura/harness, plano, riscos, approvals e critérios de verificação.</p>
+                    <div class="callout"><strong>Não é um alerta.</strong> É um contrato de decisão legível por pessoas e agentes, vinculado a evidências e a um snapshot exato.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-7">
+                  <div class="step-meta"><span class="pill">Policy</span><span class="pill">Approval</span><span class="pill fact">Decision memory</span></div>
+                  <h3>07. Decidir: observar, rejeitar ou avançar</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">A decisão pode ser watch, investigate, defer, reject, experiment ou adopt. Aprovação referencia o digest do plano; qualquer alteração material invalida a autorização.</p>
+                    <div class="callout"><strong>Memória:</strong> rejeição não desaparece. Ela guarda razão e review trigger para só reabrir com evidência nova.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-8">
+                  <div class="step-meta"><span class="pill">A2–A4</span><span class="pill">Sandbox</span><span class="pill risk">Stop conditions</span></div>
+                  <h3>08. Experimentar antes de promover</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">O Node reserva sandbox e capabilities, cria variante, executa testes, evals e checks. Transformações determinísticas são preferidas; coding agents tratam somente o residual.</p>
+                    <div class="callout"><strong>Controle:</strong> budget, timeout, egress, canary, rollback e stop conditions são definidos antes da execução.</div>
+                  </div>
+                </article>
+
+                <article class="card flow-card reveal" id="flow-9">
+                  <div class="step-meta"><span class="pill fact">Proof</span><span class="pill expected">Outcome</span><span class="pill">Review trigger</span></div>
+                  <h3>09. Verificar, aprender e fechar o loop</h3>
+                  <div class="flow-card-grid">
+                    <p class="muted">O Verifier compara baseline e variante em comportamento, segurança, arquitetura, custo, latência e outcome. O resultado pode ser verified, failed ou inconclusive.</p>
+                    <div class="callout"><strong>Fim verdadeiro:</strong> decision, change digest, proof artifacts e outcome entram no Twin e alteram como sinais futuros serão interpretados.</div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="twin">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">05 · Project Twin</span><h2>A memória que não confunde fato e hipótese.</h2></div>
+              <p class="section-intro">O Twin não é uma cópia perfeita da organização. É um modelo temporal, rastreável e incompleto por design, capaz de dizer de onde veio cada afirmação e por quanto tempo ela é válida.</p>
+            </header>
+
+            <div class="grid-4">
+              <article class="card reveal" style="--accent:var(--mint)">
+                <div class="card-body">
+                  <div class="card-icon">D</div>
+                  <h3>Declared</h3>
+                  <p>Intenção ou regra explicitada por uma autoridade.</p>
+                  <div class="callout" style="padding:16px 16px 16px 42px;font-size:12px">“Dados restricted devem permanecer locais.”</div>
+                </div>
+              </article>
+              <article class="card reveal" style="--accent:var(--cyan)">
+                <div class="card-body">
+                  <div class="card-icon">O</div>
+                  <h3>Observed</h3>
+                  <p>Fato medido por um sensor em um momento e ambiente.</p>
+                  <div class="callout" style="padding:16px 16px 16px 42px;font-size:12px">“O repo usa runtime 3.1 no snapshot S.”</div>
+                </div>
+              </article>
+              <article class="card reveal" style="--accent:var(--violet)">
+                <div class="card-body">
+                  <div class="card-icon">I</div>
+                  <h3>Inferred</h3>
+                  <p>Conclusão derivada por regra, análise ou modelo.</p>
+                  <div class="callout" style="padding:16px 16px 16px 42px;font-size:12px">“A migração pode reduzir custo em 15–25%.”</div>
+                </div>
+              </article>
+              <article class="card reveal" style="--accent:var(--amber)">
+                <div class="card-body">
+                  <div class="card-icon">E</div>
+                  <h3>Expected</h3>
+                  <p>Estado futuro, baseline ou outcome pretendido.</p>
+                  <div class="callout" style="padding:16px 16px 16px 42px;font-size:12px">“Replay deve manter 99,5% de sucesso.”</div>
+                </div>
+              </article>
+            </div>
+
+            <div class="diagram reveal" style="margin-top:24px;min-height:390px" aria-label="Lineage de evidência e decisão">
+              <svg class="line-svg" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M105 195 L220 195 L330 195 L445 195 L555 195 L670 195 L780 195 L895 195"></path>
+                <path class="pulse" d="M105 195 L220 195 L330 195 L445 195 L555 195 L670 195 L780 195 L895 195"></path>
+              </svg>
+              <div class="node-box" style="left:3%;top:50%;transform:translateY(-50%)"><strong>Source</strong><small>snapshot + hash</small></div>
+              <div class="node-box" style="left:17%;top:50%;transform:translateY(-50%)"><strong>Evidence</strong><small>authority + time</small></div>
+              <div class="node-box" style="left:31%;top:50%;transform:translateY(-50%)"><strong>Claim</strong><small>supports / contradicts</small></div>
+              <div class="node-box" style="left:45%;top:50%;transform:translateY(-50%)"><strong>Finding</strong><small>contextual impact</small></div>
+              <div class="node-box" style="left:59%;top:50%;transform:translateY(-50%)"><strong>Proposal</strong><small>options + plan</small></div>
+              <div class="node-box" style="left:73%;top:50%;transform:translateY(-50%)"><strong>Decision</strong><small>reason + trigger</small></div>
+              <div class="node-box" style="right:2%;top:50%;transform:translateY(-50%)"><strong>Proof</strong><small>outcome + learning</small></div>
+            </div>
+
+            <div class="grid-2" style="margin-top:24px">
+              <article class="card reveal"><div class="card-body"><h3>Bitemporalidade</h3><p>Entidades críticas registram quando um fato era válido no domínio e quando o sistema tomou conhecimento dele. Uma correção não apaga o que se acreditava no passado.</p><div class="pill-row"><span class="pill">valid_time</span><span class="pill">system_time</span><span class="pill">supersession</span></div></div></article>
+              <article class="card reveal"><div class="card-body"><h3>Projeções, não novas verdades</h3><p>PostgreSQL mantém fatos e decisões. Graph, search e vector indexes são projeções reconstruíveis para impacto e descoberta sem virar autoridade factual.</p><div class="pill-row"><span class="pill">Relational SoR</span><span class="pill">Graph projection</span><span class="pill">Vector retrieval</span></div></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="agentes">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">06 · Runtime agêntico</span><h2>Especialistas com contratos, não uma multidão de personas.</h2></div>
+              <p class="section-intro">Os agentes são papéis executáveis dentro de workflows duráveis. Cada papel recebe contexto mínimo, capabilities explícitas, output estruturado, budget e evals. O Orchestrator coordena; ele não faz tudo.</p>
+            </header>
+
+            <div class="grid-3">
+              <article class="card reveal" data-tilt style="--accent:var(--mint)"><div class="card-body"><span class="card-number">COORDENAÇÃO</span><h3>Evolution Orchestrator</h3><p>Decompõe runs, aplica checkpoints, controla budget e encaminha artefatos entre especialistas.</p><div class="pill-row"><span class="pill">plan</span><span class="pill">checkpoint</span><span class="pill">resume</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--cyan)"><div class="card-body"><span class="card-number">CONTEXTO</span><h3>Project Cartographer</h3><p>Mapeia entidades, relações e cobertura usando sensores determinísticos antes de inferência.</p><div class="pill-row"><span class="pill">snapshot</span><span class="pill">topology</span><span class="pill">coverage</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--violet)"><div class="card-body"><span class="card-number">EVIDÊNCIA</span><h3>Evidence Curator</h3><p>Extrai claims, qualifica fontes, mantém contraditório e evita que conteúdo externo vire instrução.</p><div class="pill-row"><span class="pill">claim</span><span class="pill">authority</span><span class="pill">lineage</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--amber)"><div class="card-body"><span class="card-number">AMBIENTE</span><h3>External Scout</h3><p>Busca mudanças tecnológicas, mercadológicas, regulatórias e de standards em fontes autorizadas.</p><div class="pill-row"><span class="pill">change signal</span><span class="pill">watchlist</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--mint)"><div class="card-body"><span class="card-number">IMPACTO</span><h3>Relevance Analyst</h3><p>Relaciona evidência à exposição, estratégia, urgência, custo e risco específicos do projeto.</p><div class="pill-row"><span class="pill">impact graph</span><span class="pill">confidence</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--cyan)"><div class="card-body"><span class="card-number">PRODUTO</span><h3>Product Challenger</h3><p>Questiona problema, público, diferenciação, hipótese e outcome antes de recomendar construção.</p><div class="pill-row"><span class="pill">desirability</span><span class="pill">experiment</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--violet)"><div class="card-body"><span class="card-number">SISTEMA</span><h3>Architecture Analyst</h3><p>Compara intenção e realidade, calcula blast radius e propõe mudança de baseline separadamente.</p><div class="pill-row"><span class="pill">drift</span><span class="pill">fitness</span><span class="pill">CALM</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--amber)"><div class="card-body"><span class="card-number">IA</span><h3>Harness Auditor</h3><p>Inventaria modelos, instruções, Skills, MCPs, hooks e evals; procura redundância e regressão.</p><div class="pill-row"><span class="pill">model</span><span class="pill">SkillOps</span><span class="pill">eval</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--rose)"><div class="card-body"><span class="card-number">CONTROLE</span><h3>Security & Risk</h3><p>Classifica dados, capabilities, supply chain, egress e riscos de execução antes do approval route.</p><div class="pill-row"><span class="pill">threat</span><span class="pill">policy</span><span class="pill">data</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--mint)"><div class="card-body"><span class="card-number">PLANO</span><h3>Change Planner</h3><p>Produz alternativas, sequência, migração, rollback, approvals e verification plan.</p><div class="pill-row"><span class="pill">plan digest</span><span class="pill">rollback</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--rose)"><div class="card-body"><span class="card-number">ADVERSARIAL</span><h3>Challenger / Red Team</h3><p>Tenta refutar o argumento dominante, encontra riscos omitidos e avalia prompt/tool poisoning.</p><div class="pill-row"><span class="pill">counter-evidence</span><span class="pill">attack</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--cyan)"><div class="card-body"><span class="card-number">APRENDIZADO</span><h3>Experiment Designer</h3><p>Define hipótese, baseline, variantes, métricas, duração, stop conditions e critérios de decisão.</p><div class="pill-row"><span class="pill">baseline</span><span class="pill">variant</span><span class="pill">falsify</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--violet)"><div class="card-body"><span class="card-number">EXECUÇÃO</span><h3>Execution Coordinator</h3><p>Aciona recipes, coding agents e connectors sem exceder o grant associado ao plano.</p><div class="pill-row"><span class="pill">sandbox</span><span class="pill">idempotency</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--mint)"><div class="card-body"><span class="card-number">PROVA</span><h3>Verifier</h3><p>Confirma setup, compara resultados e emite proof independente do executor sempre que possível.</p><div class="pill-row"><span class="pill">proof</span><span class="pill">regression</span><span class="pill">receipt</span></div></div></article>
+              <article class="card reveal" data-tilt style="--accent:var(--amber)"><div class="card-body"><span class="card-number">MEMÓRIA</span><h3>Memory Custodian</h3><p>Registra outcome, supersession, validade, lições e review triggers sem apagar a história.</p><div class="pill-row"><span class="pill">decision</span><span class="pill">learning</span></div></div></article>
+            </div>
+
+            <div class="callout reveal" style="margin-top:24px">
+              <strong>Uma regra de ouro:</strong> número de agentes não é diversidade. Verificação real exige fontes, métodos, modelos, testes ou incentives independentes.
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="extensoes">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">07 · Ecossistema de extensões</span><h2>Module ≠ Skill ≠ MCP.</h2></div>
+              <p class="section-intro">Essa separação evita transformar instruções em plugins inseguros ou conexões de ferramentas em unidades de governança. Cada elemento tem um propósito claro.</p>
+            </header>
+
+            <div class="matrix-wrap reveal">
+              <table>
+                <thead><tr><th>Elemento</th><th>Responsabilidade</th><th>Contém / expõe</th><th>Não resolve sozinho</th><th>Exemplo</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Skill</strong></td><td>Ensinar como executar uma classe de tarefa.</td><td>Instruções, exemplos, referências e assets.</td><td>Sandbox, supply chain, UI, lifecycle e runtime.</td><td>Avaliar relevância de uma tecnologia.</td></tr>
+                  <tr><td><strong>MCP server</strong></td><td>Expor tools, resources e prompts a um host de IA.</td><td>Contexto e ações interoperáveis.</td><td>Memória causal, workflow durável e governança global.</td><td>Consultar GitLab, Grafana ou catálogo.</td></tr>
+                  <tr><td><strong>Module</strong></td><td>Ser a unidade instalável e governável.</td><td>Componentes, schemas, capabilities, Skills, adapters, evals, UI e provenance.</td><td>Decisão de negócio ou authority automática.</td><td>Technology Scout completo.</td></tr>
+                  <tr><td><strong>Profile</strong></td><td>Selecionar uma composição coerente.</td><td>Modules, policies, budgets e defaults.</td><td>Compatibilidade não declarada.</td><td>Solo local ou regulated enterprise.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="diagram reveal" style="margin-top:24px;min-height:430px" aria-label="Conteúdo e ciclo de um módulo">
+              <svg class="line-svg" viewBox="0 0 1000 430" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M120 95 C260 95 300 195 430 215"></path>
+                <path d="M120 215 C260 215 300 215 430 215"></path>
+                <path d="M120 335 C260 335 300 235 430 215"></path>
+                <path d="M570 215 C680 215 710 115 835 100"></path>
+                <path d="M570 215 C680 215 710 215 835 215"></path>
+                <path d="M570 215 C680 215 710 315 835 330"></path>
+                <path class="pulse" d="M120 215 C260 215 300 215 430 215 L570 215 C680 215 710 215 835 215"></path>
+              </svg>
+              <div class="node-box" style="left:4%;top:13%"><strong>Skill + references</strong><small>procedimento</small></div>
+              <div class="node-box" style="left:4%;top:47%"><strong>Sensors + analyzers</strong><small>inputs e findings</small></div>
+              <div class="node-box" style="left:4%;bottom:12%"><strong>MCP + connectors</strong><small>tools e resources</small></div>
+              <div class="node-box" style="left:50%;top:50%;transform:translate(-50%,-50%);min-width:190px;text-align:center;border-color:color-mix(in srgb,var(--mint) 50%,transparent)"><strong>Signed Module</strong><small>manifest · digest · SBOM · evals</small></div>
+              <div class="node-box" style="right:4%;top:13%"><strong>Verify + install</strong><small>compatibility e policy</small></div>
+              <div class="node-box" style="right:4%;top:47%"><strong>Activate + canary</strong><small>project/profile scope</small></div>
+              <div class="node-box" style="right:4%;bottom:12%"><strong>Rollback / quarantine</strong><small>history preserved</small></div>
+            </div>
+
+            <div class="grid-3" style="margin-top:24px">
+              <article class="card reveal"><div class="card-body"><h3>Capabilities explícitas</h3><p>Cada component declara leitura, escrita, rede, modelo, classificação de dados, side effects, idempotência e localização de execução.</p></div></article>
+              <article class="card reveal"><div class="card-body"><h3>Update com permission diff</h3><p>Se uma nova versão pedir network ou PR write, o update exige nova aprovação mesmo que publisher e assinatura sejam válidos.</p></div></article>
+              <article class="card reveal"><div class="card-body"><h3>Supply chain verificável</h3><p>O desenho propõe OCI artifact, digest, assinatura Sigstore/cosign, SPDX SBOM e SLSA provenance, sujeito a spike.</p></div></article>
+            </div>
+
+            <div class="callout reveal" style="margin-top:24px">
+              <strong>Princípio de seleção:</strong> use regra, AST, policy ou recipe determinística quando a transformação já é conhecida. Use LLM para ambiguidade, síntese e residual — não como substituto universal.
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="autonomia">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">08 · Governança</span><h2>Autonomia é uma escada, não um botão.</h2></div>
+              <p class="section-intro">O nível efetivo é o menor teto permitido por organização, projeto, agente, módulo, ferramenta, dado, ambiente e task grant. Aprovar uma intenção vaga nunca autoriza um plano diferente.</p>
+            </header>
+
+            <div class="autonomy-ladder reveal">
+              <div class="level" style="--height:0px;--accent:var(--mint)"><b>A0</b><strong>Observe</strong><small>Ler fontes e criar observations.</small></div>
+              <div class="level" style="--height:24px;--accent:var(--mint)"><b>A1</b><strong>Analyze</strong><small>Findings e drafts sem external write.</small></div>
+              <div class="level" style="--height:48px;--accent:var(--cyan)"><b>A2</b><strong>Prepare</strong><small>Patch e experimento em sandbox.</small></div>
+              <div class="level" style="--height:72px;--accent:var(--violet)"><b>A3</b><strong>Propose</strong><small>Issue, branch ou draft PR sob policy.</small></div>
+              <div class="level" style="--height:96px;--accent:var(--amber)"><b>A4</b><strong>Execute</strong><small>Mudança reversível com proof gates.</small></div>
+              <div class="level" style="--height:120px;--accent:var(--rose)"><b>A5</b><strong>Operate</strong><small>Classes restritas e pré-aprovadas.</small></div>
+            </div>
+
+            <div class="grid-3" style="margin-top:24px">
+              <article class="card reveal" style="--accent:var(--mint)"><div class="card-body"><div class="card-icon">①</div><h3>Exact plan digest</h3><p>Aprovação referencia proposta, plano, change set, capabilities, target e validade exatos. Mudança material exige novo consentimento.</p></div></article>
+              <article class="card reveal" style="--accent:var(--cyan)"><div class="card-body"><div class="card-icon">②</div><h3>Capability gateway</h3><p>O agente não recebe credencial geral. Solicita uma capability; policy decide; broker injeta uma credencial curta e restrita.</p></div></article>
+              <article class="card reveal" style="--accent:var(--violet)"><div class="card-body"><div class="card-icon">③</div><h3>Independent proof</h3><p>O executor não declara sozinho que venceu. Evals, testes e Verifier produzem receipts e outcome verificável.</p></div></article>
+              <article class="card reveal" style="--accent:var(--amber)"><div class="card-body"><div class="card-icon">④</div><h3>Sandbox e egress</h3><p>Filesystem, processos, CPU, memória, tempo, rede e destinos são limitados por default deny.</p></div></article>
+              <article class="card reveal" style="--accent:var(--rose)"><div class="card-body"><div class="card-icon">⑤</div><h3>Separation of duties</h3><p>Quem propõe não aprova nem promove mudanças em runtime, policy ou evals protegidos.</p></div></article>
+              <article class="card reveal" style="--accent:var(--mint)"><div class="card-body"><div class="card-icon">⑥</div><h3>Kill switch e rollback</h3><p>Runs, modules, campaigns e promotions podem ser pausados; mudanças materiais precisam de caminho de retorno testado.</p></div></article>
+            </div>
+
+            <div class="matrix-wrap reveal" style="margin-top:24px">
+              <table>
+                <thead><tr><th>Ameaça</th><th>Como aparece</th><th>Controle arquitetural</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Prompt injection</strong></td><td>Website, issue ou documento tenta comandar o agente.</td><td>Separar dado/instrução, capabilities invisíveis, egress allowlist e eval adversarial.</td></tr>
+                  <tr><td><strong>Tool poisoning</strong></td><td>Tool muda descrição, schema ou comportamento.</td><td>Pin por digest, conformance, permission diff, trust tier e quarantine.</td></tr>
+                  <tr><td><strong>Confused deputy</strong></td><td>Hub usa autoridade maior que a task solicitante.</td><td>Audience binding, delegação por projeto/run e short-lived credentials.</td></tr>
+                  <tr><td><strong>Exfiltração derivada</strong></td><td>Resumo, embedding ou trace retém dado sensível.</td><td>Classificação propagada, sync policy, redaction testável e lineage.</td></tr>
+                  <tr><td><strong>Self-modification</strong></td><td>Agente altera Skill, policy ou eval que o julga.</td><td>Repos protegidos, verifier pinado, dual approval, shadow e canary.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="experiencia">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">09 · Experiência Next.js</span><h2>Uma interface para decidir, não contemplar alertas.</h2></div>
+              <p class="section-intro">O console usa Next.js App Router como UI e BFF. Server Components compõem leituras; interações ricas ficam no client; workflows, conectores e estado durável vivem no Control Plane.</p>
+            </header>
+
+            <div class="grid-3">
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">01</span><h3>Evolution Inbox</h3><p>Decisões pendentes, investigações, conflitos, experimentos, deadlines e mudanças verificadas, roteados por papel.</p><div class="pill-row"><span class="pill">Por que agora?</span><span class="pill">Próxima ação</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">02</span><h3>Portfolio Evolution Map</h3><p>EOL horizon, concentração tecnológica, riscos sistêmicos, dependências, campaigns e projetos sem coverage.</p><div class="pill-row"><span class="pill">Sem ranking de times</span><span class="pill">Temporal</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">03</span><h3>Project Cockpit</h3><p>Intent, Product, Architecture, Implementation, Runtime, AI Harness, Evidence, Decisions e Timeline numa navegação única.</p><div class="pill-row"><span class="pill">Freshness</span><span class="pill">Node health</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">04</span><h3>Architecture Map</h3><p>Declared, observed e diff; ADRs, violations, fitness functions, blast radius e histórico de drift.</p><div class="pill-row"><span class="pill">CALM</span><span class="pill">Impact graph</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">05</span><h3>Harness Observatory</h3><p>Modelos, providers, prompts, Skills, MCPs, hooks, permissions, eval coverage, custo e regressões.</p><div class="pill-row"><span class="pill">Compare</span><span class="pill">Remove scaffolding</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">06</span><h3>Proposal Workspace</h3><p>Proposta, alternativas, impacto, evidência, policy e comentários; approve experiment, defer, reject ou adopt.</p><div class="pill-row"><span class="pill">3-pane</span><span class="pill">Exact scope</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">07</span><h3>Run Explorer</h3><p>Timeline/graph, inputs, Skills, tools, models, policy decisions, custo, retries, interventions e proof artifacts.</p><div class="pill-row"><span class="pill">Replay</span><span class="pill">Audit</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">08</span><h3>Module Manager</h3><p>Instalação, compatibility, permission diff, health, rollout, canary, rollback e quarantine.</p><div class="pill-row"><span class="pill">Digest</span><span class="pill">Trust tier</span></div></div></article>
+              <article class="card reveal" data-tilt><div class="card-body"><span class="card-number">09</span><h3>Governance Console</h3><p>Policy simulator, approvals, exceptions, autonomia, audit, retenção, residência e export para SIEM.</p><div class="pill-row"><span class="pill">Explain policy</span><span class="pill">RLS</span></div></div></article>
+            </div>
+
+            <div class="grid-2" style="margin-top:24px">
+              <article class="card reveal"><div class="card-body"><h3>Progressive disclosure</h3><p>A home mostra poucos itens prioritários. O score abre seus drivers; o impacto abre relações; a evidência abre lineage; a fonte bruta exige ação explícita.</p><div class="callout"><strong>Objetivo:</strong> reduzir carga cognitiva sem esconder fundamento, incerteza ou contraditório.</div></div></article>
+              <article class="card reveal"><div class="card-body"><h3>Boundary do Next.js</h3><p>Route Handlers iniciam commands curtos e fazem BFF/streaming. Uma atualização de página não cancela nem duplica uma run.</p><div class="callout"><strong>Estado terminal:</strong> sempre confirmado pela API; SSE é progresso, não fonte de decisão.</div></div></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="cenarios">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">10 · Escala</span><h2>O mesmo conceito, quatro topologias.</h2></div>
+              <p class="section-intro">Pequeno e enterprise não são produtos diferentes. Eles usam os mesmos manifests, eventos, proposals e módulos; variam operação, tenancy, sync, policy e escala.</p>
+            </header>
+
+            <div class="tabs reveal" data-tabs>
+              <div class="tab-list" role="tablist" aria-label="Cenários de uso">
+                <button class="tab-button" role="tab" aria-selected="true" aria-controls="scenario-zero">Do zero</button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="scenario-repo">Repo pequeno</button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="scenario-enterprise">Meios de pagamento</button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="scenario-self">Autoevolução</button>
+              </div>
+
+              <div class="tab-panel active" id="scenario-zero" role="tabpanel">
+                <div class="grid-2">
+                  <div>
+                    <span class="kicker">Idea mode</span>
+                    <h3 style="font-size:2.2rem;margin-top:10px">Uma ideia encontra uma capability substituta</h3>
+                    <ol class="card-list" style="counter-reset:item">
+                      <li>Founder registra problema, público e hipótese central.</li>
+                      <li>External Scout encontra capability nativa semelhante.</li>
+                      <li>Evidence Curator separa anúncio, disponibilidade e limites.</li>
+                      <li>Product Challenger analisa diferenciação restante.</li>
+                      <li>Proposal recomenda experimento de desirability, não abandono automático.</li>
+                    </ol>
+                  </div>
+                  <div class="callout"><strong>Falha evitada:</strong> começar por stack e arquitetura quando ainda não há evidence of problem. O sistema ajuda a decidir o que merece ser construído.</div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="scenario-repo" role="tabpanel">
+                <div class="grid-2">
+                  <div>
+                    <span class="kicker">Standalone</span>
+                    <h3 style="font-size:2.2rem;margin-top:10px">Um Next.js local ganha baseline</h3>
+                    <ol class="card-list">
+                      <li>Node inicializa manifesto e state local.</li>
+                      <li>Sensores mapeiam dependências, docs, CI e arquitetura.</li>
+                      <li>Declared/observed gaps viram findings com evidence.</li>
+                      <li>Uma release relevante cria proposta local.</li>
+                      <li>Usuário prepara variante A2 sem upload ou conta.</li>
+                    </ol>
+                  </div>
+                  <div class="callout"><strong>Falha evitada:</strong> transformar o modo pessoal numa versão descartável. Os mesmos contratos permitem migrar depois para Hub compartilhado.</div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="scenario-enterprise" role="tabpanel">
+                <div class="grid-2">
+                  <div>
+                    <span class="kicker">Portfólio regulado</span>
+                    <h3 style="font-size:2.2rem;margin-top:10px">Uma mudança afeta adquirência, PIX e autorização</h3>
+                    <ol class="card-list">
+                      <li>Hub mantém projetos e relações entre domínios.</li>
+                      <li>Nodes separados operam em zonas de segurança distintas.</li>
+                      <li>Signal de EOL encontra candidatos; Nodes confirmam uso real.</li>
+                      <li>Campaign Planner cria cohort, canaries e waves.</li>
+                      <li>Cada domínio preserva approval e exceção local.</li>
+                    </ol>
+                  </div>
+                  <div class="callout"><strong>Falha evitada:</strong> criar dezenas de PRs iguais antes de verificar consumidores, restrições, janelas e diferenças contextuais.</div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="scenario-self" role="tabpanel">
+                <div class="grid-2">
+                  <div>
+                    <span class="kicker">Dogfooding governado</span>
+                    <h3 style="font-size:2.2rem;margin-top:10px">EvolutionOS monitora o próprio EvolutionOS</h3>
+                    <ol class="card-list">
+                      <li>A plataforma é registrada como Project.</li>
+                      <li>Specs de Agent Skills/MCP e resultados de eval entram como sinais.</li>
+                      <li>Proposal analisa impacto em módulos e contracts.</li>
+                      <li>Governance e verifier ficam fora do change set.</li>
+                      <li>Canary e approval independente precedem promotion.</li>
+                    </ol>
+                  </div>
+                  <div class="callout"><strong>Limite:</strong> autoevolução começa em A1/A2. O sistema não modifica a própria policy, autonomia ou verificador durante a run.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="matrix-wrap reveal" style="margin-top:24px">
+              <table>
+                <thead><tr><th>Dimensão</th><th>Ideia</th><th>Solo</th><th>Equipe</th><th>Enterprise</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Runtime</strong></td><td>Hub/workspace</td><td>Node local</td><td>Hub + Nodes</td><td>Hub federado + fleet</td></tr>
+                  <tr><td><strong>Persistência</strong></td><td>Workspace</td><td>SQLite/artifacts</td><td>PostgreSQL/object store</td><td>Regional/self-hosted stores</td></tr>
+                  <tr><td><strong>Identidade</strong></td><td>Usuário</td><td>Local</td><td>OIDC/workspace</td><td>SSO, SCIM e workload identity</td></tr>
+                  <tr><td><strong>Policy</strong></td><td>Defaults</td><td>Local deny-by-default</td><td>Shared policy packs</td><td>Federada, exceptions e KMS</td></tr>
+                  <tr><td><strong>Autonomia inicial</strong></td><td>A0–A1</td><td>A0–A2</td><td>A0–A3</td><td>Por classe, ambiente e evidence</td></tr>
+                  <tr><td><strong>Valor</strong></td><td>Validar hipótese</td><td>Baseline e proposta</td><td>Decisão colaborativa</td><td>Campaign e risco sistêmico</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="roadmap">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">11 · Sequência de construção</span><h2>Provar decisão antes de vender autonomia.</h2></div>
+              <p class="section-intro">O maior risco é produzir recomendações genéricas. O roadmap entrega primeiro o loop de decisão read-only, depois experimentação, escrita reversível, harness intelligence e escala.</p>
+            </header>
+
+            <div class="timeline">
+              <article class="timeline-item reveal"><small>M0 · CONTRACTS</small><h3>Walking skeleton</h3><p>Project, evidence, proposal, decision e event schemas; shell Next.js; Control Plane modular; Node skeleton; OIDC, policy deny-by-default, OTel e um workflow durável.</p></article>
+              <article class="timeline-item reveal"><small>M1 · TWIN</small><h3>Project Twin read-only</h3><p>Idea/project registration, manifest, artifacts, owners, decisions, filesystem/Git sensor, snapshot, coverage, cockpit básico e lineage viewer.</p></article>
+              <article class="timeline-item reveal"><small>M2 · INTELLIGENCE</small><h3>Signal → proposal → decision</h3><p>Ingestão externa controlada, Evidence Curator, Relevance Analyst, especialistas mínimos, analyzers determinísticos, Challenger, Inbox, decision memory e golden scenarios.</p></article>
+              <article class="timeline-item reveal"><small>M3 · EXPERIMENT</small><h3>Sandbox e verificação</h3><p>Experimento A2, branch/patch local, proof artifacts, run explorer, model/skill versions e outcome learning.</p></article>
+              <article class="timeline-item reveal"><small>M4 · TEAM</small><h3>Colaboração e writes reversíveis</h3><p>Git connector, issue/branch/draft PR A3, approvals, registry privado, shared policies, notifications e campaign piloto.</p></article>
+              <article class="timeline-item reveal"><small>M5 · HARNESS</small><h3>Harness Intelligence</h3><p>Inventário de modelos, Agent Skills, MCPs e evals; comparison, redundancy audit, Observatory e promotion gates.</p></article>
+              <article class="timeline-item reveal"><small>M6 · ENTERPRISE</small><h3>Portfólio e federação</h3><p>Organizations, SSO/SCIM, multi-Node fleet, portfolio views, waves/exceptions, residency, KMS, SIEM e deployment self-hosted.</p></article>
+              <article class="timeline-item reveal"><small>M7 · ECOSYSTEM</small><h3>Módulos de terceiros</h3><p>Conformance OCI, private/verified registry, author kit, quarantine/revocation e A2A somente onde uma fronteira agentic independente justificar.</p></article>
+            </div>
+
+            <div class="callout reveal" style="margin-top:24px">
+              <strong>Explicitamente adiado:</strong> marketplace público, autoalteração de produção, graph database obrigatório, pivôs de negócio automáticos, crawling competitivo universal e “criar produto completo com um clique”.
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="critica">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">12 · Revisão crítica</span><h2>Como esta ideia pode falhar.</h2></div>
+              <p class="section-intro">A ameaça principal é criar uma representação bonita, desatualizada e circular do mundo — e então automatizar sobre ela. O produto só merece existir se decisões e outcomes melhorarem de forma verificável.</p>
+            </header>
+
+            <div class="grid-3">
+              <article class="card reveal" style="--accent:var(--rose)"><div class="card-body"><div class="card-icon">!</div><h3>Dashboard cemetery</h3><p>Usuários abrem a plataforma em demos e auditorias, mas não fecham decisões.</p><ul class="card-list"><li>Medir weekly decision users</li><li>Notificar por decisão, não sensor</li><li>Kill criterion por ciclo</li></ul></div></article>
+              <article class="card reveal" style="--accent:var(--amber)"><div class="card-body"><div class="card-icon">!</div><h3>Alert fatigue</h3><p>Mais fontes geram ruído, duplicação e ansiedade de atualização.</p><ul class="card-list"><li>Signal budgets</li><li>Dedupe e source scoring</li><li>Medir silêncio correto</li></ul></div></article>
+              <article class="card reveal" style="--accent:var(--violet)"><div class="card-body"><div class="card-icon">!</div><h3>Grafo convincente, errado</h3><p>Edges inferidas propagam erro e criam impact analysis persuasivo.</p><ul class="card-list"><li>Provenance e expiry</li><li>Confidence por edge</li><li>Amostragem humana</li></ul></div></article>
+              <article class="card reveal" style="--accent:var(--cyan)"><div class="card-body"><div class="card-icon">!</div><h3>Agentes em falso consenso</h3><p>Várias personas repetem o mesmo contexto e modelo com aparência de validação.</p><ul class="card-list"><li>Métodos independentes</li><li>Determinístico + probabilístico</li><li>Counter-evidence</li></ul></div></article>
+              <article class="card reveal" style="--accent:var(--mint)"><div class="card-body"><div class="card-icon">!</div><h3>Plataforma sem wedge</h3><p>O time constrói catálogo e policy antes de provar uma decisão melhor.</p><ul class="card-list"><li>Primeiro vertical slice</li><li>Design partners</li><li>Outcome antes de marketplace</li></ul></div></article>
+              <article class="card reveal" style="--accent:var(--rose)"><div class="card-body"><div class="card-icon">!</div><h3>Custo > benefício</h3><p>Ingestão, modelos, review humano e integração custam mais que a evolução.</p><ul class="card-list"><li>Custo por proposal aceita</li><li>Cache e incremental</li><li>Promover automação barata</li></ul></div></article>
+            </div>
+
+            <div class="matrix-wrap reveal" style="margin-top:24px">
+              <table>
+                <thead><tr><th>Hipótese perigosa</th><th>Correção de design</th><th>Métrica de verdade</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Mais sinais = melhor decisão</strong></td><td>Desativar sensores que não levam a decisões melhores.</td><td>Precision por proposal aceita.</td></tr>
+                  <tr><td><strong>Relevância cabe numa nota</strong></td><td>Mostrar drivers, range, uncertainty e sensitivity.</td><td>Taxa de override com razão.</td></tr>
+                  <tr><td><strong>Memória resolve coerência</strong></td><td>Supersession, contradiction, expiry e revisão.</td><td>Facts críticos válidos em amostragem.</td></tr>
+                  <tr><td><strong>Enterprise quer tudo centralizado</strong></td><td>Hub aceita coverage incompleta e derived-only.</td><td>Zero raw data não autorizado.</td></tr>
+                  <tr><td><strong>Evoluir sempre é melhor</strong></td><td>Manter, encapsular e aposentar são opções legítimas.</td><td>Net verified value.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout reveal" style="margin-top:24px">
+              <strong>Wedge recomendado:</strong> evolução segura de um sistema com IA — registrar intenção e arquitetura, inventariar modelos/Skills/MCPs/evals, detectar mudança material, produzir proposta, preparar sandbox e verificar regressões.
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="comecar">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">13 · Primeiros passos</span><h2>Comece por um loop, não por uma plataforma.</h2></div>
+              <p class="section-intro">O primeiro piloto deve responder se o ecossistema reduz tempo e aumenta qualidade de uma decisão real. A infraestrutura mínima existe apenas para sustentar essa prova.</p>
+            </header>
+
+            <div class="grid-2">
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">PILOTO RECOMENDADO</span>
+                  <h3>Um projeto, uma mudança material</h3>
+                  <ol class="card-list">
+                    <li>Escolha um sistema com harness de IA e owner disponível.</li>
+                    <li>Registre intent, architecture e constraints mínimas.</li>
+                    <li>Conecte repo, docs, CI e um source externo.</li>
+                    <li>Construa snapshot e confirme boundaries.</li>
+                    <li>Selecione um signal real: EOL, model update ou drift.</li>
+                    <li>Produza proposal com contraditório.</li>
+                    <li>Execute apenas experimento A2.</li>
+                    <li>Compare baseline, proof e tempo humano.</li>
+                  </ol>
+                </div>
+              </article>
+              <article class="card reveal">
+                <div class="card-body">
+                  <span class="card-number">CRITÉRIOS DE PILOTO</span>
+                  <h3>O que precisa ser provado</h3>
+                  <ul class="card-list">
+                    <li>Baseline útil em até 60 minutos no stack suportado</li>
+                    <li>Proposal julgada específica para o projeto</li>
+                    <li>Zero capability fora de policy</li>
+                    <li>Menos tempo humano para decidir</li>
+                    <li>Nenhuma regressão crítica promovida</li>
+                    <li>Retorno voluntário para um segundo ciclo</li>
+                  </ul>
+                </div>
+              </article>
+            </div>
+
+            <div class="timeline" style="margin-top:28px">
+              <article class="timeline-item reveal"><small>SEMANA 1–2</small><h3>Contracts e protótipo do Twin</h3><p>Manifest, evidence, proposal e decision; onboarding de ideia/repo; snapshot local read-only.</p></article>
+              <article class="timeline-item reveal"><small>SEMANA 3–5</small><h3>Intelligence vertical slice</h3><p>Signal manual/URL, curator, relevance, challenger, inbox e decisão persistida.</p></article>
+              <article class="timeline-item reveal"><small>SEMANA 6–8</small><h3>Sandbox e proof</h3><p>Uma transformação controlada, baseline, variante, eval e receipt.</p></article>
+              <article class="timeline-item reveal"><small>SEMANA 9–12</small><h3>Design partners e aprendizagem</h3><p>Três contextos, métricas, falhas, revisão de ADRs propostos e decisão de continuidade.</p></article>
+            </div>
+
+            <div class="hero-actions reveal">
+              <button class="button primary" type="button" data-open-modal="installModal">Ver checklist de implantação</button>
+              <button class="button" type="button" data-open-modal="proposalModal">Anatomia de uma Proposal</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="referencias">
+          <div class="page">
+            <header class="section-head reveal">
+              <div><span class="kicker">14 · Referências e dúvidas</span><h2>O que sustenta o desenho.</h2></div>
+              <p class="section-intro">O EvolutionOS combina práticas que já amadureceram separadamente. A diferenciação proposta está no tecido que liga contexto, evidência, decisão, execução governada e outcome.</p>
+            </header>
+
+            <div class="grid-3">
+              <article class="card reveal"><div class="card-body"><span class="card-number">MODERNIZAÇÃO</span><h3>Loops contínuos já existem</h3><p>AWS Transform, Moderne/OpenRewrite, vFunction e ferramentas de drift validam partes do ciclo em código e arquitetura.</p></div></article>
+              <article class="card reveal"><div class="card-body"><span class="card-number">INTEROPERABILIDADE</span><h3>Padrões cobrem fronteiras</h3><p>Agent Skills, MCP, A2A, CloudEvents, OpenTelemetry e CALM ajudam a não inventar contratos proprietários desnecessários.</p></div></article>
+              <article class="card reveal"><div class="card-body"><span class="card-number">CONFIABILIDADE</span><h3>Evolução longitudinal é difícil</h3><p>EvoClaw e SkillOps reforçam que regressões e dívida se acumulam; memória, evals e verificação são requisitos centrais.</p></div></article>
+            </div>
+
+            <div class="source-list reveal" style="margin-top:24px">
+              <a class="source-link" href="https://docs.aws.amazon.com/transform/latest/userguide/continuous-modernization.html" target="_blank" rel="noreferrer">AWS Transform — Continuous Modernization ↗</a>
+              <a class="source-link" href="https://docs.openrewrite.org/" target="_blank" rel="noreferrer">OpenRewrite Documentation ↗</a>
+              <a class="source-link" href="https://calm.finos.org/" target="_blank" rel="noreferrer">FINOS CALM — Architecture as Code ↗</a>
+              <a class="source-link" href="https://agentskills.io/specification" target="_blank" rel="noreferrer">Agent Skills Specification ↗</a>
+              <a class="source-link" href="https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture" target="_blank" rel="noreferrer">MCP Architecture ↗</a>
+              <a class="source-link" href="https://github.com/a2aproject/a2a" target="_blank" rel="noreferrer">A2A Project ↗</a>
+              <a class="source-link" href="https://cloudevents.io/" target="_blank" rel="noreferrer">CloudEvents ↗</a>
+              <a class="source-link" href="https://opentelemetry.io/docs/specs/otel/" target="_blank" rel="noreferrer">OpenTelemetry Specifications ↗</a>
+              <a class="source-link" href="https://arxiv.org/abs/2603.13428" target="_blank" rel="noreferrer">EvoClaw — Continuous Software Evolution ↗</a>
+              <a class="source-link" href="https://arxiv.org/abs/2605.13716" target="_blank" rel="noreferrer">SkillOps — Self-maintaining Skill Libraries ↗</a>
+              <a class="source-link" href="https://openpolicyagent.org/docs" target="_blank" rel="noreferrer">Open Policy Agent ↗</a>
+              <a class="source-link" href="https://gsap.com/docs/v3/Plugins/ScrollTrigger/" target="_blank" rel="noreferrer">GSAP ScrollTrigger — animação deste guia ↗</a>
+            </div>
+
+            <h3 class="reveal" style="margin-top:46px">Perguntas frequentes</h3>
+            <div class="faq reveal">
+              <details><summary>Preciso instalar o Hub em todo projeto?</summary><p>Não. Ideias podem usar somente um workspace. Projetos pessoais podem usar Node standalone. O Hub entra quando colaboração, portfólio, policy compartilhada ou campaigns geram valor.</p></details>
+              <details><summary>O Node precisa ficar executando o tempo todo?</summary><p>Não. Pode operar sob demanda, por agendamento ou evento. Entre ciclos, pode ficar parado. Em grandes ambientes, um daemon/runner recebe tasks e mantém health/sync.</p></details>
+              <details><summary>É uma ferramenta de atualização automática?</summary><p>Não. Atualização é apenas uma opção. Manter, observar, encapsular, experimentar, migrar, consolidar e aposentar são decisões possíveis. Writes começam bloqueados.</p></details>
+              <details><summary>Um Node por microserviço?</summary><p>Normalmente não. A unidade de Node é uma fronteira operacional ou de confiança: máquina, equipe, domínio, cluster, conta ou zona. Um Node pode observar muitos repositórios.</p></details>
+              <details><summary>Por que não usar somente Skills?</summary><p>Skills carregam procedimento, mas não cobrem completamente runtime, permissões, supply chain, lifecycle, UI, isolamento e evals. Por isso elas vivem dentro ou ao lado de Modules governados.</p></details>
+              <details><summary>Por que não usar MCP para tudo?</summary><p>MCP é ótimo para tool/context exchange. Não substitui workflow durável, Project Twin, decision memory, policy global ou package lifecycle. Ele é uma fronteira de integração.</p></details>
+              <details><summary>O grafo é a fonte de verdade?</summary><p>Não. O grafo é uma projeção para relações e impacto. Fatos, decisões e versões ficam no system of record transacional e podem reconstruir a projeção.</p></details>
+              <details><summary>O EvolutionOS pode evoluir sozinho?</summary><p>Pode observar a si mesmo, criar proposals e preparar experimentos. Não pode autoaprovar mudança de policy, autonomia, runtime ou verificador. A evolução própria começa em A1/A2.</p></details>
+              <details><summary>O HTML funciona sem internet?</summary><p>Todo conteúdo, layout, diagramas e interações essenciais estão neste arquivo. A animação avançada usa GSAP/ScrollTrigger via CDN; se a biblioteca não carregar, o guia mantém conteúdo, navegação, tabs e fallback de reveal.</p></details>
+            </div>
+
+            <div class="callout reveal" style="margin-top:24px">
+              <strong>Conclusão:</strong> o ativo durável não é o modelo ou framework escolhido. É a memória verificável da intenção, evidência, decisão, execução e resultado — em contratos que sobrevivem à troca das tecnologias.
+            </div>
+          </div>
+        </section>
+
+        <dialog class="modal" id="installModal">
+          <div class="modal-head"><h3>Checklist de implantação inicial</h3><button class="modal-close" data-close-modal aria-label="Fechar">×</button></div>
+          <div class="modal-body">
+            <h4>1. Definir fronteira</h4>
+            <p class="muted">Qual Project será monitorado? Onde código e dados podem ser processados? Qual é o owner?</p>
+            <h4>2. Criar manifesto</h4>
+            <p class="muted">Intent, hypotheses, constraints, ownership, sources, artifacts, baselines, harness e evolution policy.</p>
+            <h4>3. Escolher perfil</h4>
+            <p class="muted">Idea, Solo, Team ou Enterprise. Começar com A0/A1 e o menor sync mode.</p>
+            <h4>4. Instalar Node</h4>
+            <p class="muted">CLI, container, CI runner ou serviço. Configurar storage local, identity, model profile e egress.</p>
+            <h4>5. Ativar módulos mínimos</h4>
+            <p class="muted">Repository Cartographer, Evidence, Relevance e um specialist; evitar catálogo amplo no piloto.</p>
+            <h4>6. Validar controles</h4>
+            <p class="muted">Tenant isolation, capability denial, prompt injection, idempotência, sync classification e audit trace.</p>
+            <h4>7. Rodar um caso real</h4>
+            <p class="muted">Signal → Proposal → Decision → Experiment → Proof. Medir valor, custo e confiança.</p>
+          </div>
+        </dialog>
+
+        <dialog class="modal" id="proposalModal">
+          <div class="modal-head"><h3>Anatomia de uma Evolution Proposal</h3><button class="modal-close" data-close-modal aria-label="Fechar">×</button></div>
+          <div class="modal-body">
+            <div class="grid-2">
+              <div><h4>Contexto</h4><p class="muted">Projeto, snapshot, trigger, problema, urgency e “por que agora?”.</p></div>
+              <div><h4>Claims</h4><p class="muted">Afirmações com evidence refs, authority, confidence e epistemic status.</p></div>
+              <div><h4>Alternativas</h4><p class="muted">Manter, observar, investigar, experimentar, migrar, consolidar ou aposentar.</p></div>
+              <div><h4>Contraditório</h4><p class="muted">Evidência contrária, unknowns e o que faria a recomendação mudar.</p></div>
+              <div><h4>Impacto</h4><p class="muted">Produto, arquitetura, segurança, operação, dados, harness e portfólio.</p></div>
+              <div><h4>Plano</h4><p class="muted">Steps, capabilities, budgets, approvals, reversibilidade e rollbacks.</p></div>
+              <div><h4>Experimento</h4><p class="muted">Hipótese, baseline, variantes, success criteria, duration e stop conditions.</p></div>
+              <div><h4>Verificação</h4><p class="muted">Evals, testes, proof artifacts, outcome owner e review trigger.</p></div>
+            </div>
+          </div>
+        </dialog>
+      </main>
+
+      <footer class="footer">
+        <div class="page footer-grid">
+          <div>
+            <strong>EvolutionOS</strong>
+            <small>Guia conceitual e arquitetural · 30 de agosto de 2026</small>
+          </div>
+          <div class="pill-row">
+            <span class="pill">Evidence first</span>
+            <span class="pill">Local by default</span>
+            <span class="pill">Progressive autonomy</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <dialog class="modal" id="mentalModelModal">
+    <div class="modal-head">
+      <h3>EvolutionOS em 90 segundos</h3>
+      <button class="modal-close" data-close-modal aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>O Hub é a torre de controle.</strong> Organiza projetos, portfólio, políticas, decisões e dashboards.</p>
+      <p><strong>O Node é o piloto local.</strong> Observa código e dados perto do projeto, executa análises e experimentos sem exigir que informações sensíveis saiam do ambiente.</p>
+      <p><strong>Os Modules são os instrumentos.</strong> Empacotam sensores, analisadores, Skills, MCPs, políticas, evals e executores.</p>
+      <p><strong>O Protocol é o idioma comum.</strong> Define manifests, eventos, evidências, propostas e receipts portáveis.</p>
+      <div class="callout"><strong>O objetivo não é perseguir toda novidade.</strong> É decidir, com evidência, quando manter, experimentar, migrar, consolidar ou aposentar.</div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const body = document.body;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const setTheme = (theme) => {
+        root.dataset.theme = theme;
+        try { localStorage.setItem("evolutionos-theme", theme); } catch (_) {}
+      };
+      let storedTheme = null;
+      try { storedTheme = localStorage.getItem("evolutionos-theme"); } catch (_) {}
+      if (storedTheme) setTheme(storedTheme);
+      document.querySelectorAll(".theme-toggle").forEach((button) => {
+        button.addEventListener("click", () => setTheme(root.dataset.theme === "dark" ? "light" : "dark"));
+      });
+
+      const navToggle = document.getElementById("navToggle");
+      if (navToggle) {
+        navToggle.addEventListener("click", () => {
+          const open = body.classList.toggle("nav-open");
+          navToggle.setAttribute("aria-expanded", String(open));
+        });
+      }
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          body.classList.remove("nav-open");
+          navToggle?.setAttribute("aria-expanded", "false");
+        });
+      });
+
+      const progressBar = document.querySelector(".progress-bar");
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        const progress = max > 0 ? (scrollY / max) * 100 : 0;
+        progressBar.style.width = progress + "%";
+      };
+      addEventListener("scroll", updateProgress, { passive: true });
+      updateProgress();
+
+      const sections = [...document.querySelectorAll("main section[id]")];
+      const navLinks = [...document.querySelectorAll(".nav-link")];
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          navLinks.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id));
+        });
+      }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
+      sections.forEach((section) => observer.observe(section));
+
+      document.querySelectorAll("[data-tabs]").forEach((tabs) => {
+        const buttons = [...tabs.querySelectorAll("[role=tab]")];
+        const panels = [...tabs.querySelectorAll("[role=tabpanel]")];
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
+            buttons.forEach((item) => item.setAttribute("aria-selected", String(item === button)));
+            panels.forEach((panel) => panel.classList.toggle("active", panel.id === button.getAttribute("aria-controls")));
+          });
+        });
+      });
+
+      document.querySelectorAll("[data-open-modal]").forEach((button) => {
+        button.addEventListener("click", () => document.getElementById(button.dataset.openModal)?.showModal());
+      });
+      document.querySelectorAll("[data-close-modal]").forEach((button) => {
+        button.addEventListener("click", () => button.closest("dialog")?.close());
+      });
+      document.querySelectorAll("dialog").forEach((dialog) => {
+        dialog.addEventListener("click", (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+      });
+
+      const flowButtons = [...document.querySelectorAll(".flow-step-btn")];
+      const flowCards = [...document.querySelectorAll(".flow-card")];
+      flowButtons.forEach((button) => {
+        button.addEventListener("click", () => document.getElementById(button.dataset.target)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }));
+      });
+      if (flowCards.length) {
+        const flowObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            flowButtons.forEach((button) => button.classList.toggle("active", button.dataset.target === entry.target.id));
+          });
+        }, { rootMargin: "-35% 0px -50% 0px", threshold: 0 });
+        flowCards.forEach((card) => flowObserver.observe(card));
+      }
+
+      const fallbackReveal = () => {
+        const revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.style.opacity = "1";
+            entry.target.style.transform = "none";
+            revealObserver.unobserve(entry.target);
+          });
+        }, { threshold: .12 });
+        document.querySelectorAll(".reveal").forEach((element) => revealObserver.observe(element));
+      };
+
+      if (!reduceMotion && window.gsap && window.ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.set(".reveal", { opacity: 0, y: 24 });
+        ScrollTrigger.batch(".reveal", {
+          start: "top 88%",
+          once: true,
+          onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: .72, stagger: .07, ease: "power3.out", overwrite: true })
+        });
+        gsap.to(".orbit:nth-of-type(1)", { rotation: "+=360", duration: 36, repeat: -1, ease: "none" });
+        gsap.to(".orbit:nth-of-type(2)", { rotation: "-=360", duration: 48, repeat: -1, ease: "none" });
+        gsap.to(".orbit:nth-of-type(3)", { rotation: "+=360", duration: 58, repeat: -1, ease: "none" });
+        gsap.from(".hero-copy > *", { opacity: 0, y: 25, duration: .9, stagger: .1, ease: "power3.out" });
+        gsap.from(".hero-visual", { opacity: 0, scale: .86, duration: 1.25, ease: "expo.out" });
+      } else {
+        fallbackReveal();
+      }
+
+      document.querySelectorAll(".card[data-tilt]").forEach((card) => {
+        if (reduceMotion) return;
+        card.addEventListener("pointermove", (event) => {
+          const rect = card.getBoundingClientRect();
+          const x = (event.clientX - rect.left) / rect.width - .5;
+          const y = (event.clientY - rect.top) / rect.height - .5;
+          card.style.transform = "perspective(800px) rotateY(" + (x * 3) + "deg) rotateX(" + (-y * 3) + "deg)";
+        });
+        card.addEventListener("pointerleave", () => card.style.transform = "");
+      });
+    })();
+  </script>
+</body>
+</html>
