@@ -116,9 +116,9 @@ T13 → T14
 
 **Done when**:
 
-- [ ] `start` idempotente; `psql select 1` responde
-- [ ] `stop` para o cluster; `reset` recria limpo
-- [ ] `status` reporta running/stopped com exit code coerente
+- [x] `start` idempotente; `psql select 1` responde
+- [x] `stop` para o cluster; `reset` recria limpo
+- [x] `status` reporta running/stopped com exit code coerente
 
 **Tests**: none
 **Gate**: build
