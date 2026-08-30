@@ -31,6 +31,30 @@
 - **Date**: 2026-08-30
 - **Status**: active
 
+### AD-004
+- **Decision**: EvolutionOS é um monorepo TypeScript com pnpm workspaces (`apps/hub` Fastify, `apps/console` Next.js, `apps/node` CLI, `packages/contracts`, `packages/telemetry`); schemas e tipos de contrato vivem só em `packages/contracts`.
+- **Reason**: Console já é Next.js (ADR-003); uma linguagem permite compartilhar schemas v0/validadores/event types entre Hub, Node e Console sem duplicação.
+- **Trade-off**: Lock-in em Node.js/TS para o Hub; workloads que exigirem outra runtime entram como workers separados (ADR-004 já os prevê).
+- **Scope**: Todo código de implementação a partir do Slice 0.
+- **Date**: 2026-08-30
+- **Status**: active
+
+### AD-005
+- **Decision**: Dev e testes usam PostgreSQL 16 real gerenciado por `scripts/dev-db.sh` (initdb/pg_ctl como usuário `postgres`, socket unix, porta 55432) — nunca SQLite/PGlite como substituto.
+- **Reason**: ADR-005 define Postgres como source of record; testar em outro dialeto esconde bugs de SQL/transação exatamente onde o trust skeleton precisa de confiança.
+- **Trade-off**: Setup local exige o binário do Postgres (presente no container e em qualquer CI padrão); testes um pouco mais lentos que in-memory.
+- **Scope**: `apps/hub`, testes de integração, CI futuro.
+- **Date**: 2026-08-30
+- **Status**: active
+
+### AD-006
+- **Decision**: O durable workflow do M0 é uma engine mínima própria sobre Postgres (tabelas `workflows`/`workflow_steps`, checkpoints, retomada idempotente) atrás de uma interface estreita; brokers/engines externos (Temporal, Kafka) ficam fora até um review trigger do ADR-006.
+- **Reason**: ADR-006 prevê "Lite profile precisa de engine menor; interface será mantida"; o M0 exige apenas um hello path durável que sobreviva a restart.
+- **Trade-off**: Sem timers/leases sofisticados por ora; troca futura de engine limitada à implementação do adapter.
+- **Scope**: `apps/hub/src/platform/workflow*`; slices 3+ reavaliam ao introduzir runs agentic.
+- **Date**: 2026-08-30
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: docs-planning-ecosystem — CONCLUÍDA (Verifier PASS, `validate_state.py` exit 0)
