@@ -1,0 +1,64 @@
+apiVersion: evolutionos.io/v1alpha1
+kind: EvolutionProposal
+metadata:
+  id: ep-01J6EXAMPLE00000000000000
+  projectRef: assistente-operacoes
+  createdAt: 2026-08-29T10:30:00Z
+  status: awaiting-decision
+spec:
+  title: Avaliar migração do mecanismo de orquestração
+  problem: A versão atual perderá suporte em seis meses e já limita replay determinístico.
+  triggerRefs: [signal-runtime-eol, signal-replay-failure-rate]
+  claims:
+    - id: claim-eol
+      statement: O fornecedor encerra suporte em 2027-02-28.
+      evidenceRefs: [evidence-vendor-eol-notice]
+      confidence: high
+      epistemicStatus: observed
+    - id: claim-cost
+      statement: A migração reduzirá o custo operacional em 15% a 25%.
+      evidenceRefs: [evidence-cost-model-v2]
+      confidence: low
+      epistemicStatus: inferred
+  options:
+    - id: option-hold
+      title: Manter e mitigar
+      expectedValue: Baixo esforço imediato.
+      risks: [support-window, replay-gap]
+      reversibility: high
+    - id: option-pilot
+      title: Pilotar o runtime candidato em um fluxo não crítico
+      expectedValue: Produzir evidência real sem migração total.
+      risks: [dual-operation-cost]
+      reversibility: high
+  recommendation:
+    optionRef: option-pilot
+    rationale: Maximiza aprendizado e preserva reversibilidade.
+  contraryEvidence:
+    - evidence-team-capacity-low
+  impact:
+    product: low
+    architecture: medium
+    security: low
+    operations: medium
+    harness: high
+  experiment:
+    hypothesis: O candidato mantém replay correto com custo por execução não superior ao atual.
+    successCriteria:
+      - replay_success_rate >= 0.995
+      - cost_per_run <= current_cost_per_run
+    stopConditions:
+      - any-restricted-data-egress
+      - two-critical-regressions
+    duration: P21D
+  plan:
+    autonomyRequested: A2
+    approvalClass: experiment-sandbox
+    steps:
+      - create-isolated-fixture
+      - replay-golden-workflows
+      - compare-quality-cost-latency
+  review:
+    dueAt: 2026-09-21T00:00:00Z
+    owners: [team-platform-ai, team-architecture]
+

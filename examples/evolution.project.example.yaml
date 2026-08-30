@@ -1,0 +1,104 @@
+apiVersion: evolutionos.io/v1alpha1
+kind: EvolutionProject
+metadata:
+  name: Assistente de Operações
+  slug: assistente-operacoes
+  type: product
+  status: discovery
+  labels:
+    domain: operations
+    criticality: medium
+spec:
+  intent:
+    problem: >-
+      Equipes de operações gastam tempo correlacionando alertas, runbooks e mudanças
+      antes de decidir o próximo passo.
+    audiences:
+      - operations-analyst
+      - incident-commander
+    valueProposition: Recomendar ações justificadas por evidências sem remover o controle humano.
+    outcomes:
+      - id: outcome-mttr
+        description: Reduzir o tempo mediano até uma hipótese útil.
+        metricRefs: [metric-time-to-useful-hypothesis]
+        horizon: P90D
+    nonGoals:
+      - Executar mudanças irreversíveis sem aprovação humana.
+  hypotheses:
+    - id: hyp-001
+      type: desirability
+      statement: Operadores aceitarão recomendações se cada uma mostrar evidência e incerteza.
+      evidenceState: untested
+      metric: recommendation_acceptance_rate
+      threshold: ">= 0.40"
+      status: active
+      reviewTrigger: after-20-qualified-incidents
+  constraints:
+    - id: con-data-locality
+      category: privacy
+      statement: Logs classificados como restricted não podem sair do ambiente do cliente.
+      severity: mandatory
+      authority: security-policy-17
+      validity: active
+  ownership:
+    roles:
+      product: team-product-ops
+      engineering: team-platform-ai
+      security: team-security
+  sources:
+    - id: source-repo
+      type: git
+      provider: github
+      reference: org/ops-assistant
+      authority: authoritative
+      classification: internal
+      syncMode: metadata-and-derived
+      sensors: [repository-map, dependency-inventory, ci-health]
+    - id: source-feedback
+      type: research-repository
+      provider: internal
+      reference: interviews/operations
+      authority: corroborating
+      classification: confidential
+      syncMode: derived-only
+      sensors: [theme-extractor]
+  artifacts:
+    - id: artifact-prd
+      type: prd
+      title: PRD do Assistente de Operações
+      path: docs/product/prd.md
+      authority: declared
+      classification: internal
+    - id: artifact-architecture
+      type: calm-model
+      title: Arquitetura declarada
+      path: architecture/system.json
+      authority: declared
+      classification: internal
+  relations:
+    - type: dependsOn
+      targetProjectRef: platform-observability
+      direction: outbound
+      criticality: high
+  baselines:
+    architectureModels: [artifact-architecture]
+    policyPacks: [baseline-secure-ai, baseline-resilient-service]
+    organizationStandards: [standard-api-v3]
+  harness:
+    allowedProviders: [provider-a, provider-b]
+    allowedModels: [model-balanced, model-high-reasoning]
+    moduleProfiles: [profile-product-discovery, profile-safe-repository-analysis]
+    evalSuites: [eval-evidence-grounding, eval-change-safety]
+  evolution:
+    cadence: P7D
+    signalProfiles: [technology-change, customer-signal, architecture-drift]
+    autonomyCeiling: A2
+    syncMode: metadata-and-derived
+    reviewTriggers:
+      - material-dependency-change
+      - hypothesis-threshold-reached
+      - architecture-drift-high
+    budgets:
+      monthlyComputeUsd: 250
+      maxConcurrentRuns: 3
+

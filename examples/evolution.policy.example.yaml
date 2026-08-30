@@ -1,0 +1,44 @@
+apiVersion: evolutionos.io/v1alpha1
+kind: EvolutionPolicy
+metadata:
+  id: io.example.policies.safe-change
+  version: 1.2.0
+spec:
+  scope:
+    organization: example-org
+    environments: [production]
+  rules:
+    - id: deny-unverified-module
+      effect: deny
+      when:
+        action: module.activate
+        moduleTrustTierNotIn: [verified, private-approved]
+      reason: Produção aceita apenas módulos verificados ou privados aprovados.
+    - id: require-human-for-external-write
+      effect: requireApproval
+      when:
+        capabilityPrefix: external.write
+      approval:
+        roles: [service-owner, security]
+        quorum: 2
+        expiresAfter: PT24H
+    - id: allow-readonly-analysis
+      effect: allow
+      when:
+        action: analysis.run
+        sideEffects: none
+        dataLocality: node
+      constraints:
+        autonomyCeiling: A1
+        maxDuration: PT30M
+  exceptions:
+    requireReason: true
+    requireExpiry: true
+    maximumDuration: P30D
+  tests:
+    - name: unverified module is rejected
+      inputFixture: fixtures/unverified-module.json
+      expectedDecision: deny
+    - name: local read-only analysis is accepted
+      inputFixture: fixtures/local-analysis.json
+      expectedDecision: allow
