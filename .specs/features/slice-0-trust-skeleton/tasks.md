@@ -142,11 +142,11 @@ T13 → T14
 
 **Done when**:
 
-- [ ] 5 schemas v0 versionados exportados
-- [ ] `validate*` rejeita payload sem campo obrigatório com erro de schema
-- [ ] 4 exemplos YAML validam contra seus schemas
-- [ ] Gate check passes: `pnpm test:unit`
-- [ ] Test count: ≥10 tests pass (no silent deletions)
+- [x] 5 schemas v0 versionados exportados
+- [x] `validate*` rejeita payload sem campo obrigatório com erro de schema
+- [x] 4 exemplos YAML validam contra seus schemas
+- [x] Gate check passes: `pnpm test:unit`
+- [x] Test count: ≥10 tests pass (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick

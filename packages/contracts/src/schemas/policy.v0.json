@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.evolutionos.io/v0/policy.json",
+  "title": "EvolutionPolicy v0 (estrutural; motor completo no Slice 3+)",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "evolutionos.io/v1alpha1" },
+    "kind": { "const": "EvolutionPolicy" },
+    "metadata": {
+      "type": "object",
+      "required": ["id", "version"],
+      "additionalProperties": true
+    },
+    "spec": {
+      "type": "object",
+      "required": ["scope", "rules"],
+      "properties": {
+        "scope": { "type": "object" },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "effect", "when"],
+            "properties": {
+              "id": { "type": "string" },
+              "effect": { "enum": ["allow", "deny", "requireApproval"] },
+              "when": { "type": "object" },
+              "reason": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

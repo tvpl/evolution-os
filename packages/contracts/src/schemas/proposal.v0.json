@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.evolutionos.io/v0/proposal.json",
+  "title": "EvolutionProposal v0",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "evolutionos.io/v1alpha1" },
+    "kind": { "const": "EvolutionProposal" },
+    "metadata": {
+      "type": "object",
+      "required": ["id", "projectRef", "createdAt", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "projectRef": { "type": "string", "minLength": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "spec": {
+      "type": "object",
+      "required": ["title", "problem", "claims", "options", "recommendation"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "problem": { "type": "string", "minLength": 1 },
+        "triggerRefs": { "type": "array", "items": { "type": "string" } },
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "statement", "evidenceRefs", "epistemicStatus"],
+            "properties": {
+              "id": { "type": "string" },
+              "statement": { "type": "string", "minLength": 1 },
+              "evidenceRefs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "confidence": { "type": "string" },
+              "epistemicStatus": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "title"],
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "expectedValue": { "type": "string" },
+              "risks": { "type": "array", "items": { "type": "string" } },
+              "reversibility": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "recommendation": {
+          "type": "object",
+          "required": ["optionRef", "rationale"],
+          "properties": {
+            "optionRef": { "type": "string", "minLength": 1 },
+            "rationale": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": true
+        },
+        "contraryEvidence": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
