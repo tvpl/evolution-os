@@ -33,11 +33,11 @@
 
 ## Handoff
 
-- **Feature**: docs-planning-ecosystem (`.specs/features/docs-planning-ecosystem/`)
-- **Phase / Task**: Execute — T1 (bootstrap `.specs/` + spec da feature)
-- **Completed**: none
+- **Feature**: docs-planning-ecosystem — CONCLUÍDA (Verifier PASS, `validate_state.py` exit 0)
+- **Phase / Task**: —
+- **Completed**: T1..T4 + validação (commits 669cb23, 0f6d3eb, 66f3b80, b94d990 + relatório)
 - **In-progress** (file:line): —
-- **Next step**: Validar spec com `validate_spec.py`, seguir para T2 (`scripts/check_docs.py`).
+- **Next step**: Abrir a próxima feature do backlog: `slice-0-trust-skeleton` (spec pronta e validada em `.specs/features/slice-0-trust-skeleton/spec.md`) — fase Design, conforme `docs/06-delivery/09-spec-driven-execution-plan.md`. Atenção à lição L-001 (bug no check de SHALL do `validate_spec.py` upstream).
 - **Blockers**: none
-- **Uncommitted files**: `.specs/STATE.md`, `.specs/features/docs-planning-ecosystem/spec.md`
+- **Uncommitted files**: none
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7

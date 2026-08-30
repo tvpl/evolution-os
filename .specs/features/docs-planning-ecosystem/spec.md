@@ -6,10 +6,10 @@ O repositório contém as docs fundadoras completas do EvolutionOS (visão, PRDs
 
 ## Goals
 
-- [ ] Plano de execução publicado em `docs/06-delivery/` mapeando 100% dos slices (0–9) para features nomeadas com dependências, milestones e épicos.
-- [ ] Memória de projeto `.specs/STATE.md` operante (Decisions + Handoff) sem duplicar os ADRs aceitos.
-- [ ] Primeira feature do roadmap (Slice 0 — trust skeleton) especificada e aprovada pelo gate `validate_spec.py`.
-- [ ] Gate determinístico de integridade das docs (`scripts/check_docs.py`) verde na árvore atual.
+- [x] Plano de execução publicado em `docs/06-delivery/` mapeando 100% dos slices (0–9) para features nomeadas com dependências, milestones e épicos.
+- [x] Memória de projeto `.specs/STATE.md` operante (Decisions + Handoff) sem duplicar os ADRs aceitos.
+- [x] Primeira feature do roadmap (Slice 0 — trust skeleton) especificada e aprovada pelo gate `validate_spec.py`.
+- [x] Gate determinístico de integridade das docs (`scripts/check_docs.py`) verde na árvore atual.
 
 ## Out of Scope
 
@@ -123,19 +123,19 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| PLAN-01 | P1: Plano de execução — mapeamento slices→features | Execute | Pending |
-| PLAN-02 | P1: Plano de execução — dependências explícitas | Execute | Pending |
-| PLAN-03 | P1: Plano de execução — workflow e gates por feature | Execute | Pending |
-| PLAN-04 | P1: Plano de execução — navegável pelo índice | Execute | Pending |
-| PLAN-05 | P1: Memória — seções Decisions/Handoff | Execute | Pending |
-| PLAN-06 | P1: Memória — entradas AD-NNN completas | Execute | Pending |
-| PLAN-07 | P1: Memória — ADRs referenciados, não duplicados | Execute | Pending |
-| PLAN-08 | P1: Slice 0 — spec passa validate_spec | Execute | Pending |
-| PLAN-09 | P1: Slice 0 — cobre exits do M0 | Execute | Pending |
-| PLAN-10 | P1: Slice 0 — IDs rastreados às docs-fonte | Execute | Pending |
-| PLAN-11 | P2: Docs check — árvore íntegra sai 0 | Execute | Pending |
-| PLAN-12 | P2: Docs check — link quebrado sai não-zero | Execute | Pending |
-| PLAN-13 | P2: Docs check — doc órfã reportada | Execute | Pending |
+| PLAN-01 | P1: Plano de execução — mapeamento slices→features | Execute | Verified |
+| PLAN-02 | P1: Plano de execução — dependências explícitas | Execute | Verified |
+| PLAN-03 | P1: Plano de execução — workflow e gates por feature | Execute | Verified |
+| PLAN-04 | P1: Plano de execução — navegável pelo índice | Execute | Verified |
+| PLAN-05 | P1: Memória — seções Decisions/Handoff | Execute | Verified |
+| PLAN-06 | P1: Memória — entradas AD-NNN completas | Execute | Verified |
+| PLAN-07 | P1: Memória — ADRs referenciados, não duplicados | Execute | Verified |
+| PLAN-08 | P1: Slice 0 — spec passa validate_spec | Execute | Verified |
+| PLAN-09 | P1: Slice 0 — cobre exits do M0 | Execute | Verified |
+| PLAN-10 | P1: Slice 0 — IDs rastreados às docs-fonte | Execute | Verified |
+| PLAN-11 | P2: Docs check — árvore íntegra sai 0 | Execute | Verified |
+| PLAN-12 | P2: Docs check — link quebrado sai não-zero | Execute | Verified |
+| PLAN-13 | P2: Docs check — doc órfã reportada | Execute | Verified |
 
 **ID format:** `PLAN-NN`
 
@@ -149,7 +149,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 How we know the feature is successful:
 
-- [ ] `validate_spec.py` sai 0 para esta spec e para a do Slice 0.
-- [ ] `check_docs.py` sai 0 na árvore final (nenhum link quebrado, nenhuma doc órfã).
-- [ ] Um agente que leia apenas `docs/06-delivery/09-spec-driven-execution-plan.md` consegue abrir a próxima feature sem consultar mais nada além dos docs-fonte linkados.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] `validate_spec.py` sai 0 para esta spec e para a do Slice 0.
+- [x] `check_docs.py` sai 0 na árvore final (nenhum link quebrado, nenhuma doc órfã).
+- [x] Um agente que leia apenas `docs/06-delivery/09-spec-driven-execution-plan.md` consegue abrir a próxima feature sem consultar mais nada além dos docs-fonte linkados.
+- [x] Verifier independente reporta PASS em `validation.md`.
