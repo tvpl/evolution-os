@@ -197,11 +197,11 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Login dev retorna token escopado a exatamente uma org/workspace
-- [ ] Token inválido/ausente → 401 Problem Details
-- [ ] Tenant do payload é ignorado em favor do escopo da sessão (teste)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Login dev retorna token escopado a exatamente uma org/workspace
+- [x] Token inválido/ausente → 401 Problem Details
+- [x] Tenant do payload é ignorado em favor do escopo da sessão (teste)
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
