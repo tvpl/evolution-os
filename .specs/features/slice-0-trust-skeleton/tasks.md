@@ -90,9 +90,9 @@ T13 → T14
 
 **Done when**:
 
-- [ ] `pnpm install` resolve sem erros
-- [ ] `pnpm typecheck` roda (vazio ainda) com exit 0
-- [ ] Estrutura `apps/`, `packages/` criada
+- [x] `pnpm install` resolve sem erros
+- [x] `pnpm typecheck` roda (vazio ainda) com exit 0
+- [x] Estrutura `apps/`, `packages/` criada
 
 **Tests**: none
 **Gate**: build
