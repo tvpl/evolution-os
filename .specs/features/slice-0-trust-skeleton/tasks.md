@@ -170,10 +170,10 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Migrations aplicam de zero e são idempotentes (re-run no-op)
-- [ ] `withTx` faz rollback em erro (testado)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Migrations aplicam de zero e são idempotentes (re-run no-op)
+- [x] `withTx` faz rollback em erro (testado)
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
