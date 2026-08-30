@@ -337,10 +337,10 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Hello workflow completa os 3 steps com checkpoint por step
-- [ ] Runner destruído após step 2 → nova instância retoma do checkpoint e NÃO repete steps 1-2 (via `workflow_steps`)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] Hello workflow completa os 3 steps com checkpoint por step
+- [x] Runner destruído após step 2 → nova instância retoma do checkpoint e NÃO repete steps 1-2 (via `workflow_steps`)
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full
