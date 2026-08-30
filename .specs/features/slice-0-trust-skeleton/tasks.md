@@ -252,13 +252,13 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Registro persiste projeto + evento `io.evolutionos.project.project.registered.v1` no outbox na mesma tx (falha → nada gravado)
-- [ ] Evento carrega extensions tenantid/workspaceid/projectid/correlationid/classification/schemaversion
-- [ ] Mesma key+digest → 200 replay sem novo evento; key reusada com digest diferente → 409
-- [ ] Sessão do tenant B acessando projeto do tenant A → 403 + audit (suite negativa)
-- [ ] Registros concorrentes geram projectids distintos sem perda
-- [ ] Gate check passes: full
-- [ ] Test count: ≥8 tests pass
+- [x] Registro persiste projeto + evento `io.evolutionos.project.project.registered.v1` no outbox na mesma tx (falha → nada gravado)
+- [x] Evento carrega extensions tenantid/workspaceid/projectid/correlationid/classification/schemaversion
+- [x] Mesma key+digest → 200 replay sem novo evento; key reusada com digest diferente → 409
+- [x] Sessão do tenant B acessando projeto do tenant A → 403 + audit (suite negativa)
+- [x] Registros concorrentes geram projectids distintos sem perda
+- [x] Gate check passes: full
+- [x] Test count: ≥8 tests pass
 
 **Tests**: integration
 **Gate**: full
