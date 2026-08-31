@@ -65,6 +65,20 @@ describe("dev identity (TRUST-06)", () => {
     expect(res.statusCode).toBe(401);
   });
 
+  it("a signed token without workspace scope is rejected (project-scoped requests denied)", async () => {
+    // Edge case da spec: sessão sem workspace scope nega qualquer request
+    // project-scoped. Token assinado com o segredo real, mas sem workspaceId.
+    const scopeless = signSession({ userId: "user_dev_a", orgId: "org_dev_a", workspaceId: "" });
+    for (const url of ["/me", "/projects"]) {
+      const res = await app.inject({
+        method: "GET",
+        url,
+        headers: { authorization: `Bearer ${scopeless}` },
+      });
+      expect(res.statusCode).toBe(401);
+    }
+  });
+
   it("tenant claimed via header is ignored in favor of the session scope", async () => {
     const { token } = await login("dev-a@evolutionos.local");
     const res = await app.inject({

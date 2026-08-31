@@ -57,11 +57,11 @@
 
 ## Handoff
 
-- **Feature**: docs-planning-ecosystem — CONCLUÍDA (Verifier PASS, `validate_state.py` exit 0)
+- **Feature**: slice-0-trust-skeleton — CONCLUÍDA (Verifier PASS 16/16 ACs, sensor 5/5 mutantes mortos, `validate_state.py` exit 0)
 - **Phase / Task**: —
-- **Completed**: T1..T4 + validação (commits 669cb23, 0f6d3eb, 66f3b80, b94d990 + relatório)
+- **Completed**: T1..T14 (commits d650799..65704d8) + validation.md + gap G1 fechado (teste de sessão sem workspace scope)
 - **In-progress** (file:line): —
-- **Next step**: Abrir a próxima feature do backlog: `slice-0-trust-skeleton` (spec pronta e validada em `.specs/features/slice-0-trust-skeleton/spec.md`) — fase Design, conforme `docs/06-delivery/09-spec-driven-execution-plan.md`. Atenção à lição L-001 (bug no check de SHALL do `validate_spec.py` upstream).
+- **Next step**: Abrir a próxima feature do backlog: `slice-1-idea-memory` (fase Specify, docs-fonte PRD-002/knowledge model/manifest spec) conforme `docs/06-delivery/09-spec-driven-execution-plan.md`. O fix da L-001 já está aplicado em `validate_spec.py`; L-002 (candidate): todo edge case da spec exige asserção dedicada.
 - **Blockers**: none
-- **Uncommitted files**: none
+- **Uncommitted files**: none (após commit de fechamento)
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7

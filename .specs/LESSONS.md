@@ -20,6 +20,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .claude/skills/tlc-spec-driven/scripts/validate_spec.py:173 (specs)
 - last seen: 2026-08-30T20:42:50Z
 
+### L-002 - Todo edge case listado na spec precisa de asserção dedicada propria; guarda implementada sem teste vira gap no verifier (G1: sessao sem workspace scope)
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `hub/identity` · harmful: 0
+- features: slice-0-trust-skeleton
+- evidence: apps/hub/src/identity/session.ts:36 (hub/identity)
+- last seen: 2026-08-31T01:51:25Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

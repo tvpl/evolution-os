@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 2,
+  "next_id": 3,
   "lessons": [
     {
       "id": "L-001",
@@ -22,6 +22,24 @@
       ],
       "created": "2026-08-30T20:42:50Z",
       "last_seen": "2026-08-30T20:42:50Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::todo edge case listado na spec precisa de assercao dedicada propria guarda implementada sem teste vira gap no verifier g1 sessao sem workspace scope",
+      "text": "Todo edge case listado na spec precisa de asserção dedicada propria; guarda implementada sem teste vira gap no verifier (G1: sessao sem workspace scope)",
+      "signal": "ac_gap",
+      "scope": "hub/identity",
+      "status": "candidate",
+      "features": [
+        "slice-0-trust-skeleton"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/hub/src/identity/session.ts:36 (hub/identity)"
+      ],
+      "created": "2026-08-31T01:51:25Z",
+      "last_seen": "2026-08-31T01:51:25Z"
     }
   ]
 }

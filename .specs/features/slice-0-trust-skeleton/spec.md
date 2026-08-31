@@ -8,10 +8,10 @@ Nada do EvolutionOS pode ser construído com confiança antes de existir o esque
 
 ## Goals
 
-- [ ] Registro de projeto percorre UI → API → outbox → projection → UI (exit M0).
-- [ ] Node local faz enroll e sync de artefato dummy (exit M0).
-- [ ] Testes negativos de isolamento de tenant e idempotência passam (exit M0).
-- [ ] Schemas v0 (project, evidence, proposal, decision, event) versionados e validados.
+- [x] Registro de projeto percorre UI → API → outbox → projection → UI (exit M0).
+- [x] Node local faz enroll e sync de artefato dummy (exit M0).
+- [x] Testes negativos de isolamento de tenant e idempotência passam (exit M0).
+- [x] Schemas v0 (project, evidence, proposal, decision, event) versionados e validados.
 
 ## Out of Scope
 
@@ -136,22 +136,22 @@ Nada do EvolutionOS pode ser construído com confiança antes de existir o esque
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| TRUST-01 | P1: Registro ponta a ponta — comando+outbox (CORE-FR-001, EP-003, exit M0) | Design | Pending |
-| TRUST-02 | P1: Registro ponta a ponta — projeção→UI (exit M0) | Design | Pending |
-| TRUST-03 | P1: Registro ponta a ponta — extensions obrigatórias (event contract §2) | Design | Pending |
-| TRUST-04 | P1: Registro ponta a ponta — idempotência de comando (event contract §4, exit M0) | Design | Pending |
-| TRUST-05 | P1: Registro ponta a ponta — conflito de key reutilizada (event contract §4) | Design | Pending |
-| TRUST-06 | P1: Identidade/tenancy — sessão escopada (EP-002, ADR-014) | Design | Pending |
-| TRUST-07 | P1: Identidade/tenancy — negação cross-tenant (exit M0) | Design | Pending |
-| TRUST-08 | P1: Identidade/tenancy — auditoria de negação (EP-002) | Design | Pending |
-| TRUST-09 | P1: Identidade/tenancy — deny-by-default (deliverable M0) | Design | Pending |
-| TRUST-10 | P2: Observabilidade — trace correlacionado (deliverable M0, EP-004) | Design | Pending |
-| TRUST-11 | P2: Workflow durável — hello path com checkpoint (deliverable M0, EP-003) | Design | Pending |
-| TRUST-12 | P2: Node — enroll/ack (exit M0, ADR-001) | Design | Pending |
-| TRUST-13 | P2: Node — sync dummy com digest (exit M0) | Design | Pending |
-| TRUST-14 | P2: Node — rejeição sem enroll (EP-002) | Design | Pending |
-| TRUST-15 | P2: Schemas v0 — cinco contratos versionados (deliverable M0, EP-001) | Design | Pending |
-| TRUST-16 | P2: Schemas v0 — validação rejeita payload inválido (EP-001) | Design | Pending |
+| TRUST-01 | P1: Registro ponta a ponta — comando+outbox (CORE-FR-001, EP-003, exit M0) | Execute | Verified |
+| TRUST-02 | P1: Registro ponta a ponta — projeção→UI (exit M0) | Execute | Verified |
+| TRUST-03 | P1: Registro ponta a ponta — extensions obrigatórias (event contract §2) | Execute | Verified |
+| TRUST-04 | P1: Registro ponta a ponta — idempotência de comando (event contract §4, exit M0) | Execute | Verified |
+| TRUST-05 | P1: Registro ponta a ponta — conflito de key reutilizada (event contract §4) | Execute | Verified |
+| TRUST-06 | P1: Identidade/tenancy — sessão escopada (EP-002, ADR-014) | Execute | Verified |
+| TRUST-07 | P1: Identidade/tenancy — negação cross-tenant (exit M0) | Execute | Verified |
+| TRUST-08 | P1: Identidade/tenancy — auditoria de negação (EP-002) | Execute | Verified |
+| TRUST-09 | P1: Identidade/tenancy — deny-by-default (deliverable M0) | Execute | Verified |
+| TRUST-10 | P2: Observabilidade — trace correlacionado (deliverable M0, EP-004) | Execute | Verified |
+| TRUST-11 | P2: Workflow durável — hello path com checkpoint (deliverable M0, EP-003) | Execute | Verified |
+| TRUST-12 | P2: Node — enroll/ack (exit M0, ADR-001) | Execute | Verified |
+| TRUST-13 | P2: Node — sync dummy com digest (exit M0) | Execute | Verified |
+| TRUST-14 | P2: Node — rejeição sem enroll (EP-002) | Execute | Verified |
+| TRUST-15 | P2: Schemas v0 — cinco contratos versionados (deliverable M0, EP-001) | Execute | Verified |
+| TRUST-16 | P2: Schemas v0 — validação rejeita payload inválido (EP-001) | Execute | Verified |
 
 **ID format:** `TRUST-NN`
 
@@ -163,8 +163,8 @@ Nada do EvolutionOS pode ser construído com confiança antes de existir o esque
 
 ## Success Criteria
 
-- [ ] Demo: registrar projeto no console e vê-lo aparecer via projeção, com trace único no OTel.
-- [ ] Suites negativas de cross-tenant e idempotência verdes.
-- [ ] Node enroll + sync dummy demonstrados contra o Hub local.
-- [ ] `examples/*.yaml` validam contra os schemas v0.
-- [ ] Checklist de review do slice (sequência de construção) respondido antes de abrir o Slice 1.
+- [x] Demo: registrar projeto no console e vê-lo aparecer via projeção, com trace único no OTel.
+- [x] Suites negativas de cross-tenant e idempotência verdes.
+- [x] Node enroll + sync dummy demonstrados contra o Hub local.
+- [x] `examples/*.yaml` validam contra os schemas v0.
+- [x] Checklist de review do slice (sequência de construção) respondido antes de abrir o Slice 1.
