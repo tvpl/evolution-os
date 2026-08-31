@@ -420,12 +420,12 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Login estabelece sessão; página lista projetos da projeção
-- [ ] Registrar via form faz o projeto aparecer na lista (após dispatch)
-- [ ] Manifest inválido exibe erro 422 sem registrar
-- [ ] Console não acessa banco nem toma decisão de policy (só HTTP ao Hub)
-- [ ] Gate check passes: full + `pnpm test:e2e`
-- [ ] Test count: ≥2 e2e specs pass
+- [x] Login estabelece sessão; página lista projetos da projeção
+- [x] Registrar via form faz o projeto aparecer na lista (após dispatch)
+- [x] Manifest inválido exibe erro 422 sem registrar
+- [x] Console não acessa banco nem toma decisão de policy (só HTTP ao Hub)
+- [x] Gate check passes: full + `pnpm test:e2e`
+- [x] Test count: ≥2 e2e specs pass
 
 **Tests**: e2e
 **Gate**: full
