@@ -11,6 +11,10 @@ let pool: DbPool;
 beforeAll(async () => {
   const admin = new Client({ connectionString: `${BASE_URL}/postgres` });
   await admin.connect();
+  await admin.query(
+    "select pg_terminate_backend(pid) from pg_stat_activity where datname = $1 and pid <> pg_backend_pid()",
+    [DB],
+  );
   await admin.query(`drop database if exists ${DB}`);
   await admin.query(`create database ${DB}`);
   await admin.end();

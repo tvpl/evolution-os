@@ -1,0 +1,26 @@
+{
+  "name": "@evolution-os/node",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "evo": "./src/main.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:int": "vitest run"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@evolution-os/hub": "workspace:*",
+    "@types/node": "^22.15.0",
+    "@types/pg": "^8.23.1",
+    "fastify": "^5.12.1",
+    "pg": "^8.23.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}

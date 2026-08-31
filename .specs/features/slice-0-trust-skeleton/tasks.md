@@ -392,11 +392,11 @@ T13 → T14
 
 **Done when**:
 
-- [ ] `init` escreve config; `doctor` valida config + alcance do Hub
-- [ ] `enroll` persiste token; `sync` envia dummy e imprime digest confirmado
-- [ ] `sync` sem enroll falha com mensagem clara e exit != 0
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] `init` escreve config; `doctor` valida config + alcance do Hub
+- [x] `enroll` persiste token; `sync` envia dummy e imprime digest confirmado
+- [x] `sync` sem enroll falha com mensagem clara e exit != 0
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
