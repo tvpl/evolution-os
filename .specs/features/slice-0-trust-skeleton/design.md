@@ -183,3 +183,18 @@ audit_log(id, org_id, actor, action, resource, outcome, reason, correlation_id, 
 | Dev identity | `POST /auth/dev-login` emitindo token HMAC (org+workspace fixos seed) | Deliverable M0 "OIDC/dev identity"; OIDC real é slice futuro |
 
 > Decisões AD-004..006 registradas em `.specs/STATE.md`.
+
+---
+
+## Review do slice (checklist de `docs/06-delivery/05-build-sequence.md`)
+
+| Pergunta | Resposta |
+| --- | --- |
+| Usuário entende o valor? | Sim — registrar um projeto no console e vê-lo chegar pela projeção demonstra o loop comando→evento→leitura com identidade e isolamento reais |
+| O novo artifact está no knowledge model? | Projetos, eventos, workflows e artifacts de Node seguem o modelo do design; manifests validados pelos schemas v0 de `packages/contracts` |
+| Evidence/decision lineage existe? | N/A neste slice (nasce no Slice 3); decisões de processo registradas em `.specs/STATE.md` (AD-001..006) |
+| Policy e classification cobrem o fluxo? | Deny-by-default com grants explícitos + auditoria de negação; todo envelope carrega `classification` |
+| Failure/retry/idempotency definidos? | Outbox at-least-once, inbox dedup, Idempotency-Key com digest canônico, retry de workflow — todos com teste de integração |
+| Evals incluem negative cases? | Suites negativas: cross-tenant, token forjado, digest divergente, key em conflito, consumer falhando; evals de agente N/A (nenhum agente neste slice) |
+| O profile Lite continua possível? | Sim — Hub single-process + Node CLI locais; SQLite não substitui Postgres (AD-005), Lite usa o cluster local de `dev-db.sh` |
+| Alguma hipótese do ecossistema foi invalidada? | Não; a taxonomia de eventos documentada foi confirmada e adotada literalmente |

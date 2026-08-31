@@ -449,10 +449,10 @@ T13 → T14
 
 **Done when**:
 
-- [ ] README documenta bootstrap completo em comandos copy-paste
-- [ ] Plano de execução marca slice 0 como implementado (link para validation quando existir)
-- [ ] Checklist de review do slice respondido
-- [ ] Gate check passes: build (inclui `python3 scripts/check_docs.py`)
+- [x] README documenta bootstrap completo em comandos copy-paste
+- [x] Plano de execução marca slice 0 como implementado (link para validation quando existir)
+- [x] Checklist de review do slice respondido
+- [x] Gate check passes: build (inclui `python3 scripts/check_docs.py`)
 
 **Tests**: none
 **Gate**: build
