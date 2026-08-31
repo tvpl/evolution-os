@@ -364,11 +364,11 @@ T13 → T14
 
 **Done when**:
 
-- [ ] Enroll registra identidade e responde ack com token
-- [ ] Sync com token grava artifact com digest verificável
-- [ ] Sync sem enroll/token inválido → 401
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Enroll registra identidade e responde ack com token
+- [x] Sync com token grava artifact com digest verificável
+- [x] Sync sem enroll/token inválido → 401
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

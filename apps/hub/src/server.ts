@@ -6,6 +6,7 @@ import { problem, requireScope } from "./http.js";
 import { signSession, verifySession, type AuthScope } from "./identity/session.js";
 import { DEV_TENANTS } from "./identity/seed.js";
 import { registerRegistryRoutes } from "./registry/routes.js";
+import { registerNodeRoutes } from "./nodes/routes.js";
 
 export interface ServerOptions {
   pool: DbPool;
@@ -84,6 +85,7 @@ export function buildServer({ pool }: ServerOptions): FastifyInstance {
   });
 
   registerRegistryRoutes(app, pool);
+  registerNodeRoutes(app, pool);
 
   return app;
 }

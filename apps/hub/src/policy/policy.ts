@@ -82,8 +82,10 @@ export async function seedDevGrants(db: Queryable): Promise<void> {
   const grants: Array<[string, string, string]> = [
     ["org_dev_a", "ws_dev_a", "project.register"],
     ["org_dev_a", "ws_dev_a", "project.read"],
+    ["org_dev_a", "ws_dev_a", "node.enroll"],
     ["org_dev_b", "ws_dev_b", "project.register"],
     ["org_dev_b", "ws_dev_b", "project.read"],
+    ["org_dev_b", "ws_dev_b", "node.enroll"],
   ];
   for (const [orgId, workspaceId, capability] of grants) {
     await db.query(
