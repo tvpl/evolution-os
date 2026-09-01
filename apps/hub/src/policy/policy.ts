@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import type { DbClient, DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
+import { canonicalJson } from "../platform/canonical-json.js";
 
 export type Queryable = DbPool | DbClient;
 
@@ -38,20 +40,136 @@ export interface AuditEntry {
   correlationId?: string;
 }
 
+export const AUDIT_GENESIS = "genesis";
+
+function computeEntryHash(fields: {
+  orgId: string;
+  actor: string;
+  action: string;
+  resource: string;
+  outcome: string;
+  reason: string | null;
+  correlationId: string | null;
+  at: string;
+  prevHash: string;
+}): string {
+  return createHash("sha256").update(canonicalJson(fields)).digest("hex");
+}
+
+/**
+ * HARD-06/09: assinatura pública inalterada - a cadeia de hash é computada e
+ * persistida internamente, então nenhum dos ~20+ call sites existentes desde
+ * o Slice 0 precisa mudar. Encadeia com o `entry_hash` do entry anterior do
+ * MESMO org (nunca globalmente); o primeiro entry de um org usa "genesis".
+ */
 export async function recordAudit(db: Queryable, entry: AuditEntry): Promise<void> {
-  await db.query(
-    `insert into audit_log (org_id, actor, action, resource, outcome, reason, correlation_id)
-     values ($1, $2, $3, $4, $5, $6, $7)`,
-    [
-      entry.orgId,
-      entry.actor,
-      entry.action,
-      entry.resource,
-      entry.outcome,
-      entry.reason ?? null,
-      entry.correlationId ?? null,
-    ],
+  const reason = entry.reason ?? null;
+  const correlationId = entry.correlationId ?? null;
+  const at = new Date().toISOString();
+
+  const last = await db.query(
+    `select entry_hash from audit_log where org_id = $1 order by id desc limit 1`,
+    [entry.orgId],
   );
+  const lastRow = last.rows[0] as { entry_hash: string | null } | undefined;
+  const prevHash = lastRow?.entry_hash ?? AUDIT_GENESIS;
+
+  const entryHash = computeEntryHash({
+    orgId: entry.orgId,
+    actor: entry.actor,
+    action: entry.action,
+    resource: entry.resource,
+    outcome: entry.outcome,
+    reason,
+    correlationId,
+    at,
+    prevHash,
+  });
+
+  await db.query(
+    `insert into audit_log (org_id, actor, action, resource, outcome, reason, correlation_id, at, prev_hash, entry_hash)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [entry.orgId, entry.actor, entry.action, entry.resource, entry.outcome, reason, correlationId, at, prevHash, entryHash],
+  );
+}
+
+export interface AuditLogRow {
+  id: number;
+  actor: string;
+  action: string;
+  resource: string;
+  outcome: string;
+  reason: string | null;
+  correlationId: string | null;
+  at: string;
+}
+
+export interface AuditChainVerdict {
+  valid: boolean;
+  brokenAtId?: number;
+}
+
+/**
+ * HARD-07/08: recomputa o `entry_hash` de cada entry a partir dos seus
+ * próprios campos e confere contra o valor persistido e contra o
+ * `prev_hash` esperado (o `entry_hash` do entry anterior na mesma
+ * sequência) - detecta tanto uma adulteração de campo quanto uma quebra de
+ * elo, identificando o `id` exato onde a cadeia para de bater.
+ */
+export async function verifyAuditChain(db: Queryable, orgId: string): Promise<AuditChainVerdict> {
+  const rows = await db.query(
+    `select id, actor, action, resource, outcome, reason, correlation_id as "correlationId", at, prev_hash as "prevHash", entry_hash as "entryHash"
+       from audit_log where org_id = $1 order by id asc`,
+    [orgId],
+  );
+
+  let expectedPrev = AUDIT_GENESIS;
+  for (const row of rows.rows as Array<{
+    id: number;
+    actor: string;
+    action: string;
+    resource: string;
+    outcome: string;
+    reason: string | null;
+    correlationId: string | null;
+    at: Date;
+    prevHash: string | null;
+    entryHash: string | null;
+  }>) {
+    if (row.prevHash !== expectedPrev) return { valid: false, brokenAtId: row.id };
+
+    const expectedHash = computeEntryHash({
+      orgId,
+      actor: row.actor,
+      action: row.action,
+      resource: row.resource,
+      outcome: row.outcome,
+      reason: row.reason,
+      correlationId: row.correlationId,
+      at: row.at.toISOString(),
+      prevHash: row.prevHash,
+    });
+    if (expectedHash !== row.entryHash) return { valid: false, brokenAtId: row.id };
+
+    expectedPrev = row.entryHash;
+  }
+  return { valid: true };
+}
+
+export interface AuditExport {
+  entries: AuditLogRow[];
+  chainValid: boolean;
+}
+
+/** HARD-10/11: export org-scoped - `orgId` sempre vem do escopo da sessão, nunca do payload. */
+export async function exportAuditLog(db: Queryable, orgId: string): Promise<AuditExport> {
+  const rows = await db.query(
+    `select id, actor, action, resource, outcome, reason, correlation_id as "correlationId", at
+       from audit_log where org_id = $1 order by id asc`,
+    [orgId],
+  );
+  const verdict = await verifyAuditChain(db, orgId);
+  return { entries: rows.rows as AuditLogRow[], chainValid: verdict.valid };
 }
 
 /** Checa a capability e audita a negação; retorna a decisão para o chamador. */

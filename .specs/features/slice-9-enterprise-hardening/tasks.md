@@ -132,12 +132,13 @@ T7
 - [x] Alterar diretamente uma coluna de um entry no meio da cadeia (bypassando `recordAudit`) faz a verificação reportar `valid: false` com o `brokenAtId` exato
 - [x] Um org com exatamente um entry é válido por construção (nada para comparar)
 - [x] Gate check passes: full
-- [x] Test count: ≥6 tests pass
+- [x] Test count: ≥6 tests pass ✅ (6 tests, 428 total)
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(hub): chain audit log entries into a tamper-evident hash chain`
+**Status**: ✅ Done
 
 ---
 
