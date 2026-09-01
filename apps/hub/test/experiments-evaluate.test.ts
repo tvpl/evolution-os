@@ -121,10 +121,13 @@ describe("experiment evaluation (EXP-08/09/10/11/12)", () => {
     expect(res.statusCode).toBe(200);
     expect(res.json().verdict).toBe("inconclusive");
 
-    const row = await pool.query("select observed_value as \"observedValue\" from experiments where id = $1", [
-      experimentId,
-    ]);
+    const row = await pool.query(
+      "select observed_value as \"observedValue\", status, verdict from experiments where id = $1",
+      [experimentId],
+    );
     expect(row.rows[0].observedValue).toBeNull();
+    expect(row.rows[0].status).toBe("evaluated");
+    expect(row.rows[0].verdict).toBe("inconclusive");
   });
 
   it("omitting the observedValue field is rejected 422 without persisting a verdict", async () => {

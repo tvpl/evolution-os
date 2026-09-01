@@ -29,7 +29,7 @@ export type StartExperimentOutcome =
   | { kind: "not_found" }
   | { kind: "invalid_transition" };
 
-interface ProposalMaterialFields {
+export interface ProposalMaterialFields {
   title: string;
   summary: string;
   whyNow: string | null;
@@ -42,7 +42,7 @@ interface ProposalMaterialFields {
 /** EXP-01 (proposal spec §5): o digest prova o que estava de fato persistido
  * no momento da decisão, não o que o cliente alega — por isso é computado
  * lendo a proposal do banco, nunca a partir do payload da requisição. */
-function computeProposalDigest(fields: ProposalMaterialFields): string {
+export function computeProposalDigest(fields: ProposalMaterialFields): string {
   return `sha256:${createHash("sha256").update(canonicalJson(fields)).digest("hex")}`;
 }
 

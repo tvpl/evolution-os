@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 7,
+  "next_id": 12,
   "lessons": [
     {
       "id": "L-001",
@@ -112,6 +112,96 @@
       ],
       "created": "2026-09-01T11:55:24Z",
       "last_seen": "2026-09-01T11:55:24Z"
+    },
+    {
+      "id": "L-007",
+      "key": "surviving_mutant::when a value is derived through a canonicalization helper assert the canonicalization property itself not just that the derived value exists and is reproducible for identical inputs",
+      "text": "When a value is derived through a canonicalization helper, assert the canonicalization property itself, not just that the derived value exists and is reproducible for identical inputs",
+      "signal": "surviving_mutant",
+      "scope": "hub-domain",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M5 - apps/hub/src/evolution/experiments.ts:46 (hub-domain)"
+      ],
+      "created": "2026-09-01T12:33:43Z",
+      "last_seen": "2026-09-01T12:33:43Z"
+    },
+    {
+      "id": "L-008",
+      "key": "ac_gap::for an acceptance criterion phrased as a bound exactly n any of n fields test every direction of the bound not one representative instance",
+      "text": "For an acceptance criterion phrased as a bound (exactly N, any of N fields), test every direction of the bound, not one representative instance",
+      "signal": "ac_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EXP-02 - apps/hub/test/experiments-start.test.ts:104 (routes)"
+      ],
+      "created": "2026-09-01T12:33:43Z",
+      "last_seen": "2026-09-01T12:33:43Z"
+    },
+    {
+      "id": "L-009",
+      "key": "surviving_mutant::assert every payload field a listing endpoint returns on its actual value never identity alone",
+      "text": "Assert every payload field a listing endpoint returns on its actual value, never identity alone",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M11 - apps/hub/src/evolution/experiments.ts:164 (routes)"
+      ],
+      "created": "2026-09-01T12:33:44Z",
+      "last_seen": "2026-09-01T12:33:44Z"
+    },
+    {
+      "id": "L-010",
+      "key": "surviving_mutant::every state transition guard in the implementation needs a test for the wrong state case it rejects even when no acceptance criterion names that case",
+      "text": "Every state-transition guard in the implementation needs a test for the wrong-state case it rejects, even when no acceptance criterion names that case",
+      "signal": "surviving_mutant",
+      "scope": "hub-domain",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M10 - apps/hub/src/evolution/experiments.ts:143 (hub-domain)"
+      ],
+      "created": "2026-09-01T12:33:44Z",
+      "last_seen": "2026-09-01T12:33:44Z"
+    },
+    {
+      "id": "L-011",
+      "key": "spec_precision_gap::assert a status transition against the persisted row never against a response field the route hardcodes",
+      "text": "Assert a status transition against the persisted row, never against a response field the route hardcodes",
+      "signal": "spec_precision_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EXP-10 - apps/hub/test/experiments-evaluate.test.ts:118 (routes)"
+      ],
+      "created": "2026-09-01T12:33:44Z",
+      "last_seen": "2026-09-01T12:33:44Z"
     }
   ]
 }

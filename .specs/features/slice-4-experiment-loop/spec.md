@@ -125,21 +125,21 @@ Até o Slice 3, uma proposal pode chegar a `readyForReview` com contra-análise 
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| EXP-01 | P1: Iniciar experimento — criação com digest e transição de status | Execute | Implementing |
-| EXP-02 | P1: Iniciar experimento — rejeita variantes != 2 | Execute | Implementing |
-| EXP-03 | P1: Iniciar experimento — rejeita plano de verificação incompleto | Execute | Implementing |
-| EXP-04 | P1: Iniciar experimento — rejeita proposal fora de readyForReview | Execute | Implementing |
-| EXP-05 | P1: Proof artifacts — anexar sem duplicar | Execute | Implementing |
-| EXP-06 | P1: Proof artifacts — rejeita artifact de outro projeto | Execute | Implementing |
-| EXP-07 | P1: Proof artifacts — listagem | Execute | Implementing |
-| EXP-08 | P1: Avaliação — hypothesis_met | Execute | Implementing |
-| EXP-09 | P1: Avaliação — hypothesis_not_met | Execute | Implementing |
-| EXP-10 | P1: Avaliação — inconclusive em null explícito | Execute | Implementing |
-| EXP-11 | P1: Avaliação — rejeita campo ausente | Execute | Implementing |
-| EXP-12 | P1: Avaliação — rejeita se não running | Execute | Implementing |
-| EXP-13 | P1: Fechamento — decisão preservada + status closed | Execute | Implementing |
-| EXP-14 | P1: Fechamento — rejeita se não evaluated | Execute | Implementing |
-| EXP-15 | P1: Fechamento — expõe decisões relacionadas anteriores | Execute | Implementing |
+| EXP-01 | P1: Iniciar experimento — criação com digest e transição de status | Verified | Verified |
+| EXP-02 | P1: Iniciar experimento — rejeita variantes != 2 | Verified | Verified |
+| EXP-03 | P1: Iniciar experimento — rejeita plano de verificação incompleto | Verified | Verified |
+| EXP-04 | P1: Iniciar experimento — rejeita proposal fora de readyForReview | Verified | Verified |
+| EXP-05 | P1: Proof artifacts — anexar sem duplicar | Verified | Verified |
+| EXP-06 | P1: Proof artifacts — rejeita artifact de outro projeto | Verified | Verified |
+| EXP-07 | P1: Proof artifacts — listagem | Verified | Verified |
+| EXP-08 | P1: Avaliação — hypothesis_met | Verified | Verified |
+| EXP-09 | P1: Avaliação — hypothesis_not_met | Verified | Verified |
+| EXP-10 | P1: Avaliação — inconclusive em null explícito | Verified | Verified |
+| EXP-11 | P1: Avaliação — rejeita campo ausente | Verified | Verified |
+| EXP-12 | P1: Avaliação — rejeita se não running | Verified | Verified |
+| EXP-13 | P1: Fechamento — decisão preservada + status closed | Verified | Verified |
+| EXP-14 | P1: Fechamento — rejeita se não evaluated | Verified | Verified |
+| EXP-15 | P1: Fechamento — expõe decisões relacionadas anteriores | Verified | Verified |
 
 **ID format:** `EXP-NN`
 
@@ -155,4 +155,4 @@ Até o Slice 3, uma proposal pode chegar a `readyForReview` com contra-análise 
 - [x] O vertical slice completo roda ponta a ponta: proposal readyForReview → experimento iniciado (2 variantes + plano) → proof artifact anexado → avaliação determinística → fechamento com decisão preservada e proposal `closed`.
 - [x] Uma avaliação com métrica observada abaixo do threshold produz `hypothesis_not_met` sem exigir julgamento humano para a classificação.
 - [x] Um valor `null` explícito produz `inconclusive`, distinto de um campo ausente (422).
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] Verifier independente reporta PASS em `validation.md`.

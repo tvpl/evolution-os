@@ -145,7 +145,7 @@ describe("experiment proof artifacts (EXP-05/06/07)", () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it("listing returns every attached artifact", async () => {
+  it("listing returns every attached artifact with its actual type and title", async () => {
     const experimentId = await createRunningExperiment(projectId);
     const a1 = await createArtifact(projectId);
     const a2 = await createArtifact(projectId);
@@ -158,7 +158,65 @@ describe("experiment proof artifacts (EXP-05/06/07)", () => {
       headers: { authorization: `Bearer ${tokenA}` },
     });
     expect(res.statusCode).toBe(200);
-    const ids = res.json().artifacts.map((a: { id: string }) => a.id);
+    const { artifacts } = res.json();
+    const ids = artifacts.map((a: { id: string }) => a.id);
     expect(ids.sort()).toEqual([a1, a2].sort());
+    for (const artifact of artifacts) {
+      expect(artifact.type).toBe("report");
+      expect(artifact.title).toBe("Resultado do experimento");
+    }
+  });
+
+  it("attaching a proof artifact to a non-running experiment is rejected 409", async () => {
+    const experimentId = await createRunningExperiment(projectId);
+    await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/experiments/${experimentId}/evaluate`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: { observedValue: 50 },
+    });
+    const artifactId = await createArtifact(projectId);
+
+    const res = await attach(projectId, experimentId, artifactId);
+    expect(res.statusCode).toBe(409);
+    expect(res.json().title).toBe("invalid_transition");
+
+    const row = await pool.query(
+      "select count(*)::int as n from experiment_artifacts where experiment_id = $1",
+      [experimentId],
+    );
+    expect(row.rows[0].n).toBe(0);
+  });
+
+  it("attaching a proof artifact is denied cross-tenant", async () => {
+    const experimentId = await createRunningExperiment(projectId);
+    const artifactId = await createArtifact(projectId);
+    const loginB = await app.inject({
+      method: "POST",
+      url: "/auth/dev-login",
+      payload: { email: "dev-b@evolutionos.local" },
+    });
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/experiments/${experimentId}/artifacts`,
+      headers: { authorization: `Bearer ${loginB.json().token}` },
+      payload: { artifactId },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("listing proof artifacts is denied cross-tenant", async () => {
+    const experimentId = await createRunningExperiment(projectId);
+    const loginB = await app.inject({
+      method: "POST",
+      url: "/auth/dev-login",
+      payload: { email: "dev-b@evolutionos.local" },
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: `/projects/${projectId}/experiments/${experimentId}/artifacts`,
+      headers: { authorization: `Bearer ${loginB.json().token}` },
+    });
+    expect(res.statusCode).toBe(403);
   });
 });

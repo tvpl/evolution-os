@@ -101,7 +101,7 @@ describe("start experiment from a ready-for-review proposal (EXP-01/02/03/04)", 
     expect(proposalRow.rows[0].status).toBe("executing");
   });
 
-  it("rejects a variants array that is not exactly 2 items, without creating a row", async () => {
+  it("rejects a variants array with fewer than 2 items, without creating a row", async () => {
     const proposalId = await createReadyProposal();
     const before = await pool.query("select count(*)::int as n from experiments where proposal_id = $1", [
       proposalId,
@@ -118,10 +118,45 @@ describe("start experiment from a ready-for-review proposal (EXP-01/02/03/04)", 
     expect(after.rows[0].n).toBe(before.rows[0].n);
   });
 
-  it("rejects an incomplete verification plan, without creating a row", async () => {
+  it("rejects a variants array with more than 2 items, without creating a row", async () => {
     const proposalId = await createReadyProposal();
-    const { threshold: _threshold, ...incompletePlan } = validPlan;
-    const res = await startExperiment(proposalId, { variants: validVariants, verificationPlan: incompletePlan });
+    const res = await startExperiment(proposalId, {
+      variants: [
+        { id: "control", name: "Baseline" },
+        { id: "candidate-a", name: "A" },
+        { id: "candidate-b", name: "B" },
+      ],
+      verificationPlan: validPlan,
+    });
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("invalid_variants");
+  });
+
+  it.each(["hypothesis", "baselineMetric", "threshold", "comparison", "observationWindow"])(
+    "rejects a verification plan missing '%s', without creating a row",
+    async (missingField) => {
+      const proposalId = await createReadyProposal();
+      const incompletePlan = { ...validPlan };
+      delete (incompletePlan as Record<string, unknown>)[missingField];
+      const before = await pool.query("select count(*)::int as n from experiments where proposal_id = $1", [
+        proposalId,
+      ]);
+      const res = await startExperiment(proposalId, { variants: validVariants, verificationPlan: incompletePlan });
+      expect(res.statusCode).toBe(422);
+      expect(res.json().title).toBe("invalid_verification_plan");
+      const after = await pool.query("select count(*)::int as n from experiments where proposal_id = $1", [
+        proposalId,
+      ]);
+      expect(after.rows[0].n).toBe(before.rows[0].n);
+    },
+  );
+
+  it("rejects a verification plan with an invalid comparison value", async () => {
+    const proposalId = await createReadyProposal();
+    const res = await startExperiment(proposalId, {
+      variants: validVariants,
+      verificationPlan: { ...validPlan, comparison: "eq" },
+    });
     expect(res.statusCode).toBe(422);
     expect(res.json().title).toBe("invalid_verification_plan");
   });
@@ -186,6 +221,23 @@ describe("start experiment from a ready-for-review proposal (EXP-01/02/03/04)", 
       url: `/projects/${projectId}/proposals/${proposalId}/experiments`,
       headers: { authorization: `Bearer ${loginB.json().token}` },
       payload: { variants: validVariants, verificationPlan: validPlan },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("GET experiment is denied cross-tenant", async () => {
+    const proposalId = await createReadyProposal();
+    const started = await startExperiment(proposalId, { variants: validVariants, verificationPlan: validPlan });
+    const { experimentId } = started.json();
+    const loginB = await app.inject({
+      method: "POST",
+      url: "/auth/dev-login",
+      payload: { email: "dev-b@evolutionos.local" },
+    });
+    const res = await app.inject({
+      method: "GET",
+      url: `/projects/${projectId}/experiments/${experimentId}`,
+      headers: { authorization: `Bearer ${loginB.json().token}` },
     });
     expect(res.statusCode).toBe(403);
   });

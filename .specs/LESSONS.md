@@ -50,6 +50,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/hub/src/evolution/proposals.ts:106 (mutant N1) (apps/hub/test)
 - last seen: 2026-09-01T11:55:24Z
 
+### L-007 - When a value is derived through a canonicalization helper, assert the canonicalization property itself, not just that the derived value exists and is reproducible for identical inputs
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `hub-domain` · harmful: 0
+- features: slice-4-experiment-loop
+- evidence: M5 - apps/hub/src/evolution/experiments.ts:46 (hub-domain)
+- last seen: 2026-09-01T12:33:43Z
+
+### L-008 - For an acceptance criterion phrased as a bound (exactly N, any of N fields), test every direction of the bound, not one representative instance
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: slice-4-experiment-loop
+- evidence: EXP-02 - apps/hub/test/experiments-start.test.ts:104 (routes)
+- last seen: 2026-09-01T12:33:43Z
+
+### L-009 - Assert every payload field a listing endpoint returns on its actual value, never identity alone
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: slice-4-experiment-loop
+- evidence: M11 - apps/hub/src/evolution/experiments.ts:164 (routes)
+- last seen: 2026-09-01T12:33:44Z
+
+### L-010 - Every state-transition guard in the implementation needs a test for the wrong-state case it rejects, even when no acceptance criterion names that case
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `hub-domain` · harmful: 0
+- features: slice-4-experiment-loop
+- evidence: M10 - apps/hub/src/evolution/experiments.ts:143 (hub-domain)
+- last seen: 2026-09-01T12:33:44Z
+
+### L-011 - Assert a status transition against the persisted row, never against a response field the route hardcodes
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: slice-4-experiment-loop
+- evidence: EXP-10 - apps/hub/test/experiments-evaluate.test.ts:118 (routes)
+- last seen: 2026-09-01T12:33:44Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
