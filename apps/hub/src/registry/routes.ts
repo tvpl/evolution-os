@@ -13,6 +13,7 @@ import {
 } from "../idea-memory/artifacts.js";
 import { listDecisions, recordDecision, type AlternativeInput } from "../idea-memory/decisions.js";
 import { getProjectTimeline } from "../idea-memory/timeline.js";
+import { exportProject, validateExport } from "../idea-memory/export-import.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
 
@@ -319,6 +320,26 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const timeline = await getProjectTimeline(pool, id);
     return reply.send({ timeline });
+  });
+
+  app.get("/projects/:id/export", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+
+    const outcome = await exportProject(pool, id);
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "project does not exist");
+    }
+    const check = validateExport(outcome.manifest);
+    if (!check.ok) {
+      // Nunca deveria acontecer com dados já persistidos — sinal de bug, não de input do usuário.
+      return problem(reply, 500, "export_schema_violation", "export failed schema validation", {
+        errors: check.errors,
+      });
+    }
+    return reply.send(outcome.manifest);
   });
 
   app.get("/projects", async (req, reply) => {
