@@ -160,6 +160,24 @@ describe("install a module with capability policy check and lockfile (MODL-07/08
     expect(res.json().capabilities).toEqual([]);
   });
 
+  it("returns capabilities sorted alphabetically, regardless of declaration order across components", async () => {
+    await grantCapability("module-test.zebra.read");
+    await grantCapability("module-test.alpha.read");
+    const manifest = baseManifest({
+      id: "io.evolutionos.modules.install-cap-order",
+      components: [
+        { id: "sensor-a", type: "sensor", capabilities: ["module-test.zebra.read"] },
+        { id: "sensor-b", type: "sensor", capabilities: ["module-test.alpha.read"] },
+      ],
+    });
+    await publish(manifest);
+    const projectId = await registerProject();
+
+    const res = await install(projectId, manifest.id, manifest.version);
+    expect(res.statusCode).toBe(201);
+    expect(res.json().capabilities).toEqual(["module-test.alpha.read", "module-test.zebra.read"]);
+  });
+
   it("rejects installing an unknown module with 404", async () => {
     const projectId = await registerProject();
     const res = await install(projectId, "io.evolutionos.modules.does-not-exist", "1.0.0");

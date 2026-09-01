@@ -149,4 +149,16 @@ describe("publish a signed module manifest (MODL-01/02/03/04)", () => {
     );
     expect(res.statusCode).toBe(422);
   });
+
+  it("rejects a manifest whose component capabilities is not an array with 422", async () => {
+    const res = await publish(
+      tokenA,
+      baseManifest({
+        id: "io.evolutionos.modules.bad-capabilities-shape",
+        components: [{ id: "sensor-a", type: "sensor", capabilities: "not-an-array" }],
+      }),
+    );
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("invalid_manifest");
+  });
 });

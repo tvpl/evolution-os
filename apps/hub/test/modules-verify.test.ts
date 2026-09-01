@@ -138,6 +138,19 @@ describe("verify module signatures on read and list the registry (MODL-05/06/20)
     });
   });
 
+  it("lists the most recently published version, not the first one, when a module has multiple versions", async () => {
+    const moduleId = "io.evolutionos.modules.list-latest-of-many";
+    await publish(tokenA, baseManifest({ id: moduleId, version: "1.0.0" }));
+    const second = await publish(tokenA, baseManifest({ id: moduleId, version: "2.0.0" }));
+    const third = await publish(tokenA, baseManifest({ id: moduleId, version: "3.0.0" }));
+
+    const res = await listRegistry(tokenA);
+    const entry = res.json().modules.find((m: { moduleId: string }) => m.moduleId === moduleId);
+    expect(entry.latestVersion).toBe("3.0.0");
+    expect(entry.digest).toBe(third.json().digest);
+    expect(entry.digest).not.toBe(second.json().digest);
+  });
+
   it("never returns a module version published by a different org", async () => {
     const manifest = baseManifest({ id: "io.evolutionos.modules.org-isolated" });
     await publish(tokenA, manifest);
