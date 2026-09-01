@@ -1268,8 +1268,8 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     const scope = requireScope(req, reply);
     if (!scope) return reply;
     const { id, experimentId } = req.params as { id: string; experimentId: string };
-    if (!(await requireOwnedProject(pool, req, reply, id, scope, "harness.write"))) return reply;
-    const grant = await enforceCapability(pool, scope, "harness.write", `projects/${id}`, req.correlationId);
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "experiment.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "experiment.write", `projects/${id}`, req.correlationId);
     if (!grant.allowed) {
       return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
     }
