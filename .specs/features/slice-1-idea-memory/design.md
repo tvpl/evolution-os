@@ -137,6 +137,7 @@ decisions(id text PK, project_id, org_id, workspace_id, decision, actor, rationa
 | Overview faz 5 queries síncronas (N+1 potencial em escala) | `apps/hub/src/idea-memory/overview.ts` | Latência cresce com portfólio grande | Aceitável no M1 (um projeto por vez); revisão de performance é sinal de extração explícito (ADR-004 review triggers), não problema deste slice |
 | `decisions.alternatives` como jsonb sem schema tipado | `apps/hub/migrations/002_idea_memory.sql` | Alternativas mal-formadas não são pegas por schema | Mitigado por validação de shape na camada de aplicação (array de objetos com `id`/`title`); jsonb evita nova tabela para um campo de profundidade variável, custo aceito |
 | Import falho a meio caminho deixaria dados órfãos | `apps/hub/src/idea-memory/export-import.ts` | Projeto parcialmente criado | Import inteiro roda em uma `withTx`; qualquer falha reverte tudo (mesmo padrão comprovado em `registerProject`) |
+| `reviewTriggerStatus='satisfied'` é um valor válido mas nenhum endpoint deste slice o produz | `apps/hub/migrations/002_idea_memory.sql` | Terceiro estado do enum fica inatingível até então | Intencional — "resolver" um review trigger é uma capacidade do motor de evolução (Slice 3+); registrado aqui para não parecer código morto sem explicação (achado do Verifier) |
 
 ## Tech Decisions (only non-obvious ones)
 

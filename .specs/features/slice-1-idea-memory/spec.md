@@ -8,11 +8,11 @@ O trust skeleton (Slice 0) registra um projeto como um blob de manifest opaco: n
 
 ## Goals
 
-- [ ] Hipóteses e constraints do manifest viram entidades tipadas e consultáveis, não apenas campos dentro do JSONB do manifest.
-- [ ] Artefatos são anexáveis e versionáveis, com histórico de versões preservado.
-- [ ] Decisões são registradas com review trigger e aparecem antes de qualquer proposta relacionada (base para REG-FR-014/015 e o guard de "rejeição não reaparece" do `AGENTS.md`).
-- [ ] Project Overview e Timeline agregam identidade, hipóteses, artefatos e decisões em uma única leitura.
-- [ ] Export produz um manifest portável que reimporta preservando IDs e relações (REG-FR-012).
+- [x] Hipóteses e constraints do manifest viram entidades tipadas e consultáveis, não apenas campos dentro do JSONB do manifest.
+- [x] Artefatos são anexáveis e versionáveis, com histórico de versões preservado.
+- [x] Decisões são registradas com review trigger e aparecem antes de qualquer proposta relacionada (base para REG-FR-014/015 e o guard de "rejeição não reaparece" do `AGENTS.md`).
+- [x] Project Overview e Timeline agregam identidade, hipóteses, artefatos e decisões em uma única leitura.
+- [x] Export produz um manifest portável que reimporta preservando IDs e relações (REG-FR-012).
 
 ## Out of Scope
 
@@ -142,25 +142,25 @@ O trust skeleton (Slice 0) registra um projeto como um blob de manifest opaco: n
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| IDEA-01 | P1: Hipóteses/constraints — persistência tipada (REG-FR-003/009) | Design | Pending |
-| IDEA-02 | P1: Hipóteses/constraints — authority declared (REG-FR-003) | Design | Pending |
-| IDEA-03 | P1: Hipóteses/constraints — listagem ordenada | Design | Pending |
-| IDEA-04 | P1: Hipóteses/constraints — ID duplicado rejeitado | Design | Pending |
-| IDEA-05 | P1: Overview — agregação única (PRD-002 §9) | Design | Pending |
-| IDEA-06 | P1: Overview — isolamento cross-tenant (ADR-014) | Design | Pending |
-| IDEA-07 | P1: Overview — renderizado no console | Design | Pending |
-| IDEA-08 | P2: Artefatos — criação v1 (REG-FR-006) | Design | Pending |
-| IDEA-09 | P2: Artefatos — nova versão preserva histórico (REG-FR-007) | Design | Pending |
-| IDEA-10 | P2: Artefatos — listagem com versão atual | Design | Pending |
-| IDEA-11 | P2: Artefatos — leitura de versão específica | Design | Pending |
-| IDEA-12 | P2: Decisões — registro com rationale/alternatives | Design | Pending |
-| IDEA-13 | P2: Decisões — link a hipótese/artifact | Design | Pending |
-| IDEA-14 | P2: Decisões — listagem com review trigger status | Design | Pending |
-| IDEA-15 | P2: Decisões — rejeição anterior exposta (guard AGENTS.md) | Design | Pending |
-| IDEA-16 | P3: Timeline — merge ordenado | Design | Pending |
-| IDEA-17 | P3: Export — manifest portável (REG-FR-012) | Design | Pending |
-| IDEA-18 | P3: Import — preserva IDs | Design | Pending |
-| IDEA-19 | P3: Import — conflito de ID existente | Design | Pending |
+| IDEA-01 | P1: Hipóteses/constraints — persistência tipada (REG-FR-003/009) | Execute | Verified |
+| IDEA-02 | P1: Hipóteses/constraints — authority declared (REG-FR-003) | Execute | Verified |
+| IDEA-03 | P1: Hipóteses/constraints — listagem ordenada | Execute | Verified |
+| IDEA-04 | P1: Hipóteses/constraints — ID duplicado rejeitado | Execute | Verified |
+| IDEA-05 | P1: Overview — agregação única (PRD-002 §9) | Execute | Verified |
+| IDEA-06 | P1: Overview — isolamento cross-tenant (ADR-014) | Execute | Verified |
+| IDEA-07 | P1: Overview — renderizado no console | Execute | Verified |
+| IDEA-08 | P2: Artefatos — criação v1 (REG-FR-006) | Execute | Verified |
+| IDEA-09 | P2: Artefatos — nova versão preserva histórico (REG-FR-007) | Execute | Verified |
+| IDEA-10 | P2: Artefatos — listagem com versão atual | Execute | Verified |
+| IDEA-11 | P2: Artefatos — leitura de versão específica | Execute | Verified |
+| IDEA-12 | P2: Decisões — registro com rationale/alternatives | Execute | Verified |
+| IDEA-13 | P2: Decisões — link a hipótese/artifact | Execute | Verified |
+| IDEA-14 | P2: Decisões — listagem com review trigger status | Execute | Verified |
+| IDEA-15 | P2: Decisões — rejeição anterior exposta (guard AGENTS.md) | Execute | Verified |
+| IDEA-16 | P3: Timeline — merge ordenado | Execute | Verified |
+| IDEA-17 | P3: Export — manifest portável (REG-FR-012) | Execute | Verified |
+| IDEA-18 | P3: Import — preserva IDs | Execute | Verified |
+| IDEA-19 | P3: Import — conflito de ID existente | Execute | Verified |
 
 **ID format:** `IDEA-NN`
 
@@ -172,9 +172,9 @@ O trust skeleton (Slice 0) registra um projeto como um blob de manifest opaco: n
 
 ## Success Criteria
 
-- [ ] `validate_spec.py` sai 0 para esta spec.
-- [ ] Uma ideia sem código é registrável com hipóteses e constraints e aparece completa no Project Overview.
-- [ ] Um artifact ganha 3 versões e a versão 1 permanece recuperável e inalterada.
-- [ ] Uma decisão rejeitada é encontrada ao registrar uma decisão relacionada nova (guard funcional).
-- [ ] Export → import round-trip preserva IDs sem duplicar.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] `validate_spec.py` sai 0 para esta spec.
+- [x] Uma ideia sem código é registrável com hipóteses e constraints e aparece completa no Project Overview.
+- [x] Um artifact ganha 3 versões e a versão 1 permanece recuperável e inalterada.
+- [x] Uma decisão rejeitada é encontrada ao registrar uma decisão relacionada nova (guard funcional).
+- [x] Export → import round-trip preserva IDs sem duplicar.
+- [x] Verifier independente reporta PASS em `validation.md`.

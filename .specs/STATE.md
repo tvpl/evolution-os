@@ -57,11 +57,11 @@
 
 ## Handoff
 
-- **Feature**: slice-0-trust-skeleton — CONCLUÍDA (Verifier PASS 16/16 ACs, sensor 5/5 mutantes mortos, `validate_state.py` exit 0)
-- **Phase / Task**: —
-- **Completed**: T1..T14 (commits d650799..65704d8) + validation.md + gap G1 fechado (teste de sessão sem workspace scope)
-- **In-progress** (file:line): —
-- **Next step**: Abrir a próxima feature do backlog: `slice-1-idea-memory` (fase Specify, docs-fonte PRD-002/knowledge model/manifest spec) conforme `docs/06-delivery/09-spec-driven-execution-plan.md`. O fix da L-001 já está aplicado em `validate_spec.py`; L-002 (candidate): todo edge case da spec exige asserção dedicada.
+- **Feature**: slice-2-local-repo-twin — EM EXECUÇÃO (spec+design+tasks aprovados; T1/T2 concluídas; T3 em andamento)
+- **Phase / Task**: Execute — T3 (endpoints de snapshot + Cartographer determinístico), Phase 2
+- **Completed**: slice-0 (T1..T14, Verifier PASS) e slice-1 (T1..T13, Verifier PASS 6/6 mutantes, gaps 1-4 fechados) totalmente concluídos e verificados; slice-2 T1 (migration 003 + grants) e T2 (coletor de snapshot, 7 unit tests) concluídas
+- **In-progress** (file:line): `apps/hub/src/twin/cartographer.ts` criado (proposeFromSnapshot + insertCandidates); falta `apps/hub/src/twin/snapshots.ts`, wiring em `apps/hub/src/registry/routes.ts` (endpoint `POST/GET /projects/:id/snapshots`) e testes de integração de T3
+- **Next step**: Completar T3 (snapshots.ts + rota + testes), depois T4 (candidates), T5 (CLI `evo snapshot`), T6 (diff), T7 (fechamento) conforme `.specs/features/slice-2-local-repo-twin/tasks.md`
 - **Blockers**: none
-- **Uncommitted files**: none (após commit de fechamento)
+- **Uncommitted files**: `apps/hub/src/twin/cartographer.ts` (novo, ainda não commitado)
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7
