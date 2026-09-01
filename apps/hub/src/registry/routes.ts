@@ -3,6 +3,7 @@ import type { DbPool } from "../platform/db.js";
 import { problem, requireScope } from "../http.js";
 import { enforceCapability, recordAudit } from "../policy/policy.js";
 import { registerProject } from "./registry.js";
+import { listHypotheses } from "../idea-memory/hypotheses.js";
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
   app.post("/projects", async (req, reply) => {
@@ -50,7 +51,29 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
         return problem(reply, 422, "invalid_manifest", "manifest violates the v0 schema", {
           errors: outcome.errors,
         });
+      case "duplicate_hypothesis":
+        return problem(
+          reply,
+          422,
+          "duplicate_hypothesis_id",
+          `hypothesis id '${outcome.hypothesisId}' is declared more than once in the manifest`,
+        );
     }
+  });
+
+  app.get("/projects/:id/hypotheses", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    const owner = await pool.query("select org_id from projects where id = $1", [id]);
+    const ownerRow = owner.rows[0] as { org_id: string } | undefined;
+    if (!ownerRow || ownerRow.org_id !== scope.orgId) {
+      return problem(reply, 403, "access_denied", "access denied", {
+        correlationId: req.correlationId,
+      });
+    }
+    const hypotheses = await listHypotheses(pool, id);
+    return reply.send({ hypotheses });
   });
 
   app.get("/projects", async (req, reply) => {

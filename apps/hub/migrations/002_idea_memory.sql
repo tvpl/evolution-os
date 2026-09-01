@@ -2,9 +2,11 @@
 -- Entidades tipadas do knowledge model (ADR-005 rejeita JSON blobs sem relações
 -- tipadas). org_id/workspace_id denormalizados como em projects_view (Slice 0).
 
+-- IDs de hipótese/constraint vêm do manifest e são únicos apenas DENTRO do
+-- manifest (manifest spec §3), não globalmente — chave primária é composta.
 create table hypotheses (
-  id text primary key,
   project_id text not null references projects (id),
+  id text not null,
   org_id text not null,
   workspace_id text not null,
   statement text not null,
@@ -14,21 +16,23 @@ create table hypotheses (
   threshold text,
   status text not null,
   authority text not null default 'declared',
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (project_id, id)
 );
 
 create index hypotheses_project_idx on hypotheses (project_id, created_at);
 
 create table constraints_ (
-  id text primary key,
   project_id text not null references projects (id),
+  id text not null,
   org_id text not null,
   workspace_id text not null,
   category text,
   statement text not null,
   severity text not null,
   authority text not null default 'declared',
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (project_id, id)
 );
 
 create index constraints_project_idx on constraints_ (project_id, created_at);

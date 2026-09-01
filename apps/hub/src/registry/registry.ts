@@ -2,6 +2,11 @@ import { createHash, randomUUID } from "node:crypto";
 import { EVENT_TYPES, validateEvent, validateProject, type EventEnvelope } from "@evolution-os/contracts";
 import { withTx, type DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
+import {
+  DuplicateHypothesisIdError,
+  insertHypotheses,
+  type HypothesisInput,
+} from "../idea-memory/hypotheses.js";
 
 /** JSON canônico (chaves ordenadas em profundidade) para digest estável. */
 export function canonicalJson(value: unknown): string {
@@ -32,7 +37,8 @@ export type RegisterOutcome =
   | { kind: "created"; projectId: string; version: number }
   | { kind: "replayed"; projectId: string; version: number }
   | { kind: "conflict" }
-  | { kind: "invalid"; errors: string[] };
+  | { kind: "invalid"; errors: string[] }
+  | { kind: "duplicate_hypothesis"; hypothesisId: string };
 
 interface StoredResponse {
   projectId: string;
@@ -56,7 +62,8 @@ export async function registerProject(
   }
   const digest = canonicalDigest(input.manifest);
 
-  return withTx(pool, async (client) => {
+  try {
+    return await withTx(pool, async (client) => {
     const existing = await client.query(
       "select request_digest, response from idempotency_keys where org_id = $1 and key = $2 for update",
       [scope.orgId, input.idempotencyKey],
@@ -86,6 +93,13 @@ export async function registerProject(
         scope.userId,
       ],
     );
+
+    const hypotheses = (input.manifest["spec"] as Record<string, unknown> | undefined)?.[
+      "hypotheses"
+    ] as HypothesisInput[] | undefined;
+    if (hypotheses?.length) {
+      await insertHypotheses(client, projectId, scope, hypotheses);
+    }
 
     const envelope: EventEnvelope = {
       specversion: "1.0",
@@ -140,5 +154,11 @@ export async function registerProject(
       [scope.orgId, input.idempotencyKey, digest, response],
     );
     return { kind: "created", ...response };
-  });
+    });
+  } catch (err) {
+    if (err instanceof DuplicateHypothesisIdError) {
+      return { kind: "duplicate_hypothesis", hypothesisId: err.duplicateId };
+    }
+    throw err;
+  }
 }

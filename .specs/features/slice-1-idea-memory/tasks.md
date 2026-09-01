@@ -137,12 +137,12 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Registro com 2 hipóteses grava as duas com `authority='declared'`
-- [ ] Registro com IDs duplicados é rejeitado 422 sem gravar nada (rollback comprovado)
-- [ ] `GET /projects/:id/hypotheses` retorna ordenado com status
-- [ ] Registro sem `spec.hypotheses` não falha (lista vazia)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] Registro com 2 hipóteses grava as duas com `authority='declared'`
+- [x] Registro com IDs duplicados é rejeitado 422 sem gravar nada (rollback comprovado)
+- [x] `GET /projects/:id/hypotheses` retorna ordenado com status
+- [x] Registro sem `spec.hypotheses` não falha (lista vazia)
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full
