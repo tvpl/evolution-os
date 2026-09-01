@@ -63,6 +63,8 @@ import {
   installModule,
   getProjectLockfile,
   updateModule,
+  quarantineInstallation,
+  rollbackInstallation,
 } from "../evolution/modules.js";
 
 /**
@@ -1431,6 +1433,58 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           digest: outcome.digest,
           status: "active",
           permissionDiff: { added: outcome.added, removed: outcome.removed },
+        });
+    }
+  });
+
+  app.post("/projects/:id/modules/:moduleId/quarantine", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, moduleId } = req.params as { id: string; moduleId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "module.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "module.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await quarantineInstallation(pool, scope, id, moduleId);
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "module is not installed in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "installation is not active");
+      case "quarantined":
+        return reply.status(200).send({ installationId: outcome.installationId, moduleId, status: "quarantined" });
+    }
+  });
+
+  app.post("/projects/:id/modules/:moduleId/rollback", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, moduleId } = req.params as { id: string; moduleId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "module.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "module.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { version?: string };
+    if (!body.version) {
+      return problem(reply, 422, "invalid_rollback", "version is required");
+    }
+    const outcome = await rollbackInstallation(pool, scope, id, moduleId, { version: body.version });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "module is not installed in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "installation is uninstalled");
+      case "unproven_version":
+        return problem(reply, 409, "unproven_version", "this project never had that version locked - rollback only replays proven history");
+      case "rolled_back":
+        return reply.status(200).send({
+          installationId: outcome.installationId,
+          moduleId,
+          version: outcome.version,
+          digest: outcome.digest,
+          status: "active",
         });
     }
   });

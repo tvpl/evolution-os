@@ -205,12 +205,12 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Colocar uma instalação `active` em quarentena muda seu status para `quarantined`
-- [ ] Atualizar uma instalação `quarantined` é rejeitado 409
-- [ ] Rollback para uma versão anterior já provada pelo histórico do projeto reverte o lock e volta o status para `active`, preservando todas as linhas de histórico anteriores
-- [ ] Rollback para uma versão nunca instalada por aquele projeto é rejeitado 409
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] Colocar uma instalação `active` em quarentena muda seu status para `quarantined`
+- [x] Atualizar uma instalação `quarantined` é rejeitado 409
+- [x] Rollback para uma versão anterior já provada pelo histórico do projeto reverte o lock e volta o status para `active`, preservando todas as linhas de histórico anteriores
+- [x] Rollback para uma versão nunca instalada por aquele projeto é rejeitado 409
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full

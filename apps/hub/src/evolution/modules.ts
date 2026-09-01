@@ -462,3 +462,73 @@ export async function updateModule(
     return { kind: "updated", installationId: id, version: input.version, digest: version.digest, added, removed };
   });
 }
+
+export type QuarantineOutcome =
+  | { kind: "quarantined"; installationId: string }
+  | { kind: "invalid_transition" }
+  | { kind: "not_found" };
+
+/** MODL-15: bloqueia updates subsequentes sem apagar histórico. */
+export async function quarantineInstallation(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  moduleId: string,
+): Promise<QuarantineOutcome> {
+  return withTx(pool, async (client) => {
+    const current = await getCurrentInstallation(client, projectId, moduleId);
+    if (!current) return { kind: "not_found" };
+    if (current.status !== "active") return { kind: "invalid_transition" };
+
+    const nextSeq = current.seq + 1;
+    const id = `mi_${randomUUID().replaceAll("-", "")}`;
+    await client.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'quarantined', 'quarantined')`,
+      [id, projectId, scope.orgId, scope.workspaceId, moduleId, nextSeq, current.version, current.digest, JSON.stringify(current.capabilities)],
+    );
+    return { kind: "quarantined", installationId: id };
+  });
+}
+
+export interface RollbackInput {
+  version: string;
+}
+
+export type RollbackOutcome =
+  | { kind: "rolled_back"; installationId: string; version: string; digest: string }
+  | { kind: "unproven_version" }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" };
+
+/** MODL-16/17: só reverte para uma versão já provada pelo histórico DAQUELE projeto - nunca instala uma versão nova por essa porta lateral. */
+export async function rollbackInstallation(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  moduleId: string,
+  input: RollbackInput,
+): Promise<RollbackOutcome> {
+  return withTx(pool, async (client) => {
+    const history = await client.query(
+      `select seq, version, digest, capabilities, status from module_installations
+        where project_id = $1 and module_id = $2 order by seq desc for update`,
+      [projectId, moduleId],
+    );
+    const rows = history.rows as Array<{ seq: number; version: string; digest: string; capabilities: string[]; status: string }>;
+    if (rows.length === 0) return { kind: "not_found" };
+    if (rows[0]!.status === "uninstalled") return { kind: "invalid_transition" };
+
+    const proven = rows.find((r) => r.version === input.version);
+    if (!proven) return { kind: "unproven_version" };
+
+    const nextSeq = rows[0]!.seq + 1;
+    const id = `mi_${randomUUID().replaceAll("-", "")}`;
+    await client.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', 'rolled_back')`,
+      [id, projectId, scope.orgId, scope.workspaceId, moduleId, nextSeq, proven.version, proven.digest, JSON.stringify(proven.capabilities)],
+    );
+    return { kind: "rolled_back", installationId: id, version: proven.version, digest: proven.digest };
+  });
+}
