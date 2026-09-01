@@ -28,6 +28,7 @@ import { computeDiff } from "../twin/diff.js";
 import { activateEvidence, createEvidence, listEvidence } from "../evolution/evidence.js";
 import { createClaim, listClaims } from "../evolution/claims.js";
 import { linkSignal, listSignals } from "../evolution/signals.js";
+import { createProposal, listProposals } from "../evolution/proposals.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -634,6 +635,74 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const signals = await listSignals(pool, id);
     return reply.send({ signals });
+  });
+
+  app.post("/projects/:id/proposals", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "proposal.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "proposal.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as {
+      title?: string;
+      summary?: string;
+      proposalType?: string;
+      whyNow?: string;
+      costOfInaction?: string;
+      alternatives?: { id: string; type: string; title?: string }[];
+      recommendedAlternativeId?: string;
+      impact?: Record<string, unknown>;
+      signalId?: string;
+      investigationState?: string;
+    };
+    if (!body.title || !body.summary || !body.proposalType) {
+      return problem(reply, 422, "invalid_proposal", "title, summary and proposalType are required");
+    }
+    const outcome = await createProposal(pool, scope, id, {
+      title: body.title,
+      summary: body.summary,
+      proposalType: body.proposalType,
+      ...(body.whyNow !== undefined ? { whyNow: body.whyNow } : {}),
+      ...(body.costOfInaction !== undefined ? { costOfInaction: body.costOfInaction } : {}),
+      ...(body.alternatives !== undefined ? { alternatives: body.alternatives } : {}),
+      ...(body.recommendedAlternativeId !== undefined
+        ? { recommendedAlternativeId: body.recommendedAlternativeId }
+        : {}),
+      ...(body.impact !== undefined ? { impact: body.impact } : {}),
+      ...(body.signalId !== undefined ? { signalId: body.signalId } : {}),
+      ...(body.investigationState !== undefined ? { investigationState: body.investigationState } : {}),
+    });
+    switch (outcome.kind) {
+      case "requires_evidence":
+        return problem(
+          reply,
+          422,
+          "proposal_requires_evidence",
+          "a proposal needs a signalId (claim-backed) or an explicit investigationState",
+        );
+      case "invalid_signal_reference":
+        return problem(
+          reply,
+          422,
+          "invalid_signal_reference",
+          `signal '${body.signalId}' does not belong to this project`,
+        );
+      case "created":
+        return reply.status(201).send({ proposalId: outcome.proposalId, status: "draft" });
+    }
+  });
+
+  app.get("/projects/:id/proposals", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const { status } = req.query as { status?: string };
+    const proposals = await listProposals(pool, id, status);
+    return reply.send({ proposals });
   });
 
   app.get("/projects", async (req, reply) => {

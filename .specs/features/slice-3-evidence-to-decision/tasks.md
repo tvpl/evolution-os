@@ -204,11 +204,11 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Proposal com alternativas incl. `do nothing` persiste em `draft`
-- [ ] Proposal sem claims e sem investigation state é rejeitada 422
-- [ ] Proposal referenciando signal de outro projeto é rejeitada 422
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Proposal com alternativas incl. `do nothing` persiste em `draft`
+- [x] Proposal sem claims e sem investigation state é rejeitada 422
+- [x] Proposal referenciando signal de outro projeto é rejeitada 422
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
