@@ -104,8 +104,13 @@ describe("candidate confirmation and rejection (TWIN-07/10/11/12)", () => {
     }
   });
 
-  it("confirming a component candidate creates a declared artifact and preserves the candidate record", async () => {
+  it("confirming a component candidate creates a declared artifact and preserves the inferred record unchanged", async () => {
     const candidate = await findComponentCandidate();
+    const before = await pool.query(
+      "select kind, location, payload, snapshot_id as \"snapshotId\" from candidates where id = $1",
+      [candidate.id],
+    );
+
     const res = await app.inject({
       method: "POST",
       url: `/projects/${projectId}/candidates/${candidate.id}/confirm`,
@@ -122,10 +127,13 @@ describe("candidate confirmation and rejection (TWIN-07/10/11/12)", () => {
     );
     expect(artifact.rows[0]).toEqual({ type: "component" });
 
-    const row = await pool.query("select payload, kind, location from candidates where id = $1", [
-      candidate.id,
-    ]);
-    expect(row.rows[0]).toMatchObject({ kind: "component" });
+    // TWIN-10: o registro inferred original (kind/location/payload/snapshot_id)
+    // fica byte-a-byte igual — só status/confirmed_entity_id/decided_at mudam.
+    const after = await pool.query(
+      "select kind, location, payload, snapshot_id as \"snapshotId\" from candidates where id = $1",
+      [candidate.id],
+    );
+    expect(after.rows[0]).toEqual(before.rows[0]);
   });
 
   it("rejecting a candidate preserves the record with a reason instead of deleting it", async () => {
@@ -159,6 +167,41 @@ describe("candidate confirmation and rejection (TWIN-07/10/11/12)", () => {
     expect(res.statusCode).toBe(409);
     const after = await pool.query("select decided_at from candidates where id = $1", [confirmed.id]);
     expect(after.rows[0].decided_at).toEqual(before.rows[0].decided_at);
+  });
+
+  it("rejecting an already-decided candidate returns 409 without changing it (TWIN-12 symmetric case)", async () => {
+    const list = await listCandidates();
+    const rejected = list.json().candidates.find((c: { status: string }) => c.status === "rejected");
+    const before = await pool.query("select reason, decided_at from candidates where id = $1", [
+      rejected.id,
+    ]);
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/candidates/${rejected.id}/reject`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: { reason: "outra tentativa" },
+    });
+    expect(res.statusCode).toBe(409);
+    const after = await pool.query("select reason, decided_at from candidates where id = $1", [
+      rejected.id,
+    ]);
+    expect(after.rows[0]).toEqual(before.rows[0]);
+  });
+
+  it("a candidate remains confirmable after its originating snapshot is superseded by a newer one", async () => {
+    const pendingBefore = await listCandidates();
+    const stillPending = pendingBefore
+      .json()
+      .candidates.find((c: { status: string; kind: string }) => c.status === "pending" && c.kind === "contains");
+    // Um novo snapshot idêntico não deve mexer no candidate pendente restante.
+    await syncMultiManifest();
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/candidates/${stillPending.id}/confirm`,
+      headers: { authorization: `Bearer ${tokenA}` },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().candidate.status).toBe("confirmed");
   });
 
   it("rejecting an unknown candidate returns 404", async () => {

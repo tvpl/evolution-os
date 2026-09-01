@@ -103,6 +103,79 @@ describe("snapshot ingestion and cartographer (TWIN-01/03/05/06/08/09/13)", () =
     }
   });
 
+  it("an empty manifest list still syncs successfully with a 201 (edge case: manifest-less repo)", async () => {
+    const res = await sync({ branch: "main", commitSha: "z".repeat(40), manifests: [], languages: {} });
+    expect(res.statusCode).toBe(201);
+    expect(res.json()).toMatchObject({ candidatesProposed: 0 });
+  });
+
+  it("a rejected candidate does not reappear on resync with the same payload, but does with a different one (TWIN-13)", async () => {
+    const location = "packages/rej";
+    await sync({ manifests: [manifestEntry(location), manifestEntry("packages/other")], languages: {} });
+    const list1 = await pool.query(
+      "select id, status, payload from candidates where project_id = $1 and location = $2 and kind = 'component'",
+      [projectId, location],
+    );
+    expect(list1.rowCount).toBe(1);
+    const candidateId = list1.rows[0].id as string;
+
+    const reject = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/candidates/${candidateId}/reject`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: { reason: "não relevante" },
+    });
+    expect(reject.statusCode).toBe(200);
+
+    // Resync com o MESMO payload: não deve reaparecer pending.
+    await sync({ manifests: [manifestEntry(location), manifestEntry("packages/other")], languages: {} });
+    const afterSamePayload = await pool.query(
+      "select status from candidates where project_id = $1 and location = $2 and kind = 'component'",
+      [projectId, location],
+    );
+    expect(afterSamePayload.rows.map((r: { status: string }) => r.status)).toEqual(["rejected"]);
+
+    // Resync com payload DIFERENTE na mesma location: conta como evidência
+    // nova e É reproposto.
+    await sync({
+      manifests: [
+        { ecosystem: "pypi", location, name: `changed-${location}` },
+        manifestEntry("packages/other"),
+      ],
+      languages: {},
+    });
+    const afterDifferentPayload = await pool.query(
+      "select status from candidates where project_id = $1 and location = $2 and kind = 'component' order by created_at",
+      [projectId, location],
+    );
+    expect(afterDifferentPayload.rows.map((r: { status: string }) => r.status)).toEqual([
+      "rejected",
+      "pending",
+    ]);
+  });
+
+  it("a confirmed candidate does not get re-proposed as a new pending candidate on resync", async () => {
+    const location = "packages/conf";
+    await sync({ manifests: [manifestEntry(location), manifestEntry("packages/other")], languages: {} });
+    const before = await pool.query(
+      "select id from candidates where project_id = $1 and location = $2 and kind = 'component'",
+      [projectId, location],
+    );
+    const candidateId = before.rows[0].id as string;
+    await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/candidates/${candidateId}/confirm`,
+      headers: { authorization: `Bearer ${tokenA}` },
+    });
+
+    await sync({ manifests: [manifestEntry(location), manifestEntry("packages/other")], languages: {} });
+    const after = await pool.query(
+      "select status from candidates where project_id = $1 and location = $2 and kind = 'component'",
+      [projectId, location],
+    );
+    expect(after.rows.map((r: { status: string }) => r.status)).toEqual(["confirmed"]);
+  });
+
   it("resyncing the same manifests does not duplicate pending candidates", async () => {
     const manifests = [manifestEntry("packages/x"), manifestEntry("packages/y")];
     await sync({ manifests, languages: {} });

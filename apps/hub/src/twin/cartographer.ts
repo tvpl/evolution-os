@@ -40,15 +40,28 @@ export function proposeFromSnapshot(manifests: ManifestEntry[]): ProposedCandida
   return proposals;
 }
 
+/** Stringify com chaves ordenadas — jsonb do Postgres NÃO preserva a ordem de inserção. */
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
+      a < b ? -1 : a > b ? 1 : 0,
+    );
+    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function payloadEquals(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return canonicalJson(a) === canonicalJson(b);
 }
 
 /**
- * TWIN-09/13: insere apenas candidates cuja `location`+`kind` ainda não têm
- * um `pending` (garantido também pelo índice único parcial no banco) e cuja
- * `location`+`kind` não têm um `rejected` com o MESMO payload — payload
- * diferente é evidência nova e é reproposto.
+ * TWIN-09/13: NUNCA cria duplicata pendente para a mesma `location`+`kind`
+ * enquanto existir um candidate `pending` OU `confirmed` ali (confirmado já
+ * virou fato declarado — reabrir como inferred de novo seria regressão, não
+ * está pedido por nenhum AC). Um `rejected` só é reproposto quando o payload
+ * mudou — payload igual é a MESMA evidência já recusada (TWIN-13).
  */
 export async function insertCandidates(
   client: DbClient,
@@ -67,7 +80,7 @@ export async function insertCandidates(
     );
     const row = existing.rows[0] as { status: string; payload: Record<string, unknown> } | undefined;
     if (row) {
-      if (row.status === "pending") continue;
+      if (row.status === "pending" || row.status === "confirmed") continue;
       if (row.status === "rejected" && payloadEquals(row.payload, proposal.payload)) continue;
     }
     await client.query(

@@ -89,10 +89,22 @@ describe("declared vs observed diff (TWIN-14/15/16)", () => {
 
   it("a snapshot consistent with the declared type reports an empty mismatch list", async () => {
     const projectId = await registerProject("diff-consistent", "service");
-    await sync(projectId, [{ ecosystem: "npm", location: ".", name: "diff-consistent" }]);
+    // O nome do manifest observado precisa bater com o nome declarado
+    // ("Proj diff-consistent") para não gerar um mismatch de nome também.
+    await sync(projectId, [{ ecosystem: "npm", location: ".", name: "Proj diff-consistent" }]);
     const res = await diff(projectId);
     expect(res.statusCode).toBe(200);
     expect(res.json().mismatches).toEqual([]);
+  });
+
+  it("a single-manifest snapshot whose declared name differs reports a name mismatch (TWIN-14 gap fix)", async () => {
+    const projectId = await registerProject("diff-name", "service");
+    await sync(projectId, [{ ecosystem: "npm", location: ".", name: "totally-different-name" }]);
+    const res = await diff(projectId);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().mismatches).toEqual([
+      { field: "name", declared: "Proj diff-name", observed: "totally-different-name" },
+    ]);
   });
 
   it("a project with no snapshot yet returns observed: null instead of an error", async () => {
