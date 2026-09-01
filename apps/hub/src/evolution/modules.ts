@@ -1,4 +1,12 @@
-import { randomUUID, createHash, createPrivateKey, generateKeyPairSync, sign as cryptoSign } from "node:crypto";
+import {
+  randomUUID,
+  createHash,
+  createPrivateKey,
+  createPublicKey,
+  generateKeyPairSync,
+  sign as cryptoSign,
+  verify as cryptoVerify,
+} from "node:crypto";
 import type { DbPool } from "../platform/db.js";
 import { withTx } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
@@ -70,6 +78,15 @@ export function computeManifestDigest(manifest: Record<string, unknown>): string
 function signDigest(digest: string, privateKeyDerB64: string): string {
   const privateKey = createPrivateKey({ key: Buffer.from(privateKeyDerB64, "base64"), format: "der", type: "pkcs8" });
   return cryptoSign(null, Buffer.from(digest, "utf8"), privateKey).toString("base64");
+}
+
+function verifyDigestSignature(digest: string, signatureB64: string, publicKeyDerB64: string): boolean {
+  const publicKey = createPublicKey({ key: Buffer.from(publicKeyDerB64, "base64"), format: "der", type: "spki" });
+  try {
+    return cryptoVerify(null, Buffer.from(digest, "utf8"), publicKey, Buffer.from(signatureB64, "base64"));
+  } catch {
+    return false;
+  }
 }
 
 /** Gera (na primeira publicação do org) ou reusa o par de chaves Ed25519 - ver design.md Risks & Concerns. */
@@ -172,4 +189,92 @@ export async function publishModule(
     );
     return { kind: "published", moduleId: m.id, version: m.version, digest, signature, sbom };
   });
+}
+
+/** Recomputa o digest a partir do manifest persistido e reverifica a assinatura - nunca confia num flag salvo. */
+async function verifyStoredVersion(
+  pool: DbPool,
+  orgId: string,
+  manifest: Record<string, unknown>,
+  storedDigest: string,
+  signature: string,
+): Promise<boolean> {
+  const recomputed = computeManifestDigest(manifest);
+  if (recomputed !== storedDigest) return false;
+  const keyRow = await pool.query(`select public_key as "publicKey" from module_publisher_keys where org_id = $1`, [
+    orgId,
+  ]);
+  const publicKey = (keyRow.rows[0] as { publicKey: string } | undefined)?.publicKey;
+  if (!publicKey) return false;
+  return verifyDigestSignature(recomputed, signature, publicKey);
+}
+
+export interface ModuleVersionRow {
+  moduleId: string;
+  version: string;
+  manifest: Record<string, unknown>;
+  digest: string;
+  signature: string;
+  sbom: Sbom;
+  provenance: Record<string, unknown>;
+  signatureValid: boolean;
+  createdAt: string;
+}
+
+/** MODL-05/06: reverifica a assinatura toda vez que a versão é lida. */
+export async function getModuleVersion(
+  pool: DbPool,
+  orgId: string,
+  moduleId: string,
+  version: string,
+): Promise<ModuleVersionRow | null> {
+  const res = await pool.query(
+    `select module_id as "moduleId", version, manifest, digest, signature, sbom, provenance, created_at as "createdAt"
+       from module_versions where module_id = $1 and version = $2 and org_id = $3`,
+    [moduleId, version, orgId],
+  );
+  const row = res.rows[0] as Omit<ModuleVersionRow, "signatureValid"> | undefined;
+  if (!row) return null;
+  const signatureValid = await verifyStoredVersion(pool, orgId, row.manifest, row.digest, row.signature);
+  return { ...row, signatureValid };
+}
+
+export interface ModuleSummary {
+  moduleId: string;
+  name: string;
+  latestVersion: string;
+  digest: string;
+  signatureValid: boolean;
+}
+
+/** MODL-20: registry privado do org - a query filtra por org_id, nunca vaza módulos de outro org. */
+export async function listModules(pool: DbPool, orgId: string): Promise<ModuleSummary[]> {
+  const res = await pool.query(
+    `select m.id as "moduleId", m.name,
+            v.version, v.manifest, v.digest, v.signature
+       from modules m
+       join lateral (
+         select version, manifest, digest, signature
+           from module_versions
+          where module_id = m.id
+          order by created_at desc
+          limit 1
+       ) v on true
+      where m.org_id = $1
+      order by m.created_at`,
+    [orgId],
+  );
+  const out: ModuleSummary[] = [];
+  for (const row of res.rows as Array<{
+    moduleId: string;
+    name: string;
+    version: string;
+    manifest: Record<string, unknown>;
+    digest: string;
+    signature: string;
+  }>) {
+    const signatureValid = await verifyStoredVersion(pool, orgId, row.manifest, row.digest, row.signature);
+    out.push({ moduleId: row.moduleId, name: row.name, latestVersion: row.version, digest: row.digest, signatureValid });
+  }
+  return out;
 }

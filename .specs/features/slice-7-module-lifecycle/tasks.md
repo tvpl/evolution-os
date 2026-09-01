@@ -129,12 +129,12 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Ler uma versão recém-publicada retorna `signatureValid: true`
-- [ ] Adulterar a linha persistida do manifest (fora do fluxo normal) e ler de novo retorna `signatureValid: false`, sem lançar erro
-- [ ] Listar os módulos do org retorna o módulo publicado com sua última versão
-- [ ] Ler/listar módulo desconhecido ou de outro org é rejeitado 404/nunca vaza (rota é org-scoped por `scope.orgId`, nunca por parâmetro de path)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Ler uma versão recém-publicada retorna `signatureValid: true`
+- [x] Adulterar a linha persistida do manifest (fora do fluxo normal) e ler de novo retorna `signatureValid: false`, sem lançar erro
+- [x] Listar os módulos do org retorna o módulo publicado com sua última versão
+- [x] Ler/listar módulo desconhecido ou de outro org é rejeitado 404/nunca vaza (rota é org-scoped por `scope.orgId`, nunca por parâmetro de path)
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

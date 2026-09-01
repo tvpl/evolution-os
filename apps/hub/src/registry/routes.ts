@@ -56,7 +56,7 @@ import {
   type InventoryComponent,
   type InvariantType,
 } from "../evolution/harness.js";
-import { publishModule } from "../evolution/modules.js";
+import { publishModule, getModuleVersion, listModules } from "../evolution/modules.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1332,6 +1332,24 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           sbom: outcome.sbom,
         });
     }
+  });
+
+  app.get("/orgs/current/modules/:moduleId/versions/:version", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { moduleId, version } = req.params as { moduleId: string; version: string };
+    const moduleVersion = await getModuleVersion(pool, scope.orgId, moduleId, version);
+    if (!moduleVersion) {
+      return problem(reply, 404, "not_found", "module version does not exist in this org's registry");
+    }
+    return reply.send(moduleVersion);
+  });
+
+  app.get("/orgs/current/modules", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const modules = await listModules(pool, scope.orgId);
+    return reply.send({ modules });
   });
 
   app.get("/projects", async (req, reply) => {
