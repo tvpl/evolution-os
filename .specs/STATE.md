@@ -57,11 +57,11 @@
 
 ## Handoff
 
-- **Feature**: slice-4-experiment-loop — Execute concluído (T1-T7, todos os 7 tasks); aguardando Verifier independente
-- **Phase / Task**: Verify (dispatch do Verifier independente ainda não rodou para o slice 4)
-- **Completed**: slices 0, 1, 2 e 3 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados — slice 3 levou 3 rounds de fix→re-verify, relatório em `.specs/features/slice-3-evidence-to-decision/validation.md`). Slice 4: todos os 7 tasks implementados e commitados (migration 005 + `experiment.write`, extração de `canonicalJson` para `platform/canonical-json.ts` com regressão do Slice 2 provada, start experiment com digest+2 variantes+plano, proof artifacts idempotentes, avaliação determinística `evaluateExperiment`, fechamento com decisão preservada via `recordDecision` inalterado, fechamento de docs); gate full verde (211 hub + 8 node integration + 27 unit, typecheck, check_docs, validate_spec/validate_tasks todos limpos)
-- **In-progress**: nenhum — Execute completo. `spec.md`: Goals e 4/5 Success Criteria marcados `[x]` (o 5º, "Verifier independente reporta PASS", aberto até a Verificação rodar); EXP-01..15 em Phase=Execute/Status=Implementing (a subir para Verified pós-Verifier)
-- **Next step**: Dispatch do Verifier independente para slice-4-experiment-loop (evidence-or-zero, discrimination sensor — atenção especial ao digest determinístico e ao veredito `evaluateExperiment`, mesma classe de risco do Slice 2/3); fechar gaps se houver; marcar EXP-01..15 como Verified e a 5ª Success Criteria; depois seguir para Slice 5 (reversible-external-action, M4) conforme `docs/06-delivery/09-spec-driven-execution-plan.md`
+- **Feature**: slice-4-experiment-loop — **CONCLUÍDO** (Execute + Verify, Verifier independente PASS após 2 rounds de fix→re-verify)
+- **Phase / Task**: Fechado. Próxima feature: Slice 5 (reversible-external-action, M4) ainda não iniciada (sem spec/design/tasks)
+- **Completed**: slices 0, 1, 2, 3 e 4 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados — slice 3 levou 3 rounds, slice 4 levou 2 rounds de fix→re-verify). Slice 4: todos os 7 tasks implementados (migration 005 + `experiment.write`, extração de `canonicalJson` para `platform/canonical-json.ts`, start experiment com digest+2 variantes+plano, proof artifacts idempotentes, avaliação determinística `evaluateExperiment`, fechamento com decisão preservada via `recordDecision` inalterado); Verifier round 1 achou 5 mutantes sobreviventes (digest canonicality sem teste discriminante — o achado mais sério, mais EXP-02/03 só parcialmente cobertos, guard de attach sem teste, listagem de proof artifacts só por id) — todos fechados com testes (nenhuma mudança de implementação exceto exportar 2 símbolos já corretos). Relatório completo em `.specs/features/slice-4-experiment-loop/validation.md`. Gate full verde: 225 hub + 8 node integration + 27 unit, typecheck, check_docs, validate_spec/validate_tasks/validate_state todos limpos
+- **In-progress**: nenhum. `spec.md`: Goals e todas as 5 Success Criteria `[x]`; EXP-01..15 todos em Phase=Verified/Status=Verified
+- **Next step**: Iniciar Slice 5 (reversible-external-action, M4, depende do Slice 4) com o ciclo completo Specify→Design→Tasks→Execute→Verify, conforme `docs/06-delivery/09-spec-driven-execution-plan.md`
 - **Blockers**: none
-- **Uncommitted files**: none (tudo commitado até `3be0d09`)
+- **Uncommitted files**: none (tudo commitado até `2fe237c`)
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7
