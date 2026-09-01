@@ -103,6 +103,11 @@ export async function seedDevGrants(db: Queryable): Promise<void> {
     ["org_dev_b", "ws_dev_b", "decision.write"],
     ["org_dev_b", "ws_dev_b", "twin.read"],
     ["org_dev_b", "ws_dev_b", "candidate.decide"],
+    ["org_dev_b", "ws_dev_b", "evidence.write"],
+    ["org_dev_b", "ws_dev_b", "claim.write"],
+    ["org_dev_b", "ws_dev_b", "signal.write"],
+    ["org_dev_b", "ws_dev_b", "proposal.write"],
+    ["org_dev_b", "ws_dev_b", "proposal.decide"],
   ];
   for (const [orgId, workspaceId, capability] of grants) {
     await db.query(
