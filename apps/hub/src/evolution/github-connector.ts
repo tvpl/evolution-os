@@ -3,6 +3,8 @@ import { withTx, type DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
 import { canonicalJson } from "../platform/canonical-json.js";
 import { canonicalDigest } from "../registry/registry.js";
+import { createArtifact } from "../idea-memory/artifacts.js";
+import { attachProofArtifact } from "./experiments.js";
 
 export interface ConnectGitHubInput {
   owner: string;
@@ -194,4 +196,65 @@ export async function createGitHubAction(
     );
     return { kind: "created", actionId, externalRef };
   });
+}
+
+export interface RecordCiStatusInput {
+  context: string;
+  state: string;
+  targetUrl?: string;
+}
+
+export type RecordCiStatusOutcome =
+  | { kind: "recorded"; artifactAttached: boolean }
+  | { kind: "not_found" };
+
+/**
+ * GH-12/13/14: grava o status vinculado à ação; quando a ação referencia um
+ * experimento, cria+anexa um proof artifact automaticamente reusando
+ * `createArtifact` (Slice 1) e `attachProofArtifact` (Slice 4) sem alteração
+ * nenhuma. Se o experimento não estiver mais `running` (ex. já avaliado ou
+ * fechado — CI pode demorar mais que o experimento), o anexo é pulado sem
+ * erro: o status de CI em si sempre é gravado, o anexo automático é
+ * best-effort.
+ */
+export async function recordCiStatus(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  actionId: string,
+  input: RecordCiStatusInput,
+): Promise<RecordCiStatusOutcome> {
+  const actionRes = await pool.query(
+    `select experiment_id as "experimentId" from github_actions where id = $1 and project_id = $2`,
+    [actionId, projectId],
+  );
+  const actionRow = actionRes.rows[0] as { experimentId: string | null } | undefined;
+  if (!actionRow) return { kind: "not_found" };
+
+  const statusId = `gcs_${randomUUID().replaceAll("-", "")}`;
+  await pool.query(
+    `insert into github_action_ci_statuses (id, action_id, context, state, target_url)
+     values ($1, $2, $3, $4, $5)`,
+    [statusId, actionId, input.context, input.state, input.targetUrl ?? null],
+  );
+
+  let artifactAttached = false;
+  if (actionRow.experimentId) {
+    const artifactOutcome = await createArtifact(pool, scope, projectId, {
+      type: "ci_status",
+      title: `CI: ${input.context} — ${input.state}`,
+      content: JSON.stringify({ context: input.context, state: input.state, targetUrl: input.targetUrl ?? null }),
+    });
+    if (artifactOutcome.kind === "created") {
+      const attachOutcome = await attachProofArtifact(
+        pool,
+        projectId,
+        actionRow.experimentId,
+        artifactOutcome.artifactId,
+      );
+      artifactAttached = attachOutcome.kind === "attached";
+    }
+  }
+
+  return { kind: "recorded", artifactAttached };
 }

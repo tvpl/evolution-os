@@ -39,7 +39,12 @@ import {
   type Variant,
   type VerificationPlan,
 } from "../evolution/experiments.js";
-import { connectGitHub, ingestWebhook, createGitHubAction } from "../evolution/github-connector.js";
+import {
+  connectGitHub,
+  ingestWebhook,
+  createGitHubAction,
+  recordCiStatus,
+} from "../evolution/github-connector.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1062,6 +1067,38 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
         return reply.status(201).send({ actionId: outcome.actionId, externalRef: outcome.externalRef });
       case "replayed":
         return reply.status(200).send({ actionId: outcome.actionId, externalRef: outcome.externalRef });
+    }
+  });
+
+  app.post("/projects/:id/connectors/github/actions/:actionId/ci-status", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, actionId } = req.params as { id: string; actionId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "connector.github.write"))) return reply;
+    const grant = await enforceCapability(
+      pool,
+      scope,
+      "connector.github.write",
+      `projects/${id}`,
+      req.correlationId,
+    );
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { context?: string; state?: string; targetUrl?: string };
+    if (!body.context || !body.state) {
+      return problem(reply, 422, "invalid_ci_status", "context and state are required");
+    }
+    const outcome = await recordCiStatus(pool, scope, id, actionId, {
+      context: body.context,
+      state: body.state,
+      ...(body.targetUrl !== undefined ? { targetUrl: body.targetUrl } : {}),
+    });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "action does not exist in this project");
+      case "recorded":
+        return reply.status(201).send({ actionId, artifactAttached: outcome.artifactAttached });
     }
   });
 

@@ -171,12 +171,12 @@ T6
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Status de CI persiste vinculado à ação
-- [ ] Status de CI para ação com `experimentId` cria e anexa um proof artifact ao experimento automaticamente
-- [ ] Status de CI para ação sem `experimentId` persiste sem tentar anexar nada (sem erro)
-- [ ] Status de CI para ação inexistente é rejeitado 404
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Status de CI persiste vinculado à ação
+- [x] Status de CI para ação com `experimentId` cria e anexa um proof artifact ao experimento automaticamente
+- [x] Status de CI para ação sem `experimentId` persiste sem tentar anexar nada (sem erro)
+- [x] Status de CI para ação inexistente é rejeitado 404
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
