@@ -8,11 +8,11 @@ Até o Slice 8, o EvolutionOS decide, executa e coordena mudanças através de u
 
 ## Goals
 
-- [ ] Um Node pode ser revogado (kill switch) por um admin do org; a partir daí toda tentativa de autenticação daquele Node é negada, reusando sem alteração a checagem de `revoked_at` que o Slice 2 já lê mas nunca escreve.
-- [ ] Todo novo `audit_log` entry encadeia um hash com o entry anterior do mesmo org (tamper-evident); uma verificação de cadeia detecta com precisão o ponto exato de uma adulteração direta no banco.
-- [ ] Um admin pode exportar a trilha de auditoria inteira do org, incluindo o veredito de integridade da cadeia, sem depender de uma ferramenta externa de auditoria.
-- [ ] Um org pode configurar uma janela de retenção para evidência e disparar uma varredura que redige (nunca deleta) o conteúdo bruto de evidência mais antiga que a janela, preservando decisões e claims que a referenciam.
-- [ ] Um usuário pode ser desprovisionado (desativado); a partir daí ele não consegue mais obter uma nova sessão, embora tokens já emitidos sigam a mesma semântica stateless já existente desde o Slice 0 (ver Assumptions).
+- [x] Um Node pode ser revogado (kill switch) por um admin do org; a partir daí toda tentativa de autenticação daquele Node é negada, reusando sem alteração a checagem de `revoked_at` que o Slice 2 já lê mas nunca escreve.
+- [x] Todo novo `audit_log` entry encadeia um hash com o entry anterior do mesmo org (tamper-evident); uma verificação de cadeia detecta com precisão o ponto exato de uma adulteração direta no banco.
+- [x] Um admin pode exportar a trilha de auditoria inteira do org, incluindo o veredito de integridade da cadeia, sem depender de uma ferramenta externa de auditoria.
+- [x] Um org pode configurar uma janela de retenção para evidência e disparar uma varredura que redige (nunca deleta) o conteúdo bruto de evidência mais antiga que a janela, preservando decisões e claims que a referenciam.
+- [x] Um usuário pode ser desprovisionado (desativado); a partir daí ele não consegue mais obter uma nova sessão, embora tokens já emitidos sigam a mesma semântica stateless já existente desde o Slice 0 (ver Assumptions).
 
 ## Out of Scope
 
@@ -146,41 +146,41 @@ Até o Slice 8, o EvolutionOS decide, executa e coordena mudanças através de u
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| HARD-01 | P1: Node fleet — revoga e nega autenticação subsequente | Design | Pending |
-| HARD-02 | P1: Node fleet — lista com status exato | Design | Pending |
-| HARD-03 | P1: Node fleet — rejeita Node inexistente/outro org (404) | Design | Pending |
-| HARD-04 | P1: Node fleet — idempotência ao revogar já-revogado | Design | Pending |
-| HARD-05 | P1: Node fleet — revoke sem capability é 403 | Design | Pending |
-| HARD-06 | P1: Auditoria — novo entry encadeia hash | Design | Pending |
-| HARD-07 | P1: Auditoria — cadeia íntegra reporta válida | Design | Pending |
-| HARD-08 | P1: Auditoria — adulteração direta é detectada com o ponto exato | Design | Pending |
-| HARD-09 | P1: Auditoria — primeiro entry usa genesis | Design | Pending |
-| HARD-10 | P1: Export — retorna trilha completa + veredito de integridade | Design | Pending |
-| HARD-11 | P1: Export — nunca vaza entradas de outro org | Design | Pending |
-| HARD-12 | P1: Retenção — configura janela positiva | Design | Pending |
-| HARD-13 | P1: Retenção — rejeita janela inválida (422) | Design | Pending |
-| HARD-14 | P1: Retenção — rejeita sweep sem política configurada (422) | Design | Pending |
-| HARD-15 | P1: Retenção — sweep redige evidência antiga, conta exata | Design | Pending |
-| HARD-16 | P1: Retenção — evidência dentro da janela intocada | Design | Pending |
-| HARD-17 | P1: Retenção — lineage de decision/claim preservada | Design | Pending |
-| HARD-18 | P1: Usuários — desativa usuário | Design | Pending |
-| HARD-19 | P1: Usuários — dev-login de usuário desativado é 401 | Design | Pending |
-| HARD-20 | P1: Usuários — rejeita usuário inexistente/outro org (404) | Design | Pending |
-| HARD-21 | P1: Usuários — idempotência ao desativar já-desativado | Design | Pending |
-| HARD-22 | P1: Usuários — lista com status exato | Design | Pending |
+| HARD-01 | P1: Node fleet — revoga e nega autenticação subsequente | Execute | Verified |
+| HARD-02 | P1: Node fleet — lista com status exato | Execute | Verified |
+| HARD-03 | P1: Node fleet — rejeita Node inexistente/outro org (404) | Execute | Verified |
+| HARD-04 | P1: Node fleet — idempotência ao revogar já-revogado | Execute | Verified |
+| HARD-05 | P1: Node fleet — revoke sem capability é 403 | Execute | Verified |
+| HARD-06 | P1: Auditoria — novo entry encadeia hash | Execute | Verified |
+| HARD-07 | P1: Auditoria — cadeia íntegra reporta válida | Execute | Verified |
+| HARD-08 | P1: Auditoria — adulteração direta é detectada com o ponto exato | Execute | Verified |
+| HARD-09 | P1: Auditoria — primeiro entry usa genesis | Execute | Verified |
+| HARD-10 | P1: Export — retorna trilha completa + veredito de integridade | Execute | Verified |
+| HARD-11 | P1: Export — nunca vaza entradas de outro org | Execute | Verified |
+| HARD-12 | P1: Retenção — configura janela positiva | Execute | Verified |
+| HARD-13 | P1: Retenção — rejeita janela inválida (422) | Execute | Verified |
+| HARD-14 | P1: Retenção — rejeita sweep sem política configurada (422) | Execute | Verified |
+| HARD-15 | P1: Retenção — sweep redige evidência antiga, conta exata | Execute | Verified |
+| HARD-16 | P1: Retenção — evidência dentro da janela intocada | Execute | Verified |
+| HARD-17 | P1: Retenção — lineage de decision/claim preservada | Execute | Verified |
+| HARD-18 | P1: Usuários — desativa usuário | Execute | Verified |
+| HARD-19 | P1: Usuários — dev-login de usuário desativado é 401 | Execute | Verified |
+| HARD-20 | P1: Usuários — rejeita usuário inexistente/outro org (404) | Execute | Verified |
+| HARD-21 | P1: Usuários — idempotência ao desativar já-desativado | Execute | Verified |
+| HARD-22 | P1: Usuários — lista com status exato | Execute | Verified |
 
 **ID format:** `HARD-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 22 total, 0 mapped to tasks (mapeado na fase Tasks), 0 unmapped — cada ID cita sua âncora na spec acima.
+**Coverage:** 22 total, 22 verified (Verifier PASS após 2 rounds — round 1 achou 1 gap major de cobertura de teste + 1 gap menor de precisão de spec, ambos corrigidos e reconfirmados do zero na round 2), 0 unmapped — cada ID cita sua âncora na spec acima. Relatório completo em `validation.md`.
 
 ---
 
 ## Success Criteria
 
-- [ ] `validate_spec.py` sai 0 para esta spec.
-- [ ] O vertical slice completo roda ponta a ponta: revogar um Node → sua autenticação subsequente falha; gerar audit entries → cadeia válida; adulterar uma entrada → cadeia inválida com o ponto exato; exportar a auditoria do org; configurar retenção → sweep redige evidência antiga preservando lineage; desativar um usuário → login subsequente falha.
-- [ ] Nenhuma linha de evidência é deletada pela varredura de retenção — apenas redigida.
-- [ ] Nenhuma rota deste slice vaza dado de outro org, nem por leitura nem por escrita.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] `validate_spec.py` sai 0 para esta spec.
+- [x] O vertical slice completo roda ponta a ponta: revogar um Node → sua autenticação subsequente falha; gerar audit entries → cadeia válida; adulterar uma entrada → cadeia inválida com o ponto exato; exportar a auditoria do org; configurar retenção → sweep redige evidência antiga preservando lineage; desativar um usuário → login subsequente falha.
+- [x] Nenhuma linha de evidência é deletada pela varredura de retenção — apenas redigida.
+- [x] Nenhuma rota deste slice vaza dado de outro org, nem por leitura nem por escrita.
+- [x] Verifier independente reporta PASS em `validation.md`.
