@@ -180,11 +180,11 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Signal criado tem `evidenceStrength`/`confidence` separados
-- [ ] Relinkar a mesma claim retorna o signal existente sem duplicar (índice único comprovado)
-- [ ] Signal de claim de outro projeto é rejeitado 422
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Signal criado tem `evidenceStrength`/`confidence` separados
+- [x] Relinkar a mesma claim retorna o signal existente sem duplicar (índice único comprovado)
+- [x] Signal de claim de outro projeto é rejeitado 422
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

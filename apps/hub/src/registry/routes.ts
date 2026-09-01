@@ -27,6 +27,7 @@ import { confirmCandidate, listCandidates, rejectCandidate } from "../twin/candi
 import { computeDiff } from "../twin/diff.js";
 import { activateEvidence, createEvidence, listEvidence } from "../evolution/evidence.js";
 import { createClaim, listClaims } from "../evolution/claims.js";
+import { linkSignal, listSignals } from "../evolution/signals.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -599,6 +600,40 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const claims = await listClaims(pool, id);
     return reply.send({ claims });
+  });
+
+  app.post("/projects/:id/signals", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "signal.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "signal.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { claimId?: string };
+    if (!body.claimId) {
+      return problem(reply, 422, "invalid_signal", "claimId is required");
+    }
+    const outcome = await linkSignal(pool, scope, id, body.claimId);
+    if (outcome.kind === "invalid_claim_reference") {
+      return problem(reply, 422, "invalid_claim_reference", `claim '${body.claimId}' does not belong to this project`);
+    }
+    const status = outcome.kind === "created" ? 201 : 200;
+    return reply.status(status).send({
+      signalId: outcome.signalId,
+      evidenceStrength: outcome.evidenceStrength,
+      confidence: outcome.confidence,
+    });
+  });
+
+  app.get("/projects/:id/signals", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const signals = await listSignals(pool, id);
+    return reply.send({ signals });
   });
 
   app.get("/projects", async (req, reply) => {
