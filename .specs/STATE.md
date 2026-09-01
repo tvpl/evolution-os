@@ -57,11 +57,11 @@
 
 ## Handoff
 
-- **Feature**: slice-3-evidence-to-decision — EM EXECUÇÃO (spec+design+tasks aprovados; T1 em andamento)
-- **Phase / Task**: Execute — T1 (migration 004 + capability grants), Phase 1
-- **Completed**: slices 0, 1 e 2 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados — slice-2 teve 2 bugs reais encontrados e corrigidos: payloadEquals não-canônico e dedup faltando o status `confirmed`)
-- **In-progress** (file:line): `apps/hub/migrations/004_evolution.sql` criado; `apps/hub/src/policy/policy.ts` já ganhou os grants (`evidence.write`, `claim.write`, `signal.write`, `proposal.write`, `proposal.decide`); falta o teste de integração de T1 (`apps/hub/test/evolution-migration.test.ts`) e rodar o gate
-- **Next step**: Terminar T1 (teste + gate), depois T2 (evidence), T3 (claims), T4 (analysis-provider), T5 (signals), T6-T8 (proposals+challenger+inbox), T9 (decisão), T10 (fechamento) conforme `.specs/features/slice-3-evidence-to-decision/tasks.md`
+- **Feature**: slice-3-evidence-to-decision — Execute concluído (T1-T10, todos os 10 tasks); aguardando Verifier independente
+- **Phase / Task**: Verify (dispatch do Verifier independente ainda não rodou)
+- **Completed**: slices 0, 1 e 2 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados). Slice 3: todos os 10 tasks implementados e commitados (evidence quarantine/activation, claims N:N, analysis-provider determinístico, signals com dedup atômico, proposals draft+ready+Challenger, inbox, decision guard estendido a `subjectType='proposal'`, fechamento de docs); gate full verde (168 hub + 8 node integration + 27 unit, typecheck, check_docs, validate_spec/validate_tasks todos limpos)
+- **In-progress**: nenhum — Execute completo. `spec.md`: Goals e 4/5 Success Criteria marcados `[x]` (o 5º, "Verifier independente reporta PASS", aberto até a Verificação rodar); FLOW-01..18 em Phase=Execute/Status=Implementing (a subir para Verified pós-Verifier)
+- **Next step**: Dispatch do Verifier independente para slice-3-evidence-to-decision (evidence-or-zero, discrimination sensor); fechar gaps se houver; marcar FLOW-01..18 como Verified e a 5ª Success Criteria; depois seguir para Slice 4 (experiment-loop, M3) conforme `docs/06-delivery/09-spec-driven-execution-plan.md`
 - **Blockers**: none
-- **Uncommitted files**: `apps/hub/migrations/004_evolution.sql`, `apps/hub/src/policy/policy.ts` (grants de evolution)
+- **Uncommitted files**: none (tudo commitado até `de832ba`)
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7
