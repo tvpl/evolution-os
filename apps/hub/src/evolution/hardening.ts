@@ -36,3 +36,55 @@ export async function revokeNode(pool: DbPool, scope: AuthScope, nodeId: string)
   );
   return { kind: "revoked" };
 }
+
+export type SetRetentionOutcome = { kind: "set" } | { kind: "invalid_window" };
+
+/** HARD-12/13: janela de retenção de evidência, 1 política por org (Assumption confirmada). */
+export async function setRetentionPolicy(
+  pool: DbPool,
+  orgId: string,
+  evidenceRetentionDays: unknown,
+): Promise<SetRetentionOutcome> {
+  if (
+    typeof evidenceRetentionDays !== "number" ||
+    !Number.isInteger(evidenceRetentionDays) ||
+    evidenceRetentionDays <= 0
+  ) {
+    return { kind: "invalid_window" };
+  }
+  await pool.query(
+    `insert into org_retention_policies (org_id, evidence_retention_days, updated_at)
+     values ($1, $2, now())
+     on conflict (org_id) do update set evidence_retention_days = excluded.evidence_retention_days, updated_at = now()`,
+    [orgId, evidenceRetentionDays],
+  );
+  return { kind: "set" };
+}
+
+export type SweepOutcome = { kind: "swept"; redactedCount: number } | { kind: "not_configured" };
+
+/**
+ * HARD-14/15/16/17: redige (nunca deleta) evidência mais antiga que a
+ * janela - `content_excerpt = NULL`, `redacted_at` setado; `content_digest`
+ * permanece, então qualquer decision/claim que referencia a evidência via
+ * `claim_evidence`/`subject_id` continua íntegra sem nenhuma alteração
+ * própria (o sweep nunca toca outra tabela).
+ */
+export async function sweepEvidenceRetention(pool: DbPool, orgId: string): Promise<SweepOutcome> {
+  const policy = await pool.query(
+    "select evidence_retention_days as days from org_retention_policies where org_id = $1",
+    [orgId],
+  );
+  const row = policy.rows[0] as { days: number } | undefined;
+  if (!row) return { kind: "not_configured" };
+
+  const result = await pool.query(
+    `update evidence
+        set content_excerpt = null, redacted_at = now()
+      where org_id = $1
+        and redacted_at is null
+        and created_at < now() - make_interval(days => $2)`,
+    [orgId, row.days],
+  );
+  return { kind: "swept", redactedCount: result.rowCount ?? 0 };
+}

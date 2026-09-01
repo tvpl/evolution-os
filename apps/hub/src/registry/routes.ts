@@ -78,7 +78,7 @@ import {
   getCampaignProgress,
   exportCampaign,
 } from "../evolution/portfolio.js";
-import { listNodeFleet, revokeNode } from "../evolution/hardening.js";
+import { listNodeFleet, revokeNode, setRetentionPolicy, sweepEvidenceRetention } from "../evolution/hardening.js";
 import { exportAuditLog } from "../policy/policy.js";
 
 /**
@@ -1716,6 +1716,35 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!scope) return reply;
     const exported = await exportAuditLog(pool, scope.orgId);
     return reply.send(exported);
+  });
+
+  app.post("/orgs/current/retention", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const grant = await enforceCapability(pool, scope, "admin.write", "orgs/current/retention", req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { evidenceRetentionDays?: unknown };
+    const outcome = await setRetentionPolicy(pool, scope.orgId, body.evidenceRetentionDays);
+    if (outcome.kind === "invalid_window") {
+      return problem(reply, 422, "invalid_retention_window", "evidenceRetentionDays must be a positive integer");
+    }
+    return reply.send({ evidenceRetentionDays: body.evidenceRetentionDays });
+  });
+
+  app.post("/orgs/current/retention/sweep", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const grant = await enforceCapability(pool, scope, "admin.write", "orgs/current/retention/sweep", req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await sweepEvidenceRetention(pool, scope.orgId);
+    if (outcome.kind === "not_configured") {
+      return problem(reply, 422, "retention_not_configured", "configure a retention window before sweeping");
+    }
+    return reply.send({ redactedCount: outcome.redactedCount });
   });
 
   app.get("/projects", async (req, reply) => {
