@@ -48,7 +48,10 @@ import {
 import {
   declareInventory,
   getCurrentInventory,
+  declareEvalCase,
+  listEvalCases,
   type InventoryComponent,
+  type InvariantType,
 } from "../evolution/harness.js";
 
 /**
@@ -140,6 +143,35 @@ function isValidComponentArray(value: unknown): value is InventoryComponent[] {
       typeof (v as Record<string, unknown>).name === "string" &&
       typeof (v as Record<string, unknown>).version === "string",
   );
+}
+
+const INVARIANT_TYPES = new Set<InvariantType>([
+  "requires_skill",
+  "requires_mcp",
+  "forbids_mcp",
+  "min_component_count",
+]);
+const INVENTORY_CATEGORIES = new Set(["skills", "mcps", "models"]);
+
+/** HRN-05: exige `invariantType` fechado e `params` compatível com o tipo. */
+function isValidEvalCaseParams(invariantType: unknown, params: unknown): params is Record<string, unknown> {
+  if (typeof invariantType !== "string" || !INVARIANT_TYPES.has(invariantType as InvariantType)) return false;
+  if (params === null || typeof params !== "object") return false;
+  const p = params as Record<string, unknown>;
+  switch (invariantType as InvariantType) {
+    case "requires_skill":
+      return typeof p.skillId === "string" && p.skillId.length > 0;
+    case "requires_mcp":
+    case "forbids_mcp":
+      return typeof p.mcpId === "string" && p.mcpId.length > 0;
+    case "min_component_count":
+      return (
+        typeof p.category === "string" &&
+        INVENTORY_CATEGORIES.has(p.category) &&
+        typeof p.min === "number" &&
+        Number.isFinite(p.min)
+      );
+  }
 }
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
@@ -1160,6 +1192,44 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "no inventory declared for this harness yet");
     }
     return reply.send(inventory);
+  });
+
+  app.post("/projects/:id/harness/eval-cases", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "harness.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "harness.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { name?: string; invariantType?: unknown; params?: unknown };
+    if (!body.name) {
+      return problem(reply, 422, "invalid_eval_case", "name is required");
+    }
+    if (!isValidEvalCaseParams(body.invariantType, body.params)) {
+      return problem(
+        reply,
+        422,
+        "invalid_eval_case",
+        "invariantType must be one of requires_skill, requires_mcp, forbids_mcp, min_component_count, with matching params",
+      );
+    }
+    const { caseId } = await declareEvalCase(pool, scope, id, {
+      name: body.name,
+      invariantType: body.invariantType as InvariantType,
+      params: body.params,
+    });
+    return reply.status(201).send({ caseId });
+  });
+
+  app.get("/projects/:id/harness/eval-cases", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const evalCases = await listEvalCases(pool, id);
+    return reply.send({ evalCases });
   });
 
   app.get("/projects", async (req, reply) => {

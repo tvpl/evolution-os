@@ -59,6 +59,46 @@ export interface InventoryRow {
   createdAt: string;
 }
 
+export type InvariantType = "requires_skill" | "requires_mcp" | "forbids_mcp" | "min_component_count";
+
+export interface DeclareEvalCaseInput {
+  name: string;
+  invariantType: InvariantType;
+  params: Record<string, unknown>;
+}
+
+export async function declareEvalCase(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  input: DeclareEvalCaseInput,
+): Promise<{ caseId: string }> {
+  const caseId = `hec_${randomUUID().replaceAll("-", "")}`;
+  await pool.query(
+    `insert into harness_eval_cases (id, project_id, org_id, workspace_id, name, invariant_type, params)
+     values ($1, $2, $3, $4, $5, $6, $7)`,
+    [caseId, projectId, scope.orgId, scope.workspaceId, input.name, input.invariantType, JSON.stringify(input.params)],
+  );
+  return { caseId };
+}
+
+export interface EvalCaseRow {
+  id: string;
+  name: string;
+  invariantType: string;
+  params: Record<string, unknown>;
+  createdAt: string;
+}
+
+export async function listEvalCases(pool: DbPool, projectId: string): Promise<EvalCaseRow[]> {
+  const res = await pool.query(
+    `select id, name, invariant_type as "invariantType", params, created_at as "createdAt"
+       from harness_eval_cases where project_id = $1 order by created_at`,
+    [projectId],
+  );
+  return res.rows as EvalCaseRow[];
+}
+
 export async function getCurrentInventory(pool: DbPool, projectId: string): Promise<InventoryRow | null> {
   const res = await pool.query(
     `select version, skills, mcps, models, created_at as "createdAt"

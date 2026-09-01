@@ -122,12 +122,12 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Declarar um caso `requires_skill` e um `min_component_count` persiste ambos
-- [ ] `invariantType` desconhecido é rejeitado 422
-- [ ] `params` incompletos para o tipo declarado é rejeitado 422 (todos os 4 tipos cobertos)
-- [ ] Listagem retorna todos os casos
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Declarar um caso `requires_skill` e um `min_component_count` persiste ambos
+- [x] `invariantType` desconhecido é rejeitado 422
+- [x] `params` incompletos para o tipo declarado é rejeitado 422 (todos os 4 tipos cobertos)
+- [x] Listagem retorna todos os casos
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full
