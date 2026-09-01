@@ -78,6 +78,7 @@ import {
   getCampaignProgress,
   exportCampaign,
 } from "../evolution/portfolio.js";
+import { listNodeFleet, revokeNode } from "../evolution/hardening.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1685,6 +1686,28 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "campaign does not exist in this portfolio");
     }
     return reply.send(exported);
+  });
+
+  app.get("/orgs/current/nodes", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const fleet = await listNodeFleet(pool, scope.orgId);
+    return reply.send({ fleet });
+  });
+
+  app.post("/orgs/current/nodes/:nodeId/revoke", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const grant = await enforceCapability(pool, scope, "admin.write", "orgs/current/nodes", req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const { nodeId } = req.params as { nodeId: string };
+    const outcome = await revokeNode(pool, scope, nodeId);
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "node does not exist in this org's fleet");
+    }
+    return reply.send({ nodeId, revoked: true });
   });
 
   app.get("/projects", async (req, reply) => {

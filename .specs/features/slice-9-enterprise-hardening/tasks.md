@@ -105,12 +105,13 @@ T7
 - [x] Revogar um Node já revogado é idempotente (200, `revoked_at` inalterado)
 - [x] Acessar lista/revoke cross-tenant é rejeitado 403
 - [x] Gate check passes: full
-- [x] Test count: ≥6 tests pass
+- [x] Test count: ≥6 tests pass ✅ (7 tests, 422 total)
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(hub): add Node fleet kill switch`
+**Status**: ✅ Done
 
 ---
 
