@@ -39,7 +39,7 @@ import {
   type Variant,
   type VerificationPlan,
 } from "../evolution/experiments.js";
-import { connectGitHub, ingestWebhook } from "../evolution/github-connector.js";
+import { connectGitHub, ingestWebhook, createGitHubAction } from "../evolution/github-connector.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -111,6 +111,12 @@ function isValidVerificationPlan(plan: unknown): plan is VerificationPlan {
 function isValidObservedValue(value: unknown): value is number | null {
   if (value === null) return true;
   return typeof value === "number" && Number.isFinite(value);
+}
+
+/** GH-08: exige `issue`, `branch` ou `draftPr` — nunca merge/deploy. */
+const GITHUB_ACTION_TYPES = new Set(["issue", "branch", "draftPr"]);
+function isValidActionType(value: unknown): value is "issue" | "branch" | "draftPr" {
+  return typeof value === "string" && GITHUB_ACTION_TYPES.has(value);
 }
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
@@ -994,6 +1000,68 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
         return reply.status(200).send({ status: "duplicate" });
       case "ingested":
         return reply.status(200).send({ status: "ingested" });
+    }
+  });
+
+  app.post("/projects/:id/connectors/github/actions", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "connector.github.write"))) return reply;
+    const grant = await enforceCapability(
+      pool,
+      scope,
+      "connector.github.write",
+      `projects/${id}`,
+      req.correlationId,
+    );
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const idempotencyKey = req.headers["idempotency-key"];
+    if (typeof idempotencyKey !== "string" || !idempotencyKey) {
+      return problem(reply, 422, "missing_idempotency_key", "Idempotency-Key header is required");
+    }
+    const body = (req.body ?? {}) as {
+      connectionId?: string;
+      actionType?: unknown;
+      title?: string;
+      proposalId?: string;
+      experimentId?: string;
+    };
+    if (!isValidActionType(body.actionType)) {
+      return problem(reply, 422, "invalid_action_type", "actionType must be issue, branch, or draftPr");
+    }
+    if (!body.connectionId || !body.title) {
+      return problem(reply, 422, "invalid_action", "connectionId and title are required");
+    }
+    const outcome = await createGitHubAction(pool, scope, id, {
+      connectionId: body.connectionId,
+      actionType: body.actionType,
+      title: body.title,
+      idempotencyKey,
+      ...(body.proposalId !== undefined ? { proposalId: body.proposalId } : {}),
+      ...(body.experimentId !== undefined ? { experimentId: body.experimentId } : {}),
+    });
+    switch (outcome.kind) {
+      case "invalid_connection_reference":
+        return problem(
+          reply,
+          422,
+          "invalid_connection_reference",
+          `connection '${body.connectionId}' does not belong to this project`,
+        );
+      case "conflict":
+        return problem(
+          reply,
+          409,
+          "idempotency_conflict",
+          "Idempotency-Key was already used with a different request digest",
+        );
+      case "created":
+        return reply.status(201).send({ actionId: outcome.actionId, externalRef: outcome.externalRef });
+      case "replayed":
+        return reply.status(200).send({ actionId: outcome.actionId, externalRef: outcome.externalRef });
     }
   });
 

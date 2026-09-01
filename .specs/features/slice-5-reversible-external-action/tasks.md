@@ -145,13 +145,13 @@ T6
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Ação criada com `actionType` válido persiste com `externalRef` e exige a capability
-- [ ] `actionType` inválido é rejeitado 422
-- [ ] Replay com a mesma `Idempotency-Key` e mesmo payload retorna a ação já criada (sem duplicar linha)
-- [ ] Replay com a mesma `Idempotency-Key` e payload diferente é rejeitado 409
-- [ ] Sem a capability `connector.github.write` é rejeitado 403
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Ação criada com `actionType` válido persiste com `externalRef` e exige a capability
+- [x] `actionType` inválido é rejeitado 422
+- [x] Replay com a mesma `Idempotency-Key` e mesmo payload retorna a ação já criada (sem duplicar linha)
+- [x] Replay com a mesma `Idempotency-Key` e payload diferente é rejeitado 409
+- [x] Sem a capability `connector.github.write` é rejeitado 403
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full

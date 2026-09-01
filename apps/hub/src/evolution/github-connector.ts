@@ -1,7 +1,8 @@
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import type { DbPool } from "../platform/db.js";
+import { withTx, type DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
 import { canonicalJson } from "../platform/canonical-json.js";
+import { canonicalDigest } from "../registry/registry.js";
 
 export interface ConnectGitHubInput {
   owner: string;
@@ -97,4 +98,100 @@ export async function ingestWebhook(
   }
   await pool.query("update github_connections set last_event_at = now() where id = $1", [connectionId]);
   return { kind: "ingested" };
+}
+
+export interface CreateActionInput {
+  connectionId: string;
+  actionType: "issue" | "branch" | "draftPr";
+  title: string;
+  proposalId?: string;
+  experimentId?: string;
+  idempotencyKey: string;
+}
+
+export type CreateActionOutcome =
+  | { kind: "created"; actionId: string; externalRef: string }
+  | { kind: "replayed"; actionId: string; externalRef: string }
+  | { kind: "conflict" }
+  | { kind: "invalid_connection_reference" };
+
+interface StoredActionResponse {
+  actionId: string;
+  externalRef: string;
+}
+
+function mockExternalRef(actionType: string, connectionId: string, actionId: string): string {
+  const kind = actionType === "issue" ? "issues" : actionType === "branch" ? "branches" : "pulls";
+  return `mock://github/${connectionId}/${kind}/${actionId}`;
+}
+
+/**
+ * GH-07/09/10/11: adapter determinístico (mock) atrás de uma interface —
+ * trocar por chamadas reais ao GitHub é extensão local quando a infra
+ * existir (ver spec Out of Scope, mesmo padrão do `AnalysisProvider` do
+ * Slice 3). Idempotência reusa `idempotency_keys`/`canonicalDigest` do
+ * Slice 0 tal como estão — mesma transação, mesmo lock `for update`, mesmo
+ * contrato replayed/conflict de `registerProject`.
+ */
+export async function createGitHubAction(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  input: CreateActionInput,
+): Promise<CreateActionOutcome> {
+  const digest = canonicalDigest({
+    connectionId: input.connectionId,
+    actionType: input.actionType,
+    title: input.title,
+    proposalId: input.proposalId ?? null,
+    experimentId: input.experimentId ?? null,
+  });
+
+  return withTx(pool, async (client) => {
+    const existing = await client.query(
+      "select request_digest, response from idempotency_keys where org_id = $1 and key = $2 for update",
+      [scope.orgId, input.idempotencyKey],
+    );
+    const row = existing.rows[0] as
+      | { request_digest: string; response: StoredActionResponse | null }
+      | undefined;
+    if (row) {
+      if (row.request_digest === digest && row.response) {
+        return { kind: "replayed", ...row.response };
+      }
+      return { kind: "conflict" };
+    }
+
+    const connRes = await client.query(
+      "select id from github_connections where id = $1 and project_id = $2",
+      [input.connectionId, projectId],
+    );
+    if (!connRes.rowCount) return { kind: "invalid_connection_reference" };
+
+    const actionId = `gha_${randomUUID().replaceAll("-", "")}`;
+    const externalRef = mockExternalRef(input.actionType, input.connectionId, actionId);
+    await client.query(
+      `insert into github_actions (id, project_id, org_id, workspace_id, connection_id, action_type,
+                                    proposal_id, experiment_id, title, external_ref)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        actionId,
+        projectId,
+        scope.orgId,
+        scope.workspaceId,
+        input.connectionId,
+        input.actionType,
+        input.proposalId ?? null,
+        input.experimentId ?? null,
+        input.title,
+        externalRef,
+      ],
+    );
+    const response: StoredActionResponse = { actionId, externalRef };
+    await client.query(
+      "insert into idempotency_keys (org_id, key, request_digest, response) values ($1, $2, $3, $4)",
+      [scope.orgId, input.idempotencyKey, digest, response],
+    );
+    return { kind: "created", actionId, externalRef };
+  });
 }
