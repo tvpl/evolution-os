@@ -5,6 +5,46 @@ import { enforceCapability, recordAudit } from "../policy/policy.js";
 import { registerProject } from "./registry.js";
 import { listHypotheses } from "../idea-memory/hypotheses.js";
 import { getProjectOverview } from "../idea-memory/overview.js";
+import { createArtifact, listArtifacts } from "../idea-memory/artifacts.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { AuthScope } from "../identity/session.js";
+
+/**
+ * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
+ * export (mesmo padrão 404-antes-de-403 do endpoint de overview): existência
+ * primeiro, cross-tenant depois (com auditoria opcional por `action`).
+ */
+async function requireOwnedProject(
+  pool: DbPool,
+  req: FastifyRequest,
+  reply: FastifyReply,
+  projectId: string,
+  scope: AuthScope,
+  auditAction?: string,
+): Promise<boolean> {
+  const owner = await pool.query("select org_id from projects where id = $1", [projectId]);
+  const ownerRow = owner.rows[0] as { org_id: string } | undefined;
+  if (!ownerRow) {
+    problem(reply, 404, "not_found", "project does not exist");
+    return false;
+  }
+  if (ownerRow.org_id !== scope.orgId) {
+    if (auditAction) {
+      await recordAudit(pool, {
+        orgId: scope.orgId,
+        actor: scope.userId,
+        action: auditAction,
+        resource: `projects/${projectId}`,
+        outcome: "denied",
+        reason: "cross-tenant access",
+        correlationId: req.correlationId,
+      });
+    }
+    problem(reply, 403, "access_denied", "access denied", { correlationId: req.correlationId });
+    return false;
+  }
+  return true;
+}
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
   app.post("/projects", async (req, reply) => {
@@ -120,6 +160,42 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "project does not exist");
     }
     return reply.send(overview);
+  });
+
+  app.post("/projects/:id/artifacts", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "artifact.write"))) return reply;
+
+    const grant = await enforceCapability(pool, scope, "artifact.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+
+    const body = (req.body ?? {}) as { type?: string; title?: string; reference?: string; content?: string };
+    if (!body.type || !body.title) {
+      return problem(reply, 422, "invalid_artifact", "type and title are required");
+    }
+    const outcome = await createArtifact(pool, scope, id, {
+      type: body.type,
+      title: body.title,
+      ...(body.reference !== undefined ? { reference: body.reference } : {}),
+      ...(body.content !== undefined ? { content: body.content } : {}),
+    });
+    if (outcome.kind === "invalid") {
+      return problem(reply, 422, "invalid_artifact", outcome.reason);
+    }
+    return reply.status(201).send({ artifactId: outcome.artifactId, version: outcome.version });
+  });
+
+  app.get("/projects/:id/artifacts", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const artifacts = await listArtifacts(pool, id);
+    return reply.send({ artifacts });
   });
 
   app.get("/projects", async (req, reply) => {

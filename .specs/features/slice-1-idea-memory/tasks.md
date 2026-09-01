@@ -231,11 +231,11 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Criar artifact grava v1 com reference/content
-- [ ] Listagem mostra versão atual e contagem
-- [ ] Criação sem reference/content é rejeitada 422 sem gravar nada
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Criar artifact grava v1 com reference/content
+- [x] Listagem mostra versão atual e contagem
+- [x] Criação sem reference/content é rejeitada 422 sem gravar nada
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
