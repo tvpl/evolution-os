@@ -147,13 +147,13 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Um caso `requires_skill` cujo skill não está no inventário falha com motivo específico; declarando o skill e rodando de novo, passa
-- [ ] Os outros 3 tipos de invariante (`requires_mcp`, `forbids_mcp`, `min_component_count`) têm cada um teste de passar e de falhar
-- [ ] Rodar sem inventário declarado é rejeitado 422
-- [ ] Rodar sem eval cases declarados é rejeitado 422
-- [ ] Score `0/total` (todos falham) ainda persiste o run normalmente, sem erro
-- [ ] Gate check passes: full
-- [ ] Test count: ≥10 tests pass
+- [x] Um caso `requires_skill` cujo skill não está no inventário falha com motivo específico; declarando o skill e rodando de novo, passa
+- [x] Os outros 3 tipos de invariante (`requires_mcp`, `forbids_mcp`, `min_component_count`) têm cada um teste de passar e de falhar
+- [x] Rodar sem inventário declarado é rejeitado 422
+- [x] Rodar sem eval cases declarados é rejeitado 422
+- [x] Score `0/total` (todos falham) ainda persiste o run normalmente, sem erro
+- [x] Gate check passes: full
+- [x] Test count: ≥10 tests pass
 
 **Tests**: integration
 **Gate**: full

@@ -50,6 +50,7 @@ import {
   getCurrentInventory,
   declareEvalCase,
   listEvalCases,
+  runEval,
   type InventoryComponent,
   type InvariantType,
 } from "../evolution/harness.js";
@@ -1230,6 +1231,35 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const evalCases = await listEvalCases(pool, id);
     return reply.send({ evalCases });
+  });
+
+  app.post("/projects/:id/harness/eval-runs", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "harness.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "harness.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await runEval(pool, scope, id);
+    switch (outcome.kind) {
+      case "requires_inventory":
+        return problem(reply, 422, "harness_requires_inventory", "declare a harness inventory before running evals");
+      case "requires_eval_cases":
+        return problem(
+          reply,
+          422,
+          "harness_requires_eval_cases",
+          "declare at least one eval case before running evals",
+        );
+      case "ran":
+        return reply.status(201).send({
+          runId: outcome.runId,
+          score: { passed: outcome.passed, total: outcome.total },
+          results: outcome.results,
+        });
+    }
   });
 
   app.get("/projects", async (req, reply) => {

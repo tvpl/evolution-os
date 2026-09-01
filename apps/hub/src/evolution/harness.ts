@@ -99,6 +99,94 @@ export async function listEvalCases(pool: DbPool, projectId: string): Promise<Ev
   return res.rows as EvalCaseRow[];
 }
 
+export interface EvalCaseResult {
+  caseId: string;
+  name: string;
+  invariantType: string;
+  passed: boolean;
+  reason: string;
+}
+
+/**
+ * HRN-07: função pura, sem I/O — mesmo espírito do `evaluateExperiment`
+ * (Slice 4) e do `AnalysisProvider` (Slice 3). Checa o invariante contra o
+ * inventário DECLARADO, nunca uma execução real de skill/MCP (ver spec Out
+ * of Scope).
+ */
+export function runEvalCase(inventory: InventoryRow, evalCase: EvalCaseRow): EvalCaseResult {
+  const base = { caseId: evalCase.id, name: evalCase.name, invariantType: evalCase.invariantType };
+  switch (evalCase.invariantType as InvariantType) {
+    case "requires_skill": {
+      const skillId = evalCase.params.skillId as string;
+      const found = inventory.skills.some((s) => s.id === skillId);
+      return { ...base, passed: found, reason: found ? `skill '${skillId}' found` : `skill '${skillId}' missing` };
+    }
+    case "requires_mcp": {
+      const mcpId = evalCase.params.mcpId as string;
+      const found = inventory.mcps.some((m) => m.id === mcpId);
+      return { ...base, passed: found, reason: found ? `mcp '${mcpId}' found` : `mcp '${mcpId}' missing` };
+    }
+    case "forbids_mcp": {
+      const mcpId = evalCase.params.mcpId as string;
+      const found = inventory.mcps.some((m) => m.id === mcpId);
+      return {
+        ...base,
+        passed: !found,
+        reason: found ? `mcp '${mcpId}' is present but forbidden` : `mcp '${mcpId}' correctly absent`,
+      };
+    }
+    case "min_component_count": {
+      const category = evalCase.params.category as "skills" | "mcps" | "models";
+      const min = evalCase.params.min as number;
+      const count = inventory[category].length;
+      const passed = count >= min;
+      return {
+        ...base,
+        passed,
+        reason: `${category} count ${count} ${passed ? ">=" : "<"} required minimum ${min}`,
+      };
+    }
+  }
+}
+
+export interface RunEvalDatasetResult {
+  passed: number;
+  total: number;
+  results: EvalCaseResult[];
+}
+
+export function runEvalDataset(inventory: InventoryRow, evalCases: EvalCaseRow[]): RunEvalDatasetResult {
+  const results = evalCases.map((c) => runEvalCase(inventory, c));
+  const passed = results.filter((r) => r.passed).length;
+  return { passed, total: results.length, results };
+}
+
+export type RunEvalOutcome =
+  | { kind: "ran"; runId: string; passed: number; total: number; results: EvalCaseResult[] }
+  | { kind: "requires_inventory" }
+  | { kind: "requires_eval_cases" };
+
+/** HRN-07/08/09: exige inventário e ≥1 eval case; persiste o run com o
+ * score e os resultados por caso na mesma operação. */
+export async function runEval(pool: DbPool, scope: AuthScope, projectId: string): Promise<RunEvalOutcome> {
+  const inventory = await getCurrentInventory(pool, projectId);
+  if (!inventory) return { kind: "requires_inventory" };
+
+  const evalCases = await listEvalCases(pool, projectId);
+  if (evalCases.length === 0) return { kind: "requires_eval_cases" };
+
+  const { passed, total, results } = runEvalDataset(inventory, evalCases);
+
+  const runId = `her_${randomUUID().replaceAll("-", "")}`;
+  await pool.query(
+    `insert into harness_eval_runs (id, project_id, org_id, workspace_id, inventory_version,
+                                     score_passed, score_total, results)
+     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [runId, projectId, scope.orgId, scope.workspaceId, inventory.version, passed, total, JSON.stringify(results)],
+  );
+  return { kind: "ran", runId, passed, total, results };
+}
+
 export async function getCurrentInventory(pool: DbPool, projectId: string): Promise<InventoryRow | null> {
   const res = await pool.query(
     `select version, skills, mcps, models, created_at as "createdAt"
