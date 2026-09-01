@@ -26,6 +26,7 @@ import { ingestSnapshot, listSnapshots, type SnapshotInput } from "../twin/snaps
 import { confirmCandidate, listCandidates, rejectCandidate } from "../twin/candidates.js";
 import { computeDiff } from "../twin/diff.js";
 import { activateEvidence, createEvidence, listEvidence } from "../evolution/evidence.js";
+import { createClaim, listClaims } from "../evolution/claims.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -545,6 +546,59 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const evidence = await listEvidence(pool, id);
     return reply.send({ evidence });
+  });
+
+  app.post("/projects/:id/claims", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "claim.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "claim.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as {
+      statement?: string;
+      epistemicType?: "fact" | "inference" | "hypothesis";
+      evidenceIds?: string[];
+    };
+    if (!body.statement || !body.epistemicType) {
+      return problem(reply, 422, "invalid_claim", "statement and epistemicType are required");
+    }
+    const outcome = await createClaim(pool, scope, id, {
+      statement: body.statement,
+      epistemicType: body.epistemicType,
+      evidenceIds: body.evidenceIds ?? [],
+    });
+    switch (outcome.kind) {
+      case "invalid":
+        return problem(reply, 422, "claim_requires_evidence", outcome.reason);
+      case "invalid_evidence_reference":
+        return problem(
+          reply,
+          422,
+          "invalid_evidence_reference",
+          `evidence '${outcome.evidenceId}' does not belong to this project`,
+        );
+      case "evidence_not_active":
+        return problem(
+          reply,
+          422,
+          "evidence_not_active",
+          `evidence '${outcome.evidenceId}' is not active yet`,
+        );
+      case "created":
+        return reply.status(201).send({ claimId: outcome.claimId });
+    }
+  });
+
+  app.get("/projects/:id/claims", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const claims = await listClaims(pool, id);
+    return reply.send({ claims });
   });
 
   app.get("/projects", async (req, reply) => {

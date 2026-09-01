@@ -129,13 +129,13 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Claim referenciando 2 evidências ativas persiste com ambas
-- [ ] Claim referenciando evidência em quarentena é rejeitada 422
-- [ ] Claim referenciando evidência de outro projeto é rejeitada 422
-- [ ] Claim sem nenhuma evidência é rejeitada 422 (edge case)
-- [ ] Listagem retorna evidence IDs por claim
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Claim referenciando 2 evidências ativas persiste com ambas
+- [x] Claim referenciando evidência em quarentena é rejeitada 422
+- [x] Claim referenciando evidência de outro projeto é rejeitada 422
+- [x] Claim sem nenhuma evidência é rejeitada 422 (edge case)
+- [x] Listagem retorna evidence IDs por claim
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full
