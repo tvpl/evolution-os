@@ -58,7 +58,7 @@ Até o Slice 8, o EvolutionOS decide, executa e coordena mudanças através de u
 2. WHEN an admin lists the org's Node fleet THEN the system SHALL return every Node with its exact revoked status.
 3. IF an admin revokes an unknown Node or a Node from another org THEN the system SHALL reject it with 404.
 4. WHEN an admin revokes an already-revoked Node THEN the system SHALL treat it as an idempotent no-op (no error, `revoked_at` unchanged).
-5. IF a client accesses the fleet list or revoke route cross-tenant THEN the system SHALL return 403.
+5. IF a client attempts to revoke a Node without the `admin.write` capability in their own org THEN the system SHALL return 403 (the fleet list route requires no capability and derives its org exclusively from the session, so it has no cross-tenant path to redirect to another org's data — see Assumptions).
 
 **Independent Test**: Enrolar um Node (Slice 2), confirmar que ele autentica; revogá-lo; confirmar que a mesma autenticação agora falha; listar a frota e conferir o status revogado.
 
@@ -150,7 +150,7 @@ Até o Slice 8, o EvolutionOS decide, executa e coordena mudanças através de u
 | HARD-02 | P1: Node fleet — lista com status exato | Design | Pending |
 | HARD-03 | P1: Node fleet — rejeita Node inexistente/outro org (404) | Design | Pending |
 | HARD-04 | P1: Node fleet — idempotência ao revogar já-revogado | Design | Pending |
-| HARD-05 | P1: Node fleet — cross-tenant 403 | Design | Pending |
+| HARD-05 | P1: Node fleet — revoke sem capability é 403 | Design | Pending |
 | HARD-06 | P1: Auditoria — novo entry encadeia hash | Design | Pending |
 | HARD-07 | P1: Auditoria — cadeia íntegra reporta válida | Design | Pending |
 | HARD-08 | P1: Auditoria — adulteração direta é detectada com o ponto exato | Design | Pending |

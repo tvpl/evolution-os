@@ -165,4 +165,19 @@ describe("Evidence retention policy and sweep (HARD-12..17)", () => {
     expect(res.statusCode).toBe(200);
     expect(res.json().redactedCount).toBe(0);
   });
+
+  it("rejects setting a retention policy and sweeping without the admin.write capability with 403", async () => {
+    await pool.query("delete from capability_grants where org_id = 'org_dev_b' and capability = 'admin.write'");
+    const setRes = await setRetention(tokenB, 30);
+    expect(setRes.statusCode).toBe(403);
+    expect(setRes.json().title).toBe("capability_denied");
+    const sweepRes = await sweep(tokenB);
+    expect(sweepRes.statusCode).toBe(403);
+    expect(sweepRes.json().title).toBe("capability_denied");
+    await pool.query(
+      `insert into capability_grants (id, org_id, workspace_id, principal, capability)
+       values ('grant_org_dev_b_admin.write', 'org_dev_b', 'ws_dev_b', '*', 'admin.write')
+       on conflict (org_id, workspace_id, principal, capability) do nothing`,
+    );
+  });
 });

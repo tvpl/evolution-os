@@ -104,4 +104,18 @@ describe("User deprovisioning (HARD-18..22)", () => {
     expect(idsB).toContain("user_dev_b");
     expect(idsB).not.toContain("user_dev_a");
   });
+
+  it("rejects deactivating a user without the admin.write capability with 403", async () => {
+    await pool.query("delete from capability_grants where org_id = 'org_dev_b' and capability = 'admin.write'");
+    const res = await deactivate("user_dev_b", tokenB);
+    expect(res.statusCode).toBe(403);
+    expect(res.json().title).toBe("capability_denied");
+    const row = await pool.query("select deactivated_at from users where id = 'user_dev_b'");
+    expect(row.rows[0].deactivated_at).toBeNull();
+    await pool.query(
+      `insert into capability_grants (id, org_id, workspace_id, principal, capability)
+       values ('grant_org_dev_b_admin.write', 'org_dev_b', 'ws_dev_b', '*', 'admin.write')
+       on conflict (org_id, workspace_id, principal, capability) do nothing`,
+    );
+  });
 });
