@@ -197,11 +197,11 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Antes de qualquer eval run, a Observatory mostra ausência explícita de run
-- [ ] Depois de um eval run, a Observatory mostra o score desse run junto com inventário e contagem de eval cases
-- [ ] Requisição para projeto inexistente é rejeitada 404
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Antes de qualquer eval run, a Observatory mostra ausência explícita de run
+- [x] Depois de um eval run, a Observatory mostra o score desse run junto com inventário e contagem de eval cases
+- [x] Requisição para projeto inexistente é rejeitada 404
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full

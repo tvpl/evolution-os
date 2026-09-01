@@ -236,3 +236,42 @@ export async function getCurrentInventory(pool: DbPool, projectId: string): Prom
   );
   return (res.rows[0] as InventoryRow | undefined) ?? null;
 }
+
+export interface LatestEvalRun {
+  runId: string;
+  score: { passed: number; total: number };
+  createdAt: string;
+}
+
+async function getLatestEvalRun(pool: DbPool, projectId: string): Promise<LatestEvalRun | null> {
+  const res = await pool.query(
+    `select id as "runId", score_passed as "scorePassed", score_total as "scoreTotal", created_at as "createdAt"
+       from harness_eval_runs where project_id = $1 order by created_at desc limit 1`,
+    [projectId],
+  );
+  const row = res.rows[0] as
+    | { runId: string; scorePassed: number; scoreTotal: number; createdAt: string }
+    | undefined;
+  if (!row) return null;
+  return { runId: row.runId, score: { passed: row.scorePassed, total: row.scoreTotal }, createdAt: row.createdAt };
+}
+
+export interface HarnessObservatory {
+  inventory: InventoryRow | null;
+  evalCaseCount: number;
+  latestRun: LatestEvalRun | null;
+}
+
+/**
+ * HRN-13/14: agrega leituras já existentes (T2-T4) — nenhuma tabela ou
+ * cálculo novo. `latestRun: null` é o marcador explícito de ausência de
+ * run, distinto de um run real com score 0/total.
+ */
+export async function getHarnessObservatory(pool: DbPool, projectId: string): Promise<HarnessObservatory> {
+  const [inventory, evalCases, latestRun] = await Promise.all([
+    getCurrentInventory(pool, projectId),
+    listEvalCases(pool, projectId),
+    getLatestEvalRun(pool, projectId),
+  ]);
+  return { inventory, evalCaseCount: evalCases.length, latestRun };
+}

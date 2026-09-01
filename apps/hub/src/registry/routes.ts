@@ -52,6 +52,7 @@ import {
   listEvalCases,
   runEval,
   evaluateExperimentFromEvalRun,
+  getHarnessObservatory,
   type InventoryComponent,
   type InvariantType,
 } from "../evolution/harness.js";
@@ -1297,6 +1298,15 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           rationale: outcome.rationale,
         });
     }
+  });
+
+  app.get("/projects/:id/harness/observatory", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const observatory = await getHarnessObservatory(pool, id);
+    return reply.send(observatory);
   });
 
   app.get("/projects", async (req, reply) => {
