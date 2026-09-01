@@ -8,11 +8,11 @@ Até o Slice 4, uma proposal pode ser provada por um experimento, mas nada do qu
 
 ## Goals
 
-- [ ] Um projeto pode conectar um repositório GitHub declarando `owner`/`repo`, recebendo um webhook secret gerado uma única vez.
-- [ ] Webhooks chegam com assinatura HMAC-SHA256 validada contra o secret da conexão e deduplicados por delivery ID — replay não duplica.
-- [ ] Uma ação externa controlada (`issue`, `branch` ou `draftPr` — nunca merge/deploy) é criada via um conector determinístico, protegida por capability e por `Idempotency-Key` (mesmo padrão do Slice 0).
-- [ ] Um status de CI registrado para uma ação vinculada a um experimento vira automaticamente um proof artifact desse experimento (reuso do Slice 4), sem passo manual extra.
-- [ ] Repetir a criação da mesma ação com a mesma `Idempotency-Key` e o mesmo payload nunca duplica o side effect (EVO-FR-017); com payload diferente sob a mesma chave, é 409.
+- [x] Um projeto pode conectar um repositório GitHub declarando `owner`/`repo`, recebendo um webhook secret gerado uma única vez.
+- [x] Webhooks chegam com assinatura HMAC-SHA256 validada contra o secret da conexão e deduplicados por delivery ID — replay não duplica.
+- [x] Uma ação externa controlada (`issue`, `branch` ou `draftPr` — nunca merge/deploy) é criada via um conector determinístico, protegida por capability e por `Idempotency-Key` (mesmo padrão do Slice 0).
+- [x] Um status de CI registrado para uma ação vinculada a um experimento vira automaticamente um proof artifact desse experimento (reuso do Slice 4), sem passo manual extra.
+- [x] Repetir a criação da mesma ação com a mesma `Idempotency-Key` e o mesmo payload nunca duplica o side effect (EVO-FR-017); com payload diferente sob a mesma chave, é 409.
 
 ## Out of Scope
 
@@ -124,20 +124,20 @@ Até o Slice 4, uma proposal pode ser provada por um experimento, mas nada do qu
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| GH-01 | P1: Conectar — criação com webhook secret | Design | Pending |
-| GH-02 | P1: Conectar — rejeita owner/repo duplicado | Design | Pending |
-| GH-03 | P1: Conectar — rejeita sem owner/repo | Design | Pending |
-| GH-04 | P1: Webhook — assinatura válida + delivery novo persiste | Design | Pending |
-| GH-05 | P1: Webhook — assinatura inválida rejeitada | Design | Pending |
-| GH-06 | P1: Webhook — delivery repetido é no-op | Design | Pending |
-| GH-07 | P1: Ação — criação via adapter determinístico | Design | Pending |
-| GH-08 | P1: Ação — rejeita actionType inválido | Design | Pending |
-| GH-09 | P1: Ação — replay com mesmo digest retorna a existente | Design | Pending |
-| GH-10 | P1: Ação — replay com digest diferente é 409 | Design | Pending |
-| GH-11 | P1: Ação — rejeita sem capability | Design | Pending |
-| GH-12 | P1: CI status — persiste vinculado à ação | Design | Pending |
-| GH-13 | P1: CI status — vira proof artifact automático quando há experimento | Design | Pending |
-| GH-14 | P1: CI status — rejeita ação inexistente | Design | Pending |
+| GH-01 | P1: Conectar — criação com webhook secret | Execute | Implementing |
+| GH-02 | P1: Conectar — rejeita owner/repo duplicado | Execute | Implementing |
+| GH-03 | P1: Conectar — rejeita sem owner/repo | Execute | Implementing |
+| GH-04 | P1: Webhook — assinatura válida + delivery novo persiste | Execute | Implementing |
+| GH-05 | P1: Webhook — assinatura inválida rejeitada | Execute | Implementing |
+| GH-06 | P1: Webhook — delivery repetido é no-op | Execute | Implementing |
+| GH-07 | P1: Ação — criação via adapter determinístico | Execute | Implementing |
+| GH-08 | P1: Ação — rejeita actionType inválido | Execute | Implementing |
+| GH-09 | P1: Ação — replay com mesmo digest retorna a existente | Execute | Implementing |
+| GH-10 | P1: Ação — replay com digest diferente é 409 | Execute | Implementing |
+| GH-11 | P1: Ação — rejeita sem capability | Execute | Implementing |
+| GH-12 | P1: CI status — persiste vinculado à ação | Execute | Implementing |
+| GH-13 | P1: CI status — vira proof artifact automático quando há experimento | Execute | Implementing |
+| GH-14 | P1: CI status — rejeita ação inexistente | Execute | Implementing |
 
 **ID format:** `GH-NN`
 
@@ -149,8 +149,8 @@ Até o Slice 4, uma proposal pode ser provada por um experimento, mas nada do qu
 
 ## Success Criteria
 
-- [ ] `validate_spec.py` sai 0 para esta spec.
-- [ ] O vertical slice completo roda ponta a ponta: conectar repo → webhook validado e deduplicado → ação externa controlada criada com idempotência → status de CI vira proof artifact automático no experimento vinculado.
-- [ ] Repetir a criação da mesma ação com a mesma `Idempotency-Key` e o mesmo payload nunca cria uma segunda linha (EVO-FR-017 provado ponta a ponta).
-- [ ] Nenhuma ação de merge/deploy é possível através de nenhum endpoint deste slice.
+- [x] `validate_spec.py` sai 0 para esta spec.
+- [x] O vertical slice completo roda ponta a ponta: conectar repo → webhook validado e deduplicado → ação externa controlada criada com idempotência → status de CI vira proof artifact automático no experimento vinculado.
+- [x] Repetir a criação da mesma ação com a mesma `Idempotency-Key` e o mesmo payload nunca cria uma segunda linha (EVO-FR-017 provado ponta a ponta).
+- [x] Nenhuma ação de merge/deploy é possível através de nenhum endpoint deste slice.
 - [ ] Verifier independente reporta PASS em `validation.md`.

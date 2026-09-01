@@ -125,3 +125,18 @@ github_action_ci_statuses(id text PK, action_id text references github_actions(i
 | Vínculo ação↔experimento é opcional (`experiment_id` nullable) | Ação pode existir sem proof automático | Nem toda ação externa nasce de um experimento (ex. uma issue de descoberta antes de qualquer experimento existir) |
 
 Nenhuma decisão aqui atinge o critério de projeto-level (a reutilização de `idempotency_keys` é aplicação do padrão já estabelecido, não uma convenção nova).
+
+---
+
+## Review do slice (checklist de `docs/06-delivery/05-build-sequence.md`)
+
+| Pergunta | Resposta |
+| --- | --- |
+| Usuário entende o valor? | Sim — uma proposal (ou investigação livre) agora pode virar trabalho real rastreável: conectar o repo → criar uma issue/branch/draft PR controlada (nunca merge/deploy) → o status de CI dessa ação vira prova automática no experimento vinculado, sem passo manual — "proposta vira trabalho real com controle" (build-sequence, Slice 5) |
+| O novo artifact está no knowledge model? | Sim — o `external_ref` do adapter determinístico é o primeiro "fato declarado sobre o mundo externo" deste slice (uma issue/branch/PR *representada*, não executada de fato); o proof artifact `type='ci_status'` estende o mesmo conceito de prova do Slice 4 sem inventar um novo, só uma nova fonte automática para ele |
+| Evidence/decision lineage existe? | Sim, estendido: `proposal`/`experiment` (Slice 3/4) → `github_action` (referencia opcionalmente `proposal_id`/`experiment_id`) → `github_action_ci_status` → `artifact` (`type='ci_status'`) → `experiment_artifacts` (Slice 4, inalterado). A ação externa em si vira um elo auditável entre a decisão e a prova coletada fora do sistema |
+| Policy e classification cobrem o fluxo? | Sim — `connector.write`/`connector.github.write` seguem o mesmo deny-by-default dos Slices 0-4, testados para os dois tenants dev na mesma edição. O webhook é a única rota do produto até agora sem `requireScope` — documentado explicitamente como decisão de design (mesmo espírito do node auth do Slice 2: a credencial é a assinatura HMAC, não uma sessão de usuário) |
+| Failure/retry/idempotency definidos? | Sim — criação de ação reusa o mecanismo de idempotência do Slice 0 (`idempotency_keys` + `canonicalDigest`, mesma transação com `for update`) em vez de inventar um segundo esquema; dedup de webhook via `ON CONFLICT DO NOTHING` (mesmo padrão do Slice 3); o anexo automático de proof artifact é best-effort — falha (experimento não mais `running`) nunca impede o registro do status de CI em si |
+| Evals incluem negative cases? | Sim: conectar sem owner/repo, conectar duplicado, assinatura de webhook inválida, `actionType` fora de `{issue, branch, draftPr}` (prova que merge/deploy é impossível), replay de idempotency key com payload igual e com payload diferente, `connectionId` desconhecido/de outro projeto, status de CI para ação inexistente, ação sem `experimentId`, experimento não mais `running` no momento do CI, cross-tenant em toda rota nova |
+| O profile Lite continua possível? | Sim — nenhuma infraestrutura nova além do mesmo Postgres; o `GitHubActionConnector` é 100% determinístico e local, sem chamada de rede real ao GitHub, preservando o profile Lite sem custo de infraestrutura adicional |
+| Alguma hipótese do ecossistema foi invalidada? | Não invalidou nenhum ADR. A pesquisa de reuso deste slice encontrou uma dívida técnica real não corrigida (duas implementações independentes de `canonicalJson`/digest, `registry.ts` vs `platform/canonical-json.ts` do Slice 4) — documentada em Risks & Concerns com uma mitigação explícita (não consolidar agora, risco desnecessário à idempotência do Slice 0) em vez de ser silenciosamente ignorada ou corrigida às pressas fora de escopo |
