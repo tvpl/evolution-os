@@ -178,11 +178,11 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `evo snapshot` num repo Git enrolado sincroniza com sucesso e imprime o snapshot id
-- [ ] `evo snapshot` fora de repo Git falha sem chamar o Hub (mesma técnica de spawn assíncrono do Slice 0 para não deadlockar o Hub in-process do teste)
-- [ ] `evo snapshot` sem enroll falha com mensagem clara
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] `evo snapshot` num repo Git enrolado sincroniza com sucesso e imprime o snapshot id
+- [x] `evo snapshot` fora de repo Git falha sem chamar o Hub (mesma técnica de spawn assíncrono do Slice 0 para não deadlockar o Hub in-process do teste)
+- [x] `evo snapshot` sem enroll falha com mensagem clara
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full

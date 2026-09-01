@@ -36,6 +36,7 @@ Até o Slice 1, um projeto só tem o que foi declarado manualmente no manifest �
 | Sync mode deste slice | `metadata-only` (NODE-FR-009): apenas contagens, hashes, nomes declarados nos manifests e topologia — nunca conteúdo de arquivo | ADR-015 (código local por padrão); é o modo mais simples e seguro para o primeiro sensor | y |
 | Onde vive o estado do Node entre execuções | Arquivo local `.evolution/node.json` (reusa o padrão de config já criado no Slice 0 para `evo`) somado ao histórico de snapshots no Hub — o Node não mantém banco próprio neste slice | Evita introduzir SQLite/storage local antes de um requisito real de spool offline (NODE-FR-007, fora de escopo aqui) | y |
 | Confirmação de proposta é por proposta individual (não em lote) | `POST /projects/:id/candidates/:candidateId/confirm` ou `/reject` | Corresponde a "Human confirmation" do build-sequence sem inventar UX de lote não pedida | n |
+| `evo snapshot` identifica o projeto alvo | Flag explícita `--project <id>`, não auto-matching por remote/manifest | O endpoint já é project-scoped (`POST /projects/:id/snapshots`); auto-matching exigiria um lookup Hub-side por `spec.sources` que não está no design.md deste slice — descoberto e simplificado durante o Execute (SPEC_DEVIATION em `apps/node/src/cli.ts`) | y |
 
 **Open questions:** none - all resolved or logged above.
 
@@ -51,7 +52,7 @@ Até o Slice 1, um projeto só tem o que foi declarado manualmente no manifest �
 
 **Acceptance Criteria**:
 
-1. WHEN `evo snapshot` runs inside a Git repository whose remote or manifest matches an enrolled node's project THEN the CLI SHALL collect the current branch, HEAD commit sha, detected package manifests (name and ecosystem) and a file-extension language histogram, and SHALL sync it to the Hub as a new snapshot.
+1. WHEN `evo snapshot --project <id>` runs inside a Git repository for an enrolled node THEN the CLI SHALL collect the current branch, HEAD commit sha, detected package manifests (name and ecosystem) and a file-extension language histogram, and SHALL sync it to the Hub as a new snapshot of the named project.
 2. The snapshot payload SHALL NOT include file contents or source code — only counts, names declared in manifests, and hashes (NODE-FR-009 metadata-only).
 3. WHEN the Hub receives a snapshot THEN it SHALL persist it as a new version linked to the project with `authority='observed'` and an `observedAt` timestamp, preserving every prior snapshot.
 4. IF `evo snapshot` runs outside a Git repository THEN the CLI SHALL fail with a clear error and SHALL NOT sync anything.
