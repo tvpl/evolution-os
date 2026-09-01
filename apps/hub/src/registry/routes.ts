@@ -13,7 +13,12 @@ import {
 } from "../idea-memory/artifacts.js";
 import { listDecisions, recordDecision, type AlternativeInput } from "../idea-memory/decisions.js";
 import { getProjectTimeline } from "../idea-memory/timeline.js";
-import { exportProject, validateExport } from "../idea-memory/export-import.js";
+import {
+  exportProject,
+  importProject,
+  validateExport,
+  type ExportedProject,
+} from "../idea-memory/export-import.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
 
@@ -340,6 +345,32 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       });
     }
     return reply.send(outcome.manifest);
+  });
+
+  app.post("/projects/import", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+
+    const grant = await enforceCapability(pool, scope, "project.register", "projects", req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+
+    const outcome = await importProject(pool, scope, (req.body ?? {}) as ExportedProject);
+    if (outcome.kind === "invalid") {
+      return problem(reply, 422, "invalid_manifest", "manifest violates the v0 schema", {
+        errors: outcome.errors,
+      });
+    }
+    if (outcome.kind === "conflict") {
+      return problem(
+        reply,
+        409,
+        "import_conflict",
+        `a project with id '${(req.body as { metadata?: { id?: string } } | undefined)?.metadata?.id}' already exists`,
+      );
+    }
+    return reply.status(201).send({ projectId: outcome.projectId });
   });
 
   app.get("/projects", async (req, reply) => {

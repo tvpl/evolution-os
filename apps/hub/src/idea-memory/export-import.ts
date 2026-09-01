@@ -1,7 +1,8 @@
 import { validateProject } from "@evolution-os/contracts";
-import type { DbPool } from "../platform/db.js";
-import { listHypotheses } from "./hypotheses.js";
-import { listConstraints } from "./constraints.js";
+import { withTx, type DbPool } from "../platform/db.js";
+import type { AuthScope } from "../identity/session.js";
+import { insertHypotheses, listHypotheses, type HypothesisInput } from "./hypotheses.js";
+import { insertConstraints, listConstraints, type ConstraintInput } from "./constraints.js";
 import { listArtifacts, getArtifactVersion } from "./artifacts.js";
 import { listDecisions } from "./decisions.js";
 
@@ -91,4 +92,112 @@ export async function exportProject(pool: DbPool, projectId: string): Promise<Ex
 /** Valida o export contra o schema v0 (IDEA-17 AC1). */
 export function validateExport(manifest: ExportedProject): { ok: boolean; errors: string[] } {
   return validateProject(manifest);
+}
+
+export type ImportOutcome =
+  | { kind: "imported"; projectId: string }
+  | { kind: "conflict" }
+  | { kind: "invalid"; errors: string[] };
+
+/**
+ * IDEA-18/19: recria projeto + hipóteses + constraints + artifacts (versão
+ * atual) + decisions numa ÚNICA transação (tudo ou nada); rejeita 409 se o
+ * ID já existir. IDs originais são preservados literalmente.
+ */
+export async function importProject(
+  pool: DbPool,
+  scope: AuthScope,
+  manifest: ExportedProject,
+): Promise<ImportOutcome> {
+  const check = validateProject(manifest);
+  if (!check.ok) {
+    return { kind: "invalid", errors: check.errors };
+  }
+  const projectId = manifest.metadata.id;
+
+  const existing = await pool.query("select 1 from projects where id = $1", [projectId]);
+  if (existing.rowCount) {
+    return { kind: "conflict" };
+  }
+
+  await withTx(pool, async (client) => {
+    const storedManifest = {
+      apiVersion: manifest.apiVersion,
+      kind: manifest.kind,
+      metadata: manifest.metadata,
+      spec: {
+        intent: manifest.spec.intent ?? undefined,
+        hypotheses: manifest.spec.hypotheses,
+        constraints: manifest.spec.constraints,
+      },
+    };
+    await client.query(
+      `insert into projects (id, org_id, workspace_id, type, name, manifest, created_by)
+       values ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        projectId,
+        scope.orgId,
+        scope.workspaceId,
+        manifest.metadata.type,
+        manifest.metadata.name,
+        storedManifest,
+        scope.userId,
+      ],
+    );
+
+    if (manifest.spec.hypotheses.length) {
+      await insertHypotheses(client, projectId, scope, manifest.spec.hypotheses as HypothesisInput[]);
+    }
+    if (manifest.spec.constraints.length) {
+      await insertConstraints(client, projectId, scope, manifest.spec.constraints as ConstraintInput[]);
+    }
+    for (const artifact of manifest.spec.artifacts) {
+      await client.query(
+        `insert into artifacts (id, project_id, org_id, workspace_id, type, title, current_version)
+         values ($1, $2, $3, $4, $5, $6, $7)`,
+        [artifact.id, projectId, scope.orgId, scope.workspaceId, artifact.type, artifact.title, artifact.version],
+      );
+      await client.query(
+        `insert into artifact_versions (artifact_id, version, reference, content)
+         values ($1, $2, $3, $4)`,
+        [artifact.id, artifact.version, artifact.reference, artifact.content],
+      );
+    }
+    for (const decision of manifest.spec.decisions as Array<{
+      id: string;
+      decision: string;
+      actor: string;
+      rationale: string;
+      alternatives: unknown[];
+      subjectType: string | null;
+      subjectId: string | null;
+      reviewTrigger: string | null;
+      reviewTriggerStatus: string;
+      decidedAt: string;
+    }>) {
+      await client.query(
+        `insert into decisions (id, project_id, org_id, workspace_id, decision, actor, rationale,
+                                 alternatives, subject_type, subject_id, review_trigger,
+                                 review_trigger_status, decided_at)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        [
+          decision.id,
+          projectId,
+          scope.orgId,
+          scope.workspaceId,
+          decision.decision,
+          decision.actor,
+          decision.rationale,
+          JSON.stringify(decision.alternatives),
+          decision.subjectType,
+          decision.subjectId,
+          decision.reviewTrigger,
+          decision.reviewTriggerStatus,
+          decision.decidedAt,
+        ],
+      );
+    }
+  });
+
+  return { kind: "imported", projectId };
 }
