@@ -19,7 +19,7 @@ import {
 const { Client } = pg;
 const BASE_URL = process.env["EVOOS_PG_BASE_URL"] ?? "postgresql://evo@127.0.0.1:55432";
 const DB = "evoos_test_cli";
-const APP_DIR = join(import.meta.dirname, "..");
+const APP_DIR = join(import.meta.dirname, "..", "..");
 
 let pool: DbPool;
 let app: FastifyInstance;

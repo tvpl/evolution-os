@@ -102,12 +102,12 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Repo Git com `package.json` produz branch/sha/manifest/linguagens corretos
-- [ ] Payload nunca contém conteúdo de arquivo, só nomes/contagens/hashes
-- [ ] Diretório sem `.git` retorna erro estruturado sem lançar exceção não tratada
-- [ ] Repo sem nenhum manifest reconhecido retorna lista vazia de manifests (sucesso, não erro)
-- [ ] Gate check passes: `pnpm --filter @evolution-os/node test:unit`
-- [ ] Test count: ≥6 tests pass
+- [x] Repo Git com `package.json` produz branch/sha/manifest/linguagens corretos
+- [x] Payload nunca contém conteúdo de arquivo, só nomes/contagens/hashes
+- [x] Diretório sem `.git` retorna erro estruturado sem lançar exceção não tratada
+- [x] Repo sem nenhum manifest reconhecido retorna lista vazia de manifests (sucesso, não erro)
+- [x] Gate check passes: `pnpm --filter @evolution-os/node test:unit`
+- [x] Test count: ≥6 tests pass
 
 **Tests**: unit
 **Gate**: quick
