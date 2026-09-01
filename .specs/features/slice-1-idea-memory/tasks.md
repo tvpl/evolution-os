@@ -278,12 +278,12 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Decisão com rationale/alternatives/review trigger é persistida e listável
-- [ ] Decisão referenciando hypothesis/artifact de outro projeto é rejeitada 422
-- [ ] Segunda decisão sobre o mesmo `subjectRef` retorna a primeira em `priorRelatedDecisions`
-- [ ] Decisão sem review trigger lista com status `none`
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Decisão com rationale/alternatives/review trigger é persistida e listável
+- [x] Decisão referenciando hypothesis/artifact de outro projeto é rejeitada 422
+- [x] Segunda decisão sobre o mesmo `subjectRef` retorna a primeira em `priorRelatedDecisions`
+- [x] Decisão sem review trigger lista com status `none`
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -303,9 +303,9 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Timeline de um projeto com hipótese+artifact+decisão retorna os 3 eventos ordenados desc
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] Timeline de um projeto com hipótese+artifact+decisão retorna os 3 eventos ordenados desc
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -325,10 +325,10 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Export de projeto com todas as entidades passa `validateProject`
-- [ ] Export preserva os IDs originais de hipóteses/artifacts/decisions
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] Export de projeto com todas as entidades passa `validateProject`
+- [x] Export preserva os IDs originais de hipóteses/artifacts/decisions
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -348,11 +348,11 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Export → import round-trip preserva todos os IDs (hipóteses/artifacts/decisions)
-- [ ] Reimportar o mesmo export é rejeitado 409 sem duplicar
-- [ ] Import parcialmente inválido não deixa dados órfãos (rollback comprovado)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Export → import round-trip preserva todos os IDs (hipóteses/artifacts/decisions)
+- [x] Reimportar o mesmo export é rejeitado 409 sem duplicar
+- [x] Import parcialmente inválido não deixa dados órfãos (rollback comprovado)
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -372,9 +372,9 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Plano de execução marca slice 1 como `implemented`
-- [ ] Checklist de review do slice respondido em design.md
-- [ ] Gate check passes: build (inclui `check_docs.py`)
+- [x] Plano de execução marca slice 1 como `implemented`
+- [x] Checklist de review do slice respondido em design.md
+- [x] Gate check passes: build (inclui `check_docs.py`)
 
 **Tests**: none
 **Gate**: build

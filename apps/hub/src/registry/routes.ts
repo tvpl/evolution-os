@@ -11,6 +11,7 @@ import {
   getArtifactVersion,
   listArtifacts,
 } from "../idea-memory/artifacts.js";
+import { listDecisions, recordDecision, type AlternativeInput } from "../idea-memory/decisions.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
 
@@ -256,6 +257,58 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "artifact version does not exist");
     }
     return reply.send(row);
+  });
+
+  app.post("/projects/:id/decisions", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "decision.write"))) return reply;
+
+    const grant = await enforceCapability(pool, scope, "decision.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+
+    const body = (req.body ?? {}) as {
+      decision?: string;
+      rationale?: string;
+      alternatives?: AlternativeInput[];
+      subjectType?: "hypothesis" | "artifact";
+      subjectId?: string;
+      reviewTrigger?: string;
+    };
+    if (!body.decision || !body.rationale) {
+      return problem(reply, 422, "invalid_decision", "decision and rationale are required");
+    }
+    const outcome = await recordDecision(pool, scope, id, {
+      decision: body.decision,
+      rationale: body.rationale,
+      ...(body.alternatives !== undefined ? { alternatives: body.alternatives } : {}),
+      ...(body.subjectType !== undefined ? { subjectType: body.subjectType } : {}),
+      ...(body.subjectId !== undefined ? { subjectId: body.subjectId } : {}),
+      ...(body.reviewTrigger !== undefined ? { reviewTrigger: body.reviewTrigger } : {}),
+    });
+    if (outcome.kind === "invalid_subject") {
+      return problem(
+        reply,
+        422,
+        "invalid_subject_reference",
+        "subject does not belong to this project",
+      );
+    }
+    return reply
+      .status(201)
+      .send({ decision: outcome.decision, priorRelatedDecisions: outcome.priorRelatedDecisions });
+  });
+
+  app.get("/projects/:id/decisions", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const decisions = await listDecisions(pool, id);
+    return reply.send({ decisions });
   });
 
   app.get("/projects", async (req, reply) => {
