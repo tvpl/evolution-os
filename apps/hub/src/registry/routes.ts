@@ -56,7 +56,13 @@ import {
   type InventoryComponent,
   type InvariantType,
 } from "../evolution/harness.js";
-import { publishModule, getModuleVersion, listModules } from "../evolution/modules.js";
+import {
+  publishModule,
+  getModuleVersion,
+  listModules,
+  installModule,
+  getProjectLockfile,
+} from "../evolution/modules.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1350,6 +1356,54 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!scope) return reply;
     const modules = await listModules(pool, scope.orgId);
     return reply.send({ modules });
+  });
+
+  app.post("/projects/:id/modules/:moduleId/install", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, moduleId } = req.params as { id: string; moduleId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "module.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "module.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { version?: string };
+    if (!body.version) {
+      return problem(reply, 422, "invalid_install", "version is required");
+    }
+    const outcome = await installModule(pool, scope, id, moduleId, { version: body.version });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "module or version does not exist in this org's registry");
+      case "signature_invalid":
+        return problem(reply, 409, "signature_invalid", "the module version's signature does not verify against its recomputed digest");
+      case "missing_capabilities":
+        return problem(reply, 422, "module_requires_capability_grant", "grant the missing capabilities before installing", {
+          missing: outcome.missing,
+        });
+      case "already_installed":
+        return problem(reply, 409, "already_installed", "a different version is already active - use update instead", {
+          currentVersion: outcome.currentVersion,
+        });
+      case "installed":
+        return reply.status(outcome.replay ? 200 : 201).send({
+          installationId: outcome.installationId,
+          moduleId,
+          version: outcome.version,
+          digest: outcome.digest,
+          capabilities: outcome.capabilities,
+          status: "active",
+        });
+    }
+  });
+
+  app.get("/projects/:id/modules/lockfile", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const lockfile = await getProjectLockfile(pool, id);
+    return reply.send({ lockfile });
   });
 
   app.get("/projects", async (req, reply) => {

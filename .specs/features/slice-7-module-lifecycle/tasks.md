@@ -154,14 +154,14 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Instalar com todas as capabilities já concedidas persiste a linha `active` e aparece no lockfile
-- [ ] Instalar com alguma capability sem grant é rejeitado 422 listando as capabilities faltando, sem persistir nada
-- [ ] Instalar módulo ou versão desconhecidos é rejeitado 404
-- [ ] Instalar uma versão cuja assinatura não reverifica é rejeitado 409, sem persistir nada (simulado via adulteração direta da linha, mesmo padrão de T3)
-- [ ] Reinstalar a mesma versão já `active` é um no-op idempotente (sem nova linha de lock)
-- [ ] Módulo sem nenhuma capability instala sem exigir grant
-- [ ] Gate check passes: full
-- [ ] Test count: ≥8 tests pass
+- [x] Instalar com todas as capabilities já concedidas persiste a linha `active` e aparece no lockfile
+- [x] Instalar com alguma capability sem grant é rejeitado 422 listando as capabilities faltando, sem persistir nada
+- [x] Instalar módulo ou versão desconhecidos é rejeitado 404
+- [x] Instalar uma versão cuja assinatura não reverifica é rejeitado 409, sem persistir nada (simulado via adulteração direta da linha, mesmo padrão de T3)
+- [x] Reinstalar a mesma versão já `active` é um no-op idempotente (sem nova linha de lock)
+- [x] Módulo sem nenhuma capability instala sem exigir grant
+- [x] Gate check passes: full
+- [x] Test count: ≥8 tests pass
 
 **Tests**: integration
 **Gate**: full

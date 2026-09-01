@@ -11,7 +11,7 @@ import type { DbPool } from "../platform/db.js";
 import { withTx } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
 import { canonicalJson } from "../platform/canonical-json.js";
-import type { Queryable } from "../policy/policy.js";
+import { checkCapability, type Queryable } from "../policy/policy.js";
 
 export const COMPONENT_TYPES = [
   "sensor",
@@ -129,6 +129,15 @@ function buildSbom(m: ModuleManifest): Sbom {
     version: m.version,
     components: m.components.map((c) => ({ id: c.id, type: c.type, capabilities: c.capabilities ?? [] })),
   };
+}
+
+function extractCapabilities(manifest: Record<string, unknown>): string[] {
+  const components = (manifest["components"] as Array<{ capabilities?: string[] }> | undefined) ?? [];
+  const set = new Set<string>();
+  for (const c of components) {
+    for (const cap of c.capabilities ?? []) set.add(cap);
+  }
+  return [...set].sort();
 }
 
 export type PublishModuleOutcome =
@@ -277,4 +286,118 @@ export async function listModules(pool: DbPool, orgId: string): Promise<ModuleSu
     out.push({ moduleId: row.moduleId, name: row.name, latestVersion: row.version, digest: row.digest, signatureValid });
   }
   return out;
+}
+
+interface CurrentInstallationRow {
+  seq: number;
+  version: string;
+  digest: string;
+  capabilities: string[];
+  status: string;
+}
+
+async function getCurrentInstallation(
+  db: Queryable,
+  projectId: string,
+  moduleId: string,
+): Promise<CurrentInstallationRow | undefined> {
+  const res = await db.query(
+    `select seq, version, digest, capabilities, status from module_installations
+      where project_id = $1 and module_id = $2 order by seq desc limit 1 for update`,
+    [projectId, moduleId],
+  );
+  return res.rows[0] as CurrentInstallationRow | undefined;
+}
+
+export interface InstallModuleInput {
+  version: string;
+}
+
+export type InstallOutcome =
+  | { kind: "installed"; replay: boolean; installationId: string; version: string; digest: string; capabilities: string[] }
+  | { kind: "missing_capabilities"; missing: string[] }
+  | { kind: "not_found" }
+  | { kind: "signature_invalid" }
+  | { kind: "already_installed"; currentVersion: string };
+
+/** MODL-07/08/09/10: reverifica assinatura e checa toda capability declarada contra `capability_grants` (Slice 0), sem um segundo motor de policy. */
+export async function installModule(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  moduleId: string,
+  input: InstallModuleInput,
+): Promise<InstallOutcome> {
+  const versionRow = await pool.query(
+    `select manifest, digest, signature from module_versions where module_id = $1 and version = $2 and org_id = $3`,
+    [moduleId, input.version, scope.orgId],
+  );
+  const version = versionRow.rows[0] as
+    | { manifest: Record<string, unknown>; digest: string; signature: string }
+    | undefined;
+  if (!version) return { kind: "not_found" };
+
+  const signatureValid = await verifyStoredVersion(pool, scope.orgId, version.manifest, version.digest, version.signature);
+  if (!signatureValid) return { kind: "signature_invalid" };
+
+  const capabilities = extractCapabilities(version.manifest);
+  const missing: string[] = [];
+  for (const cap of capabilities) {
+    const decision = await checkCapability(pool, scope, cap);
+    if (!decision.allowed) missing.push(cap);
+  }
+  if (missing.length > 0) return { kind: "missing_capabilities", missing };
+
+  return withTx(pool, async (client) => {
+    const current = await getCurrentInstallation(client, projectId, moduleId);
+    if (current && current.status === "active") {
+      if (current.version === input.version) {
+        const existing = await client.query(
+          `select id from module_installations where project_id = $1 and module_id = $2 and seq = $3`,
+          [projectId, moduleId, current.seq],
+        );
+        return {
+          kind: "installed",
+          replay: true,
+          installationId: (existing.rows[0] as { id: string }).id,
+          version: current.version,
+          digest: current.digest,
+          capabilities: current.capabilities,
+        };
+      }
+      // Instalar por cima de uma versão já ativa e diferente exigiria um diff de
+      // permissão explícito - essa é a responsabilidade de updateModule, não desta rota.
+      return { kind: "already_installed", currentVersion: current.version };
+    }
+
+    const nextSeq = (current?.seq ?? 0) + 1;
+    const id = `mi_${randomUUID().replaceAll("-", "")}`;
+    await client.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', 'installed')`,
+      [id, projectId, scope.orgId, scope.workspaceId, moduleId, nextSeq, input.version, version.digest, JSON.stringify(capabilities)],
+    );
+    return { kind: "installed", replay: false, installationId: id, version: input.version, digest: version.digest, capabilities };
+  });
+}
+
+export interface LockEntry {
+  moduleId: string;
+  version: string;
+  digest: string;
+  capabilities: string[];
+  status: string;
+  installedAt: string;
+}
+
+/** MODL-11: lockfile de um projeto = última linha por módulo, filtrada a `active`. */
+export async function getProjectLockfile(pool: DbPool, projectId: string): Promise<LockEntry[]> {
+  const res = await pool.query(
+    `select distinct on (module_id) module_id as "moduleId", version, digest, capabilities, status, created_at as "installedAt"
+       from module_installations
+      where project_id = $1
+      order by module_id, seq desc`,
+    [projectId],
+  );
+  return (res.rows as LockEntry[]).filter((r) => r.status === "active");
 }
