@@ -174,15 +174,15 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Completar o item da wave 1 (sem wave anterior) sempre sucede
-- [ ] Completar item da wave 2 enquanto a wave 1 tem item `pending` é rejeitado 409
-- [ ] Completar item da wave 2 depois que TODOS os items da wave 1 estão `completed` sucede
-- [ ] Conceder exceção sem justificativa é rejeitado 422
-- [ ] Conceder exceção com justificativa muda status para `exempted` e persiste a justificativa
-- [ ] Uma wave com 1 `completed` + 1 `exempted` (mix) libera a wave seguinte
-- [ ] Completar/excepcionar um item já terminal é rejeitado 409
-- [ ] Gate check passes: full
-- [ ] Test count: ≥9 tests pass
+- [x] Completar o item da wave 1 (sem wave anterior) sempre sucede
+- [x] Completar item da wave 2 enquanto a wave 1 tem item `pending` é rejeitado 409
+- [x] Completar item da wave 2 depois que TODOS os items da wave 1 estão `completed` sucede
+- [x] Conceder exceção sem justificativa é rejeitado 422
+- [x] Conceder exceção com justificativa muda status para `exempted` e persiste a justificativa
+- [x] Uma wave com 1 `completed` + 1 `exempted` (mix) libera a wave seguinte
+- [x] Completar/excepcionar um item já terminal é rejeitado 409
+- [x] Gate check passes: full
+- [x] Test count: ≥9 tests pass
 
 **Tests**: integration
 **Gate**: full

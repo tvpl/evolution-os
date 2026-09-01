@@ -251,3 +251,125 @@ export async function getCampaign(
   }));
   return { id: campaignRow.id, finding: campaignRow.finding, waves };
 }
+
+interface CampaignItemForTransition {
+  id: string;
+  status: string;
+  targetProjectId: string;
+  waveSeq: number;
+}
+
+async function loadCampaignItemForUpdate(
+  client: { query: DbPool["query"] },
+  portfolioProjectId: string,
+  campaignId: string,
+  itemId: string,
+): Promise<CampaignItemForTransition | undefined> {
+  const res = await client.query(
+    `select ci.id, ci.status, ci.target_project_id as "targetProjectId", cw.seq as "waveSeq"
+       from campaign_items ci
+       join campaign_waves cw on cw.id = ci.wave_id
+       join campaigns c on c.id = ci.campaign_id
+      where ci.id = $1 and ci.campaign_id = $2 and c.portfolio_project_id = $3
+      for update`,
+    [itemId, campaignId, portfolioProjectId],
+  );
+  return res.rows[0] as CampaignItemForTransition | undefined;
+}
+
+/** PORT-11/12/15: gate canary - uma wave só libera quando TODA wave anterior está `completed` ou `exempted`, nunca `pending`. */
+async function isPriorWaveResolved(
+  client: { query: DbPool["query"] },
+  campaignId: string,
+  waveSeq: number,
+): Promise<boolean> {
+  const res = await client.query(
+    `select count(*)::int as n from campaign_items ci
+       join campaign_waves cw on cw.id = ci.wave_id
+      where ci.campaign_id = $1 and cw.seq < $2 and ci.status = 'pending'`,
+    [campaignId, waveSeq],
+  );
+  return (res.rows[0] as { n: number }).n === 0;
+}
+
+export interface CompleteItemInput {
+  proposalId?: string;
+}
+
+export type CompleteItemOutcome =
+  | { kind: "completed" }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" }
+  | { kind: "wave_not_resolved" }
+  | { kind: "invalid_proposal_reference" };
+
+/** PORT-10/11/12: `proposalId`, quando informado, precisa pertencer ao MESMO projeto-alvo do item (nunca a outro projeto). */
+export async function completeItem(
+  pool: DbPool,
+  portfolioProjectId: string,
+  campaignId: string,
+  itemId: string,
+  input: CompleteItemInput,
+): Promise<CompleteItemOutcome> {
+  return withTx(pool, async (client) => {
+    const item = await loadCampaignItemForUpdate(client, portfolioProjectId, campaignId, itemId);
+    if (!item) return { kind: "not_found" };
+    if (item.status !== "pending") return { kind: "invalid_transition" };
+
+    if (input.proposalId) {
+      const proposalRes = await client.query("select project_id from proposals where id = $1", [input.proposalId]);
+      const proposalRow = proposalRes.rows[0] as { project_id: string } | undefined;
+      if (!proposalRow || proposalRow.project_id !== item.targetProjectId) {
+        return { kind: "invalid_proposal_reference" };
+      }
+    }
+
+    const resolved = await isPriorWaveResolved(client, campaignId, item.waveSeq);
+    if (!resolved) return { kind: "wave_not_resolved" };
+
+    await client.query(`update campaign_items set status = 'completed', proposal_id = $2, updated_at = now() where id = $1`, [
+      itemId,
+      input.proposalId ?? null,
+    ]);
+    return { kind: "completed" };
+  });
+}
+
+export interface GrantExceptionInput {
+  justification: string;
+}
+
+export type GrantExceptionOutcome =
+  | { kind: "exempted" }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" }
+  | { kind: "wave_not_resolved" }
+  | { kind: "justification_required" };
+
+/** PORT-13/14/15: exceção conta como resolvido para liberar a wave seguinte, igual a `completed`. */
+export async function grantException(
+  pool: DbPool,
+  portfolioProjectId: string,
+  campaignId: string,
+  itemId: string,
+  input: GrantExceptionInput,
+): Promise<GrantExceptionOutcome> {
+  if (!input.justification || input.justification.trim().length === 0) {
+    return { kind: "justification_required" };
+  }
+
+  return withTx(pool, async (client) => {
+    const item = await loadCampaignItemForUpdate(client, portfolioProjectId, campaignId, itemId);
+    if (!item) return { kind: "not_found" };
+    if (item.status !== "pending") return { kind: "invalid_transition" };
+
+    const resolved = await isPriorWaveResolved(client, campaignId, item.waveSeq);
+    if (!resolved) return { kind: "wave_not_resolved" };
+
+    await client.query(
+      `update campaign_items set status = 'exempted', exception_reason = $2, updated_at = now() where id = $1`,
+      [itemId, input.justification],
+    );
+    return { kind: "exempted" };
+  });
+}

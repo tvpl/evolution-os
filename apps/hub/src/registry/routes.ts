@@ -73,6 +73,8 @@ import {
   getPortfolioDashboard,
   createCampaign,
   getCampaign,
+  completeItem,
+  grantException,
 } from "../evolution/portfolio.js";
 
 /**
@@ -1607,6 +1609,56 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "campaign does not exist in this portfolio");
     }
     return reply.send(campaign);
+  });
+
+  app.post("/projects/:id/campaigns/:campaignId/items/:itemId/complete", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, campaignId, itemId } = req.params as { id: string; campaignId: string; itemId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "portfolio.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "portfolio.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { proposalId?: string };
+    const outcome = await completeItem(pool, id, campaignId, itemId, { ...(body.proposalId ? { proposalId: body.proposalId } : {}) });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "campaign item does not exist in this portfolio's campaign");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "item is not pending");
+      case "wave_not_resolved":
+        return problem(reply, 409, "wave_not_resolved", "a prior wave still has a pending item");
+      case "invalid_proposal_reference":
+        return problem(reply, 422, "invalid_proposal_reference", "proposalId does not belong to this item's target project");
+      case "completed":
+        return reply.status(200).send({ itemId, status: "completed" });
+    }
+  });
+
+  app.post("/projects/:id/campaigns/:campaignId/items/:itemId/exception", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, campaignId, itemId } = req.params as { id: string; campaignId: string; itemId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "portfolio.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "portfolio.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { justification?: string };
+    const outcome = await grantException(pool, id, campaignId, itemId, { justification: body.justification ?? "" });
+    switch (outcome.kind) {
+      case "justification_required":
+        return problem(reply, 422, "justification_required", "a non-empty justification is required");
+      case "not_found":
+        return problem(reply, 404, "not_found", "campaign item does not exist in this portfolio's campaign");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "item is not pending");
+      case "wave_not_resolved":
+        return problem(reply, 409, "wave_not_resolved", "a prior wave still has a pending item");
+      case "exempted":
+        return reply.status(200).send({ itemId, status: "exempted" });
+    }
   });
 
   app.get("/projects", async (req, reply) => {
