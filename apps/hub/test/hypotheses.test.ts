@@ -76,6 +76,34 @@ describe("hypotheses persisted on registration (IDEA-01/02/03/04)", () => {
     expect(hypotheses[1]).toMatchObject({ id: "hyp-b", authority: "declared" });
   });
 
+  it("metric and threshold are persisted and returned by the listing (regression: were written but never selected)", async () => {
+    const res = await register(
+      "hyp-key-metric",
+      manifest("proj-hyp-metric", [
+        {
+          id: "hyp-metric",
+          statement: "Taxa de aceitação supera 40%",
+          type: "desirability",
+          evidenceState: "untested",
+          status: "active",
+          metric: "recommendation_acceptance_rate",
+          threshold: ">= 0.40",
+        },
+      ]),
+    );
+    expect(res.statusCode).toBe(201);
+    const { projectId } = res.json();
+    const list = await app.inject({
+      method: "GET",
+      url: `/projects/${projectId}/hypotheses`,
+      headers: { authorization: `Bearer ${tokenA}` },
+    });
+    expect(list.json().hypotheses[0]).toMatchObject({
+      metric: "recommendation_acceptance_rate",
+      threshold: ">= 0.40",
+    });
+  });
+
   it("duplicate hypothesis id in the manifest is rejected 422 without persisting anything", async () => {
     const before = await pool.query("select count(*)::int as n from projects");
     const res = await register(

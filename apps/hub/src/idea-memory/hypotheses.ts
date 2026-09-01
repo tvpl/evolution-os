@@ -64,13 +64,15 @@ export interface HypothesisRow {
   statement: string;
   type: string | null;
   evidenceState: string | null;
+  metric: string | null;
+  threshold: string | null;
   status: string;
   authority: string;
 }
 
 export async function listHypotheses(db: Queryable, projectId: string): Promise<HypothesisRow[]> {
   const res = await db.query(
-    `select id, statement, type, evidence_state as "evidenceState", status, authority
+    `select id, statement, type, evidence_state as "evidenceState", metric, threshold, status, authority
        from hypotheses where project_id = $1 order by created_at`,
     [projectId],
   );

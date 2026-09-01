@@ -35,7 +35,15 @@ beforeAll(async () => {
       spec: {
         intent: { problem: "x" },
         hypotheses: [
-          { id: "hyp-exp", statement: "H", type: "desirability", evidenceState: "untested", status: "active" },
+          {
+            id: "hyp-exp",
+            statement: "H",
+            type: "desirability",
+            evidenceState: "untested",
+            status: "active",
+            metric: "acceptance_rate",
+            threshold: ">= 0.5",
+          },
         ],
         constraints: [{ id: "con-exp", statement: "C", severity: "mandatory" }],
       },
@@ -93,6 +101,11 @@ describe("project export (IDEA-17)", () => {
     const manifest = res.json();
     expect(manifest.metadata.id).toBe(projectId);
     expect(manifest.spec.hypotheses[0].id).toBe("hyp-exp");
+    // Regression: metric/threshold were persisted but never surfaced by list/export.
+    expect(manifest.spec.hypotheses[0]).toMatchObject({
+      metric: "acceptance_rate",
+      threshold: ">= 0.5",
+    });
     expect(manifest.spec.constraints[0].id).toBe("con-exp");
     expect(manifest.spec.artifacts[0]).toMatchObject({ type: "prd", title: "PRD", version: 1 });
     expect(manifest.spec.decisions[0]).toMatchObject({ decision: "accept" });
