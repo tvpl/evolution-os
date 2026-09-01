@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { hubGet, sessionToken } from "../../../lib/hub";
 import { RegisterForm } from "./register-form";
@@ -11,7 +12,12 @@ interface ProjectRow {
   registered_at: string;
 }
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  params,
+}: {
+  params: Promise<{ workspaceId: string }>;
+}) {
+  const { workspaceId } = await params;
   const token = await sessionToken();
   if (!token) redirect("/login");
 
@@ -30,7 +36,9 @@ export default async function ProjectsPage() {
         <ul data-testid="project-list">
           {projects.map((p) => (
             <li key={p.project_id}>
-              <strong>{p.name}</strong> — {p.type}
+              <Link href={`/w/${workspaceId}/projects/${p.project_id}`}>
+                <strong>{p.name}</strong> — {p.type}
+              </Link>
             </li>
           ))}
         </ul>

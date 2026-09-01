@@ -209,9 +209,9 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Registrar um projeto com hipóteses e abrir sua página de overview mostra identidade + hipóteses
-- [ ] Gate check passes: full + `cd apps/console && pnpm test:e2e`
-- [ ] Test count: ≥1 e2e spec pass
+- [x] Registrar um projeto com hipóteses e abrir sua página de overview mostra identidade + hipóteses
+- [x] Gate check passes: full + `cd apps/console && pnpm test:e2e`
+- [x] Test count: ≥1 e2e spec pass
 
 **Tests**: e2e
 **Gate**: full
