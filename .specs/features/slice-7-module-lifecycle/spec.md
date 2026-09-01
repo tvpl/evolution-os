@@ -164,26 +164,26 @@ Até o Slice 6, todo aumento de capacidade do EvolutionOS (sensors, analyzers, s
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| MODL-01 | P1: Publicar — persiste, digest, assina, gera SBOM | Execute | Implementing |
-| MODL-02 | P1: Publicar — replay idempotente (mesmo digest) | Execute | Implementing |
-| MODL-03 | P1: Publicar — rejeita mesma versão com digest diferente (409) | Execute | Implementing |
-| MODL-04 | P1: Publicar — rejeita manifest malformado (422) | Execute | Implementing |
-| MODL-05 | P1: Verificação — leitura retorna signatureValid true | Execute | Implementing |
-| MODL-06 | P1: Verificação — adulteração retorna signatureValid false | Execute | Implementing |
-| MODL-07 | P1: Instalar — sucesso com policy check e lockfile | Execute | Implementing |
-| MODL-08 | P1: Instalar — rejeita capability sem grant (422) | Execute | Implementing |
-| MODL-09 | P1: Instalar — rejeita módulo/versão desconhecidos (404) | Execute | Implementing |
-| MODL-10 | P1: Instalar — rejeita assinatura inválida (409) | Execute | Implementing |
-| MODL-11 | P1: Instalar — leitura do lockfile do projeto | Execute | Implementing |
-| MODL-12 | P1: Atualizar — sucesso com diff de permissão | Execute | Implementing |
-| MODL-13 | P1: Atualizar — rejeita capability nova sem grant (422) | Execute | Implementing |
-| MODL-14 | P1: Atualizar — sucesso após conceder a capability faltando | Execute | Implementing |
-| MODL-15 | P1: Quarentena — bloqueia updates | Execute | Implementing |
-| MODL-16 | P1: Rollback — reverte para versão provada pelo projeto | Execute | Implementing |
-| MODL-17 | P1: Rollback — rejeita versão nunca provada (409) | Execute | Implementing |
-| MODL-18 | P1: Desinstalar — preserva histórico de lock | Execute | Implementing |
-| MODL-19 | P1: Desinstalar — rejeita update/rollback pós-desinstalação (409) | Execute | Implementing |
-| MODL-20 | P1: Registry — lista módulos do org | Execute | Implementing |
+| MODL-01 | P1: Publicar — persiste, digest, assina, gera SBOM | Execute | Verified |
+| MODL-02 | P1: Publicar — replay idempotente (mesmo digest) | Execute | Verified |
+| MODL-03 | P1: Publicar — rejeita mesma versão com digest diferente (409) | Execute | Verified |
+| MODL-04 | P1: Publicar — rejeita manifest malformado (422) | Execute | Verified |
+| MODL-05 | P1: Verificação — leitura retorna signatureValid true | Execute | Verified |
+| MODL-06 | P1: Verificação — adulteração retorna signatureValid false | Execute | Verified |
+| MODL-07 | P1: Instalar — sucesso com policy check e lockfile | Execute | Verified |
+| MODL-08 | P1: Instalar — rejeita capability sem grant (422) | Execute | Verified |
+| MODL-09 | P1: Instalar — rejeita módulo/versão desconhecidos (404) | Execute | Verified |
+| MODL-10 | P1: Instalar — rejeita assinatura inválida (409) | Execute | Verified |
+| MODL-11 | P1: Instalar — leitura do lockfile do projeto | Execute | Verified |
+| MODL-12 | P1: Atualizar — sucesso com diff de permissão | Execute | Verified |
+| MODL-13 | P1: Atualizar — rejeita capability nova sem grant (422) | Execute | Verified |
+| MODL-14 | P1: Atualizar — sucesso após conceder a capability faltando | Execute | Verified |
+| MODL-15 | P1: Quarentena — bloqueia updates | Execute | Verified |
+| MODL-16 | P1: Rollback — reverte para versão provada pelo projeto | Execute | Verified |
+| MODL-17 | P1: Rollback — rejeita versão nunca provada (409) | Execute | Verified |
+| MODL-18 | P1: Desinstalar — preserva histórico de lock | Execute | Verified |
+| MODL-19 | P1: Desinstalar — rejeita update/rollback pós-desinstalação (409) | Execute | Verified |
+| MODL-20 | P1: Registry — lista módulos do org | Execute | Verified |
 
 **ID format:** `MODL-NN`
 
@@ -199,4 +199,4 @@ Até o Slice 6, todo aumento de capacidade do EvolutionOS (sensors, analyzers, s
 - [x] O vertical slice completo roda ponta a ponta: publicar módulo assinado com SBOM → instalar com policy check e lockfile → atualizar com diff de permissão bloqueante → quarentena → rollback para versão provada → desinstalar preservando histórico.
 - [x] Uma tentativa de instalar uma versão cuja assinatura foi adulterada é bloqueada com 409, nunca instalada silenciosamente.
 - [x] Nenhuma capability nova é concedida a um módulo sem grant explícito do org, em install OU update.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] Verifier independente reporta PASS em `validation.md`.
