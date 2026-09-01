@@ -289,7 +289,7 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       decision?: string;
       rationale?: string;
       alternatives?: AlternativeInput[];
-      subjectType?: "hypothesis" | "artifact";
+      subjectType?: "hypothesis" | "artifact" | "proposal";
       subjectId?: string;
       reviewTrigger?: string;
     };

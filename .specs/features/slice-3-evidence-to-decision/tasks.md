@@ -274,11 +274,11 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Decisão `reject` sobre uma proposal persiste via o endpoint existente
-- [ ] Nova proposal relacionada ao mesmo subject expõe a decisão rejeitada anterior em `priorRelatedDecisions`
-- [ ] Decisão sobre proposal de outro projeto é rejeitada 422
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Decisão `reject` sobre uma proposal persiste via o endpoint existente
+- [x] Nova proposal relacionada ao mesmo subject expõe a decisão rejeitada anterior em `priorRelatedDecisions`
+- [x] Decisão sobre proposal de outro projeto é rejeitada 422
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full

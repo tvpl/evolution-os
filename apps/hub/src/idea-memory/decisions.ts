@@ -11,7 +11,7 @@ export interface RecordDecisionInput {
   decision: string;
   rationale: string;
   alternatives?: AlternativeInput[];
-  subjectType?: "hypothesis" | "artifact";
+  subjectType?: "hypothesis" | "artifact" | "proposal";
   subjectId?: string;
   reviewTrigger?: string;
 }
@@ -36,6 +36,7 @@ export type RecordDecisionOutcome =
 const SUBJECT_TABLE: Record<string, string> = {
   hypothesis: "hypotheses",
   artifact: "artifacts",
+  proposal: "proposals",
 };
 
 async function subjectBelongsToProject(
