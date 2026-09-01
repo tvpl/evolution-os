@@ -236,12 +236,13 @@ T7
 **Done when**:
 - [x] Plano de execução marca slice 9 como `implemented`
 - [x] Checklist de review do slice respondido
-- [x] Gate check passes: build (inclui `check_docs.py`)
+- [x] Gate check passes: build (inclui `check_docs.py`) ✅
 
 **Tests**: none
 **Gate**: build
 
 **Commit**: `docs(delivery): close slice 9 enterprise hardening`
+**Status**: ✅ Done
 
 ---
 
