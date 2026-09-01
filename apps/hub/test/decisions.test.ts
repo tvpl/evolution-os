@@ -84,6 +84,7 @@ describe("decisions with subject validation and guard (IDEA-12/13/14/15)", () =>
     const { decision } = res.json();
     expect(decision).toMatchObject({
       decision: "experiment",
+      actor: "user_dev_a",
       rationale: "Pilotar preserva reversibilidade.",
       reviewTrigger: "after-pilot-window",
       reviewTriggerStatus: "pending",

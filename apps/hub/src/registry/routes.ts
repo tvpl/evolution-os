@@ -21,6 +21,8 @@ import {
 } from "../idea-memory/export-import.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
+import { authenticateNode } from "../nodes/auth.js";
+import { ingestSnapshot, listSnapshots, type SnapshotInput } from "../twin/snapshots.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -371,6 +373,54 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       );
     }
     return reply.status(201).send({ projectId: outcome.projectId });
+  });
+
+  app.post("/projects/:id/snapshots", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const nodeIdHeader = req.headers["x-node-id"];
+    const nodeId = typeof nodeIdHeader === "string" ? nodeIdHeader : "";
+    const identity = nodeId ? await authenticateNode(pool, nodeId, req.headers["x-node-token"]) : null;
+    if (!identity) {
+      return problem(reply, 401, "node_unauthorized", "node is not enrolled");
+    }
+    const owner = await pool.query("select org_id from projects where id = $1", [id]);
+    const ownerRow = owner.rows[0] as { org_id: string } | undefined;
+    if (!ownerRow) {
+      return problem(reply, 404, "not_found", "project does not exist");
+    }
+    if (ownerRow.org_id !== identity.orgId) {
+      return problem(reply, 403, "access_denied", "node's tenant does not match the project");
+    }
+    const body = (req.body ?? {}) as Partial<SnapshotInput>;
+    if (!Array.isArray(body.manifests) || typeof body.languages !== "object" || !body.languages) {
+      return problem(reply, 422, "invalid_snapshot", "manifests and languages are required");
+    }
+    const result = await ingestSnapshot(
+      pool,
+      { userId: "node", orgId: identity.orgId, workspaceId: identity.workspaceId },
+      id,
+      nodeId,
+      {
+        branch: body.branch ?? null,
+        commitSha: body.commitSha ?? null,
+        manifests: body.manifests,
+        languages: body.languages,
+      },
+    );
+    return reply.status(201).send(result);
+  });
+
+  app.get("/projects/:id/snapshots", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const decision = await enforceCapability(pool, scope, "twin.read", `projects/${id}`, req.correlationId);
+    if (!decision.allowed) {
+      return problem(reply, 403, "capability_denied", decision.reason, { correlationId: req.correlationId });
+    }
+    const snapshots = await listSnapshots(pool, id);
+    return reply.send({ snapshots });
   });
 
   app.get("/projects", async (req, reply) => {

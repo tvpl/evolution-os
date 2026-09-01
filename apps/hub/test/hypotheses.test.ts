@@ -72,7 +72,12 @@ describe("hypotheses persisted on registration (IDEA-01/02/03/04)", () => {
     expect(list.statusCode).toBe(200);
     const { hypotheses } = list.json();
     expect(hypotheses).toHaveLength(2);
-    expect(hypotheses[0]).toMatchObject({ id: "hyp-a", statement: "Hipótese A", authority: "declared" });
+    expect(hypotheses[0]).toMatchObject({
+      id: "hyp-a",
+      statement: "Hipótese A",
+      status: "active",
+      authority: "declared",
+    });
     expect(hypotheses[1]).toMatchObject({ id: "hyp-b", authority: "declared" });
   });
 

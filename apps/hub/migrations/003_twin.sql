@@ -35,5 +35,7 @@ create table candidates (
 );
 
 create index candidates_project_idx on candidates (project_id, created_at);
-create unique index candidates_pending_location_idx on candidates (project_id, location)
+-- component e contains da mesma location são candidates DISTINTOS — o dedup
+-- (TWIN-09) é por (project_id, location, kind), não só (project_id, location).
+create unique index candidates_pending_location_kind_idx on candidates (project_id, location, kind)
   where status = 'pending';

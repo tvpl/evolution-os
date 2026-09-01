@@ -127,13 +127,13 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Snapshot com 1 manifest coerente com o tipo declarado não gera candidate
-- [ ] Snapshot com 3 manifests gera exatamente 3 candidates `pending` (component+contains) com `authority=inferred`
-- [ ] Reenviar o mesmo snapshot não duplica candidates pendentes na mesma location
-- [ ] Snapshot concorrente para o mesmo projeto não perde dados (duas versões distintas)
-- [ ] Listagem de snapshots retorna mais-recente-primeiro
-- [ ] Gate check passes: full
-- [ ] Test count: ≥8 tests pass
+- [x] Snapshot com 1 manifest coerente com o tipo declarado não gera candidate
+- [x] Snapshot com 3 manifests gera exatamente 3 candidates `pending` (component+contains) com `authority=inferred`
+- [x] Reenviar o mesmo snapshot não duplica candidates pendentes na mesma location
+- [x] Snapshot concorrente para o mesmo projeto não perde dados (duas versões distintas)
+- [x] Listagem de snapshots retorna mais-recente-primeiro
+- [x] Gate check passes: full
+- [x] Test count: ≥8 tests pass
 
 **Tests**: integration
 **Gate**: full

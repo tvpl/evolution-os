@@ -98,7 +98,11 @@ describe("artifact versioning (IDEA-09/11)", () => {
     expect(res.json()).toMatchObject({ version: 1, content: "v1 content" });
   });
 
-  it("adding a version without reference or content is rejected 422", async () => {
+  it("adding a version without reference or content is rejected 422 without creating a row", async () => {
+    const before = await pool.query(
+      "select count(*)::int as n from artifact_versions where artifact_id = $1",
+      [artifactId],
+    );
     const res = await app.inject({
       method: "POST",
       url: `/projects/${projectId}/artifacts/${artifactId}/versions`,
@@ -106,6 +110,11 @@ describe("artifact versioning (IDEA-09/11)", () => {
       payload: {},
     });
     expect(res.statusCode).toBe(422);
+    const after = await pool.query(
+      "select count(*)::int as n from artifact_versions where artifact_id = $1",
+      [artifactId],
+    );
+    expect(after.rows[0].n).toBe(before.rows[0].n);
   });
 
   it("reading a non-existent version returns 404", async () => {

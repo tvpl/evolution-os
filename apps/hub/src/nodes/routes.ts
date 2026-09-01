@@ -1,12 +1,9 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { DbPool } from "../platform/db.js";
 import { problem, requireScope } from "../http.js";
 import { enforceCapability } from "../policy/policy.js";
-
-function sha256(value: string): string {
-  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
-}
+import { authenticateNode, sha256 } from "./auth.js";
 
 /**
  * Protocolo Hub<->Node mínimo do M0 (ADR-001, TRUST-12/13/14):
@@ -45,16 +42,8 @@ export function registerNodeRoutes(app: FastifyInstance, pool: DbPool): void {
 
   app.post("/nodes/:id/artifacts", async (req, reply) => {
     const { id } = req.params as { id: string };
-    const tokenHeader = req.headers["x-node-token"];
-    const token = typeof tokenHeader === "string" ? tokenHeader : "";
-    const node = await pool.query(
-      "select org_id, workspace_id, token_hash, revoked_at from node_agents where id = $1",
-      [id],
-    );
-    const row = node.rows[0] as
-      | { org_id: string; workspace_id: string; token_hash: string; revoked_at: Date | null }
-      | undefined;
-    if (!row || !token || row.token_hash !== sha256(token) || row.revoked_at) {
+    const identity = await authenticateNode(pool, id, req.headers["x-node-token"]);
+    if (!identity) {
       // TRUST-14: Node sem enrollment válido é rejeitado sem detalhes.
       return problem(reply, 401, "node_unauthorized", "node is not enrolled");
     }
@@ -69,7 +58,7 @@ export function registerNodeRoutes(app: FastifyInstance, pool: DbPool): void {
     await pool.query(
       `insert into node_artifacts (id, node_id, org_id, workspace_id, name, digest)
        values ($1, $2, $3, $4, $5, $6)`,
-      [artifactId, id, row.org_id, row.workspace_id, body.name, body.digest],
+      [artifactId, id, identity.orgId, identity.workspaceId, body.name, body.digest],
     );
     return reply.status(201).send({ artifactId, digest: body.digest, recorded: true });
   });
