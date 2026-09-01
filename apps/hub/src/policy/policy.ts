@@ -99,6 +99,7 @@ export async function seedDevGrants(db: Queryable): Promise<void> {
     ["org_dev_a", "ws_dev_a", "connector.github.write"],
     ["org_dev_a", "ws_dev_a", "harness.write"],
     ["org_dev_a", "ws_dev_a", "module.write"],
+    ["org_dev_a", "ws_dev_a", "portfolio.write"],
     ["org_dev_b", "ws_dev_b", "project.register"],
     ["org_dev_b", "ws_dev_b", "project.read"],
     ["org_dev_b", "ws_dev_b", "node.enroll"],
@@ -118,6 +119,7 @@ export async function seedDevGrants(db: Queryable): Promise<void> {
     ["org_dev_b", "ws_dev_b", "connector.github.write"],
     ["org_dev_b", "ws_dev_b", "harness.write"],
     ["org_dev_b", "ws_dev_b", "module.write"],
+    ["org_dev_b", "ws_dev_b", "portfolio.write"],
   ];
   for (const [orgId, workspaceId, capability] of grants) {
     await db.query(
