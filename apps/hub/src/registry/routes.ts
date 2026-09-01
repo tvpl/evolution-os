@@ -35,6 +35,7 @@ import {
   attachProofArtifact,
   listProofArtifacts,
   submitEvaluation,
+  closeExperiment,
   type Variant,
   type VerificationPlan,
 } from "../evolution/experiments.js";
@@ -899,6 +900,38 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           status: "evaluated",
           verdict: outcome.verdict,
           rationale: outcome.rationale,
+        });
+    }
+  });
+
+  app.post("/projects/:id/experiments/:experimentId/close", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, experimentId } = req.params as { id: string; experimentId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "experiment.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "experiment.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { decision?: string; rationale?: string };
+    if (!body.decision || !body.rationale) {
+      return problem(reply, 422, "invalid_decision", "decision and rationale are required");
+    }
+    const outcome = await closeExperiment(pool, scope, id, experimentId, {
+      decision: body.decision,
+      rationale: body.rationale,
+    });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "experiment does not exist in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "experiment is not evaluated");
+      case "closed":
+        return reply.send({
+          experimentId,
+          status: "closed",
+          decision: outcome.decision,
+          priorRelatedDecisions: outcome.priorRelatedDecisions,
         });
     }
   });

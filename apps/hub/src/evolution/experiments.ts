@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { withTx, type DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
 import { canonicalJson } from "../platform/canonical-json.js";
+import { recordDecision, type DecisionRow } from "../idea-memory/decisions.js";
 
 export interface Variant {
   id: string;
@@ -223,6 +224,52 @@ export async function submitEvaluation(
     [experimentId, JSON.stringify(observedValue), verdict, rationale],
   );
   return { kind: "evaluated", verdict, rationale };
+}
+
+export type CloseExperimentOutcome =
+  | { kind: "closed"; decision: DecisionRow; priorRelatedDecisions: DecisionRow[] }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" };
+
+/**
+ * EXP-13/14/15: só fecha um experimento `evaluated` (proposal spec §5:
+ * "verification criteria fixed before result"); grava a decisão de outcome
+ * via o mesmo mecanismo genérico de `decisions` (Slice 1/3, `subjectType=
+ * 'proposal'`) sem nenhuma alteração nele; fecha experimento e proposal.
+ */
+export async function closeExperiment(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  experimentId: string,
+  input: { decision: string; rationale: string },
+): Promise<CloseExperimentOutcome> {
+  const res = await pool.query(
+    `select status, proposal_id as "proposalId" from experiments where id = $1 and project_id = $2`,
+    [experimentId, projectId],
+  );
+  const row = res.rows[0] as { status: string; proposalId: string } | undefined;
+  if (!row) return { kind: "not_found" };
+  if (row.status !== "evaluated") return { kind: "invalid_transition" };
+
+  const decisionOutcome = await recordDecision(pool, scope, projectId, {
+    decision: input.decision,
+    rationale: input.rationale,
+    subjectType: "proposal",
+    subjectId: row.proposalId,
+  });
+  if (decisionOutcome.kind === "invalid_subject") {
+    return { kind: "not_found" };
+  }
+
+  await pool.query("update experiments set status = 'closed', closed_at = now() where id = $1", [experimentId]);
+  await pool.query("update proposals set status = 'closed' where id = $1", [row.proposalId]);
+
+  return {
+    kind: "closed",
+    decision: decisionOutcome.decision,
+    priorRelatedDecisions: decisionOutcome.priorRelatedDecisions,
+  };
 }
 
 export async function getExperiment(

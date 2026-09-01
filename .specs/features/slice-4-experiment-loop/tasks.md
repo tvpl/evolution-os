@@ -206,11 +206,11 @@ T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Fechar um experimento `evaluated` grava a decisão via o mecanismo existente, muda o experimento para `closed` e a proposal para `closed`
-- [ ] Fechar um experimento que não está `evaluated` é rejeitado 409
-- [ ] A resposta do fechamento expõe `priorRelatedDecisions` da proposal (reuso do guard do Slice 1/3)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Fechar um experimento `evaluated` grava a decisão via o mecanismo existente, muda o experimento para `closed` e a proposal para `closed`
+- [x] Fechar um experimento que não está `evaluated` é rejeitado 409
+- [x] A resposta do fechamento expõe `priorRelatedDecisions` da proposal (reuso do guard do Slice 1/3)
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
