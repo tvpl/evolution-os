@@ -4,6 +4,7 @@ import { problem, requireScope } from "../http.js";
 import { enforceCapability, recordAudit } from "../policy/policy.js";
 import { registerProject } from "./registry.js";
 import { listHypotheses } from "../idea-memory/hypotheses.js";
+import { getProjectOverview } from "../idea-memory/overview.js";
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
   app.post("/projects", async (req, reply) => {
@@ -74,6 +75,51 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     }
     const hypotheses = await listHypotheses(pool, id);
     return reply.send({ hypotheses });
+  });
+
+  app.get("/projects/:id/overview", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+
+    const owner = await pool.query("select org_id from projects where id = $1", [id]);
+    const ownerRow = owner.rows[0] as { org_id: string } | undefined;
+    if (!ownerRow) {
+      return problem(reply, 404, "not_found", "project does not exist");
+    }
+    if (ownerRow.org_id !== scope.orgId) {
+      await recordAudit(pool, {
+        orgId: scope.orgId,
+        actor: scope.userId,
+        action: "project.overview.read",
+        resource: `projects/${id}`,
+        outcome: "denied",
+        reason: "cross-tenant access",
+        correlationId: req.correlationId,
+      });
+      return problem(reply, 403, "access_denied", "access denied", {
+        correlationId: req.correlationId,
+      });
+    }
+
+    const decision = await enforceCapability(
+      pool,
+      scope,
+      "project.overview.read",
+      `projects/${id}`,
+      req.correlationId,
+    );
+    if (!decision.allowed) {
+      return problem(reply, 403, "capability_denied", decision.reason, {
+        correlationId: req.correlationId,
+      });
+    }
+
+    const overview = await getProjectOverview(pool, id);
+    if (!overview) {
+      return problem(reply, 404, "not_found", "project does not exist");
+    }
+    return reply.send(overview);
   });
 
   app.get("/projects", async (req, reply) => {

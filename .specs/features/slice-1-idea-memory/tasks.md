@@ -185,11 +185,11 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Overview de projeto com hipóteses/constraints/artifacts/decisions retorna todos os blocos numa carga
-- [ ] Overview cross-tenant é negado e auditado
-- [ ] Overview de projeto vazio retorna arrays vazios, não erro
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Overview de projeto com hipóteses/constraints/artifacts/decisions retorna todos os blocos numa carga
+- [x] Overview cross-tenant é negado e auditado
+- [x] Overview de projeto vazio retorna arrays vazios, não erro
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
