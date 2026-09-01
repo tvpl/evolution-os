@@ -181,11 +181,11 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Atualizar para uma versão cujas capabilities já estão todas concedidas persiste a nova linha e retorna o diff (`added`/`removed`)
-- [ ] Atualizar para uma versão com capability nova sem grant é rejeitado 422 com `added` listando exatamente essa capability, lockfile permanece na versão anterior
-- [ ] Conceder a capability faltando e repetir a mesma atualização agora sucede
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Atualizar para uma versão cujas capabilities já estão todas concedidas persiste a nova linha e retorna o diff (`added`/`removed`)
+- [x] Atualizar para uma versão com capability nova sem grant é rejeitado 422 com `added` listando exatamente essa capability, lockfile permanece na versão anterior
+- [x] Conceder a capability faltando e repetir a mesma atualização agora sucede
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

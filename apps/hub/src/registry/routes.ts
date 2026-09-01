@@ -62,6 +62,7 @@ import {
   listModules,
   installModule,
   getProjectLockfile,
+  updateModule,
 } from "../evolution/modules.js";
 
 /**
@@ -1393,6 +1394,43 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           digest: outcome.digest,
           capabilities: outcome.capabilities,
           status: "active",
+        });
+    }
+  });
+
+  app.post("/projects/:id/modules/:moduleId/update", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, moduleId } = req.params as { id: string; moduleId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "module.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "module.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { version?: string };
+    if (!body.version) {
+      return problem(reply, 422, "invalid_update", "version is required");
+    }
+    const outcome = await updateModule(pool, scope, id, moduleId, { version: body.version });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "module or version does not exist in this org's registry");
+      case "signature_invalid":
+        return problem(reply, 409, "signature_invalid", "the module version's signature does not verify against its recomputed digest");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "installation is not active");
+      case "missing_capabilities":
+        return problem(reply, 422, "module_requires_capability_grant", "grant the newly declared capabilities before updating", {
+          added: outcome.added,
+        });
+      case "updated":
+        return reply.status(200).send({
+          installationId: outcome.installationId,
+          moduleId,
+          version: outcome.version,
+          digest: outcome.digest,
+          status: "active",
+          permissionDiff: { added: outcome.added, removed: outcome.removed },
         });
     }
   });

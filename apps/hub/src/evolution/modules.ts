@@ -401,3 +401,64 @@ export async function getProjectLockfile(pool: DbPool, projectId: string): Promi
   );
   return (res.rows as LockEntry[]).filter((r) => r.status === "active");
 }
+
+export interface UpdateModuleInput {
+  version: string;
+}
+
+export type UpdateOutcome =
+  | { kind: "updated"; installationId: string; version: string; digest: string; added: string[]; removed: string[] }
+  | { kind: "missing_capabilities"; added: string[] }
+  | { kind: "not_found" }
+  | { kind: "signature_invalid" }
+  | { kind: "invalid_transition" };
+
+/** MODL-12/13/14: diff de permissão bloqueante - nenhuma capability nova é concedida silenciosamente (MOD-FR-013). */
+export async function updateModule(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  moduleId: string,
+  input: UpdateModuleInput,
+): Promise<UpdateOutcome> {
+  const versionRow = await pool.query(
+    `select manifest, digest, signature from module_versions where module_id = $1 and version = $2 and org_id = $3`,
+    [moduleId, input.version, scope.orgId],
+  );
+  const version = versionRow.rows[0] as
+    | { manifest: Record<string, unknown>; digest: string; signature: string }
+    | undefined;
+  if (!version) return { kind: "not_found" };
+
+  const signatureValid = await verifyStoredVersion(pool, scope.orgId, version.manifest, version.digest, version.signature);
+  if (!signatureValid) return { kind: "signature_invalid" };
+
+  const newCapabilities = extractCapabilities(version.manifest);
+
+  return withTx(pool, async (client) => {
+    const current = await getCurrentInstallation(client, projectId, moduleId);
+    if (!current || current.status !== "active") return { kind: "invalid_transition" };
+
+    const oldCapabilities = current.capabilities;
+    const added = newCapabilities.filter((c) => !oldCapabilities.includes(c));
+    const removed = oldCapabilities.filter((c) => !newCapabilities.includes(c));
+
+    if (added.length > 0) {
+      const missing: string[] = [];
+      for (const cap of added) {
+        const decision = await checkCapability(client, scope, cap);
+        if (!decision.allowed) missing.push(cap);
+      }
+      if (missing.length > 0) return { kind: "missing_capabilities", added };
+    }
+
+    const nextSeq = current.seq + 1;
+    const id = `mi_${randomUUID().replaceAll("-", "")}`;
+    await client.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', 'updated')`,
+      [id, projectId, scope.orgId, scope.workspaceId, moduleId, nextSeq, input.version, version.digest, JSON.stringify(newCapabilities)],
+    );
+    return { kind: "updated", installationId: id, version: input.version, digest: version.digest, added, removed };
+  });
+}
