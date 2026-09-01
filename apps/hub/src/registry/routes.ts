@@ -25,6 +25,7 @@ import { authenticateNode } from "../nodes/auth.js";
 import { ingestSnapshot, listSnapshots, type SnapshotInput } from "../twin/snapshots.js";
 import { confirmCandidate, listCandidates, rejectCandidate } from "../twin/candidates.js";
 import { computeDiff } from "../twin/diff.js";
+import { activateEvidence, createEvidence, listEvidence } from "../evolution/evidence.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -487,6 +488,63 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "project does not exist");
     }
     return reply.send(diff);
+  });
+
+  app.post("/projects/:id/evidence", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "evidence.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "evidence.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as {
+      type?: "humanStatement" | "referenceOnly";
+      statement?: string;
+      sourceReference?: string;
+      sourceType?: string;
+      sourceAuthority?: string;
+    };
+    if (!body.type) {
+      return problem(reply, 422, "invalid_evidence", "type is required");
+    }
+    const outcome = await createEvidence(pool, scope, id, {
+      type: body.type,
+      ...(body.statement !== undefined ? { statement: body.statement } : {}),
+      ...(body.sourceReference !== undefined ? { sourceReference: body.sourceReference } : {}),
+      ...(body.sourceType !== undefined ? { sourceType: body.sourceType } : {}),
+      ...(body.sourceAuthority !== undefined ? { sourceAuthority: body.sourceAuthority } : {}),
+    });
+    if (outcome.kind === "invalid") {
+      return problem(reply, 422, "invalid_evidence", outcome.reason);
+    }
+    return reply.status(201).send({ evidenceId: outcome.evidenceId, status: "quarantine" });
+  });
+
+  app.post("/projects/:id/evidence/:evidenceId/activate", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, evidenceId } = req.params as { id: string; evidenceId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "evidence.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "evidence.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await activateEvidence(pool, id, evidenceId);
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "evidence does not exist in this project");
+    }
+    return reply.send({ evidenceId, status: "active" });
+  });
+
+  app.get("/projects/:id/evidence", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const evidence = await listEvidence(pool, id);
+    return reply.send({ evidence });
   });
 
   app.get("/projects", async (req, reply) => {

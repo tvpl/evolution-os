@@ -104,12 +104,12 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Evidência manual/URL cria em `quarantine` com digest
-- [ ] Ativação muda para `active` preservando digest
-- [ ] Submissão sem fonte é rejeitada 422 sem gravar
-- [ ] Listagem retorna status e digest
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] Evidência manual/URL cria em `quarantine` com digest
+- [x] Ativação muda para `active` preservando digest
+- [x] Submissão sem fonte é rejeitada 422 sem gravar
+- [x] Listagem retorna status e digest
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full
