@@ -45,6 +45,11 @@ import {
   createGitHubAction,
   recordCiStatus,
 } from "../evolution/github-connector.js";
+import {
+  declareInventory,
+  getCurrentInventory,
+  type InventoryComponent,
+} from "../evolution/harness.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -122,6 +127,19 @@ function isValidObservedValue(value: unknown): value is number | null {
 const GITHUB_ACTION_TYPES = new Set(["issue", "branch", "draftPr"]);
 function isValidActionType(value: unknown): value is "issue" | "branch" | "draftPr" {
   return typeof value === "string" && GITHUB_ACTION_TYPES.has(value);
+}
+
+/** HRN-01: cada componente do inventário exige id/name/version como string. */
+function isValidComponentArray(value: unknown): value is InventoryComponent[] {
+  if (!Array.isArray(value)) return false;
+  return value.every(
+    (v) =>
+      v !== null &&
+      typeof v === "object" &&
+      typeof (v as Record<string, unknown>).id === "string" &&
+      typeof (v as Record<string, unknown>).name === "string" &&
+      typeof (v as Record<string, unknown>).version === "string",
+  );
 }
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
@@ -1100,6 +1118,48 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       case "recorded":
         return reply.status(201).send({ actionId, artifactAttached: outcome.artifactAttached });
     }
+  });
+
+  app.post("/projects/:id/harness/inventory", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "harness.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "harness.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { skills?: unknown; mcps?: unknown; models?: unknown };
+    if (
+      !isValidComponentArray(body.skills) ||
+      !isValidComponentArray(body.mcps) ||
+      !isValidComponentArray(body.models)
+    ) {
+      return problem(
+        reply,
+        422,
+        "invalid_inventory",
+        "skills, mcps and models must be arrays of {id, name, version}",
+      );
+    }
+    const outcome = await declareInventory(pool, scope, id, {
+      skills: body.skills,
+      mcps: body.mcps,
+      models: body.models,
+    });
+    return reply.status(201).send({ version: outcome.version, status: "declared" });
+  });
+
+  app.get("/projects/:id/harness/inventory", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const inventory = await getCurrentInventory(pool, id);
+    if (!inventory) {
+      return problem(reply, 404, "not_found", "no inventory declared for this harness yet");
+    }
+    return reply.send(inventory);
   });
 
   app.get("/projects", async (req, reply) => {

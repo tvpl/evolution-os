@@ -98,11 +98,11 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Declarar um inventário persiste como nova versão e vira a versão corrente
-- [ ] Ler o inventário retorna a versão mais recente após uma segunda declaração
-- [ ] Declarar/ler para projeto inexistente é rejeitado 404
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Declarar um inventário persiste como nova versão e vira a versão corrente
+- [x] Ler o inventário retorna a versão mais recente após uma segunda declaração
+- [x] Declarar/ler para projeto inexistente é rejeitado 404
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
