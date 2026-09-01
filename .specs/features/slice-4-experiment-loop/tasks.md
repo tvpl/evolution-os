@@ -105,11 +105,11 @@ T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `canonicalJson` produz a mesma string para objetos com chaves em ordens diferentes (teste direto)
-- [ ] `canonicalJson` produz strings diferentes para arrays com a mesma chave em ordens diferentes de elementos (teste direto — arrays preservam ordem)
-- [ ] Suíte existente do Slice 2 (`candidates.test.ts`, `diff.test.ts`) passa inalterada (regressão do `payloadEquals`)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥2 tests pass (novos, além da suíte de regressão)
+- [x] `canonicalJson` produz a mesma string para objetos com chaves em ordens diferentes (teste direto)
+- [x] `canonicalJson` produz strings diferentes para arrays com a mesma chave em ordens diferentes de elementos (teste direto — arrays preservam ordem)
+- [x] Suíte existente do Slice 2 (`candidates.test.ts`, `diff.test.ts`) passa inalterada (regressão do `payloadEquals`)
+- [x] Gate check passes: full
+- [x] Test count: ≥2 tests pass (novos, além da suíte de regressão)
 
 **Tests**: integration
 **Gate**: full

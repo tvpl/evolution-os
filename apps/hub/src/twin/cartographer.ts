@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DbClient } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
+import { canonicalJson } from "../platform/canonical-json.js";
 
 export interface ManifestEntry {
   ecosystem: string;
@@ -38,18 +39,6 @@ export function proposeFromSnapshot(manifests: ManifestEntry[]): ProposedCandida
     });
   }
   return proposals;
-}
-
-/** Stringify com chaves ordenadas — jsonb do Postgres NÃO preserva a ordem de inserção. */
-function canonicalJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
-  if (value !== null && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
-      a < b ? -1 : a > b ? 1 : 0,
-    );
-    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
 }
 
 function payloadEquals(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
