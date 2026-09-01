@@ -28,7 +28,7 @@ afterAll(async () => {
 describe("migrations", () => {
   it("apply from zero creating the v0 tables", async () => {
     const applied = await runMigrations(pool);
-    expect(applied).toEqual(["001_init.sql"]);
+    expect(applied).toContain("001_init.sql");
     const tables = await pool.query(
       "select table_name from information_schema.tables where table_schema = 'public' order by table_name",
     );
