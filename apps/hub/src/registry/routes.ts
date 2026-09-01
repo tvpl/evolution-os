@@ -23,6 +23,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
 import { authenticateNode } from "../nodes/auth.js";
 import { ingestSnapshot, listSnapshots, type SnapshotInput } from "../twin/snapshots.js";
+import { confirmCandidate, listCandidates, rejectCandidate } from "../twin/candidates.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -421,6 +422,58 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     }
     const snapshots = await listSnapshots(pool, id);
     return reply.send({ snapshots });
+  });
+
+  app.get("/projects/:id/candidates", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const decision = await enforceCapability(pool, scope, "twin.read", `projects/${id}`, req.correlationId);
+    if (!decision.allowed) {
+      return problem(reply, 403, "capability_denied", decision.reason, { correlationId: req.correlationId });
+    }
+    const candidates = await listCandidates(pool, id);
+    return reply.send({ candidates });
+  });
+
+  app.post("/projects/:id/candidates/:candidateId/confirm", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, candidateId } = req.params as { id: string; candidateId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "candidate.decide"))) return reply;
+    const grant = await enforceCapability(pool, scope, "candidate.decide", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await confirmCandidate(pool, scope, id, candidateId);
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "candidate does not exist in this project");
+    }
+    if (outcome.kind === "not_pending") {
+      return problem(reply, 409, "candidate_not_pending", "candidate has already been decided");
+    }
+    return reply.send({ candidate: outcome.candidate });
+  });
+
+  app.post("/projects/:id/candidates/:candidateId/reject", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, candidateId } = req.params as { id: string; candidateId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "candidate.decide"))) return reply;
+    const grant = await enforceCapability(pool, scope, "candidate.decide", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { reason?: string };
+    const outcome = await rejectCandidate(pool, id, candidateId, body.reason);
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "candidate does not exist in this project");
+    }
+    if (outcome.kind === "not_pending") {
+      return problem(reply, 409, "candidate_not_pending", "candidate has already been decided");
+    }
+    return reply.send({ candidate: outcome.candidate });
   });
 
   app.get("/projects", async (req, reply) => {

@@ -153,12 +153,12 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Confirmar cria artifact `type='component'` `declared` preservando o candidate original inalterado
-- [ ] Rejeitar marca `rejected` com reason, registro preservado (nunca deletado)
-- [ ] Confirmar/rejeitar candidate já decidido retorna 409 sem alterar nada
-- [ ] Listagem cross-tenant é negada
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Confirmar cria artifact `type='component'` `declared` preservando o candidate original inalterado
+- [x] Rejeitar marca `rejected` com reason, registro preservado (nunca deletado)
+- [x] Confirmar/rejeitar candidate já decidido retorna 409 sem alterar nada
+- [x] Listagem cross-tenant é negada
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full
