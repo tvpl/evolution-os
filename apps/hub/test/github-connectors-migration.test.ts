@@ -1,0 +1,53 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { freshDb } from "./helpers.js";
+import { seedDevData } from "../src/identity/seed.js";
+import { seedDevGrants } from "../src/policy/policy.js";
+import { runMigrations } from "../src/platform/db.js";
+import type { DbPool } from "../src/platform/db.js";
+
+let pool: DbPool;
+
+beforeAll(async () => {
+  pool = await freshDb("evoos_test_github_connectors_migration");
+});
+
+afterAll(async () => {
+  await pool.end();
+});
+
+describe("migration 006 (github connectors)", () => {
+  it("applies from zero creating the connector tables, and is idempotent", async () => {
+    const tables = await pool.query(
+      "select table_name from information_schema.tables where table_schema = 'public' order by table_name",
+    );
+    const names = tables.rows.map((r: { table_name: string }) => r.table_name);
+    for (const required of [
+      "github_connections",
+      "github_webhook_events",
+      "github_actions",
+      "github_action_ci_statuses",
+    ]) {
+      expect(names).toContain(required);
+    }
+
+    const before = await pool.query("select count(*)::int as n from schema_migrations");
+    const applied = await runMigrations(pool);
+    expect(applied).toEqual([]);
+    const after = await pool.query("select count(*)::int as n from schema_migrations");
+    expect(after.rows[0].n).toBe(before.rows[0].n);
+  });
+
+  it("seedDevGrants grants connector.write and connector.github.write to both dev tenants", async () => {
+    await seedDevData(pool);
+    await seedDevGrants(pool);
+    for (const orgId of ["org_dev_a", "org_dev_b"]) {
+      const rows = await pool.query(
+        "select capability from capability_grants where org_id = $1 order by capability",
+        [orgId],
+      );
+      const caps = rows.rows.map((r: { capability: string }) => r.capability);
+      expect(caps).toContain("connector.write");
+      expect(caps).toContain("connector.github.write");
+    }
+  });
+});
