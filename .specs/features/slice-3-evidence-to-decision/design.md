@@ -144,3 +144,18 @@ proposals(id text PK, project_id, org_id, workspace_id, signal_id, title,
 | Challenger roda síncrono na transição de status, não em background | `apps/hub/src/evolution/proposals.ts` | Determinístico e rápido o suficiente para não precisar de outbox/worker; revisitar se um provider real (latência de LLM) tornar isso inviável |
 
 Nenhuma decisão aqui atinge o critério de projeto-level.
+
+---
+
+## Review do slice (checklist de `docs/06-delivery/05-build-sequence.md`)
+
+| Pergunta | Resposta |
+| --- | --- |
+| Usuário entende o valor? | Sim — o vertical slice completo do `AGENTS.md` roda ponta a ponta: evidência (quarantine→active) → claim (statement+epistemicType) → signal (relevância decomposta) → proposal (com alternativas incl. do-nothing) → Challenger (síncrono, nunca bloqueia) → inbox (`readyForReview` com findings) → decisão (accept/reject/etc., `subjectType=proposal`) → guard de rejeição anterior |
+| O novo artifact está no knowledge model? | Sim — este slice completa o vocabulário epistemológico do domínio: `evidence.status` (`quarantine`/`active`/`source_unavailable`) e `claims.epistemic_type` (`fact`/`inference`/`hypothesis`) tipam explicitamente o quão confiável é cada afirmação antes de virar proposta, ao lado dos quatro estados de verdade já existentes (`declared`/`observed`/`inferred`/`expected`) |
+| Evidence/decision lineage existe? | Sim, pela primeira vez ponta a ponta: `evidence` → `claim` (via `claim_evidence` N:N) → `signal` (`claim_id`) → `proposal` (`signal_id`) → `decision` (`subject_id = proposal.id`). Toda proposta é rastreável até a(s) evidência(s) que a originaram |
+| Policy e classification cobrem o fluxo? | Sim — `evidence.write`/`claim.write`/`signal.write`/`proposal.write`/`proposal.decide` seguem o mesmo deny-by-default dos Slices 0-2, testados para os dois tenants dev (bug real pego no T1: grants tinham sido adicionados só para `org_dev_a`, corrigido antes do commit). `evidence.classification` existe no schema (default `internal`) mas não é enforced neste slice — escopo futuro, documentado |
+| Failure/retry/idempotency definidos? | Sim — `createClaim` roda em uma única transação (`withTx`) para não deixar `claim_evidence` órfão se qualquer evidência referenciada falhar validação; `linkSignal` usa `INSERT ... ON CONFLICT DO NOTHING` sobre o unique `(project_id, claim_id)` para dedup atômico no banco, não só na aplicação; a transição a `readyForReview` é protegida contra repetição (409 se a proposal não está mais em `draft`) |
+| Evals incluem negative cases? | Sim: evidência sem fonte, claim sem evidência/com evidência em quarentena/de outro projeto, signal de claim de outro projeto, proposal sem claims e sem investigation state, proposal referenciando signal de outro projeto, decisão sobre proposal de outro projeto, ready transition duplicada (409), proposal/signal inexistentes (404), cross-tenant em toda rota nova |
+| O profile Lite continua possível? | Sim — nenhuma infraestrutura nova além do mesmo Postgres já usado nos Slices 0-2; o `AnalysisProvider` é 100% determinístico e local (sem chamada de rede/LLM), preservando o profile Lite sem custo de infraestrutura adicional |
+| Alguma hipótese do ecossistema foi invalidada? | Não invalidou nenhum ADR, mas confirmou uma decisão consciente de escopo: ADR-013 exige "provider adapters" plugáveis, e como não há credencial de LLM confirmada neste ambiente, o único adapter implementado é o determinístico (`scoreEvidence`/`challenge`) — a interface já está pronta para receber um provider real no Slice 6 (harness-vertical) sem reescrever call sites |
