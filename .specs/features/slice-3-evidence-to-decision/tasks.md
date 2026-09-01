@@ -251,10 +251,10 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Inbox filtrado por `readyForReview` retorna só essas, com findings, ordenado desc
-- [ ] Draft não aparece no inbox filtrado
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] Inbox filtrado por `readyForReview` retorna só essas, com findings, ordenado desc
+- [x] Draft não aparece no inbox filtrado
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full
