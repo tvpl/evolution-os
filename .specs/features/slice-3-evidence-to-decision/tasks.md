@@ -155,12 +155,12 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `scoreEvidence` com 2 evidências corroborantes retorna `evidenceStrength`/`confidence` como campos separados
-- [ ] `challenge` sinaliza `missing_do_nothing_alternative` quando não há alternativa do-nothing/watch
-- [ ] `challenge` sinaliza `single_source_evidence` quando todas as claims dependem de 1 evidência só
-- [ ] `challenge` sinaliza `missing_cost_of_inaction` quando o campo está vazio
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] `scoreEvidence` com 2 evidências corroborantes retorna `evidenceStrength`/`confidence` como campos separados
+- [x] `challenge` sinaliza `missing_do_nothing_alternative` quando não há alternativa do-nothing/watch
+- [x] `challenge` sinaliza `single_source_evidence` quando todas as claims dependem de 1 evidência só
+- [x] `challenge` sinaliza `missing_cost_of_inaction` quando o campo está vazio
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full
