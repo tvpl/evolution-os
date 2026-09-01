@@ -142,24 +142,24 @@ Até o Slice 2, o Twin sabe o que existe (declarado + observado), mas não tem m
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| FLOW-01 | P1: Evidência — criação em quarentena (EVO-FR-002) | Execute | Implementing |
-| FLOW-02 | P1: Evidência — ativação preserva digest | Execute | Implementing |
-| FLOW-03 | P1: Evidência — rejeição sem fonte | Execute | Implementing |
-| FLOW-04 | P1: Evidência — listagem com status | Execute | Implementing |
-| FLOW-05 | P1: Claims — criação com tipo epistêmico (ADR-009, EVO-FR-003) | Execute | Implementing |
-| FLOW-06 | P1: Claims — rejeita evidência em quarentena | Execute | Implementing |
-| FLOW-07 | P1: Claims — rejeita evidência de outro projeto | Execute | Implementing |
-| FLOW-08 | P1: Claims — listagem com evidence IDs | Execute | Implementing |
-| FLOW-09 | P1: Signal — relevância decomposta (EVO-FR-012) | Execute | Implementing |
-| FLOW-10 | P1: Signal — campos separados na resposta | Execute | Implementing |
-| FLOW-11 | P1: Signal — sem duplicação ao relinkar | Execute | Implementing |
-| FLOW-12 | P1: Proposal — criação com alternativas e do-nothing | Execute | Implementing |
-| FLOW-13 | P1: Proposal — Challenger roda ao ir a readyForReview | Execute | Implementing |
-| FLOW-14 | P1: Proposal — Challenger nunca bloqueia (EVO-FR-009) | Execute | Implementing |
-| FLOW-15 | P1: Proposal — rejeita sem claims/investigation state | Execute | Implementing |
-| FLOW-16 | P1: Inbox — lista readyForReview com findings | Execute | Implementing |
-| FLOW-17 | P1: Decisão — reusa mecanismo de subject genérico | Execute | Implementing |
-| FLOW-18 | P1: Decisão — guard de rejeição anterior para proposal | Execute | Implementing |
+| FLOW-01 | P1: Evidência — criação em quarentena (EVO-FR-002) | Verified | Verified |
+| FLOW-02 | P1: Evidência — ativação preserva digest | Verified | Verified |
+| FLOW-03 | P1: Evidência — rejeição sem fonte | Verified | Verified |
+| FLOW-04 | P1: Evidência — listagem com status | Verified | Verified |
+| FLOW-05 | P1: Claims — criação com tipo epistêmico (ADR-009, EVO-FR-003) | Verified | Verified |
+| FLOW-06 | P1: Claims — rejeita evidência em quarentena | Verified | Verified |
+| FLOW-07 | P1: Claims — rejeita evidência de outro projeto | Verified | Verified |
+| FLOW-08 | P1: Claims — listagem com evidence IDs | Verified | Verified |
+| FLOW-09 | P1: Signal — relevância decomposta (EVO-FR-012) | Verified | Verified |
+| FLOW-10 | P1: Signal — campos separados na resposta | Verified | Verified |
+| FLOW-11 | P1: Signal — sem duplicação ao relinkar | Verified | Verified |
+| FLOW-12 | P1: Proposal — criação com alternativas e do-nothing | Verified | Verified |
+| FLOW-13 | P1: Proposal — Challenger roda ao ir a readyForReview | Verified | Verified |
+| FLOW-14 | P1: Proposal — Challenger nunca bloqueia (EVO-FR-009) | Verified | Verified |
+| FLOW-15 | P1: Proposal — rejeita sem claims/investigation state | Verified | Verified |
+| FLOW-16 | P1: Inbox — lista readyForReview com findings | Verified | Verified |
+| FLOW-17 | P1: Decisão — reusa mecanismo de subject genérico | Verified | Verified |
+| FLOW-18 | P1: Decisão — guard de rejeição anterior para proposal | Verified | Verified |
 
 **ID format:** `FLOW-NN`
 
@@ -175,4 +175,4 @@ Até o Slice 2, o Twin sabe o que existe (declarado + observado), mas não tem m
 - [x] O vertical slice completo do `AGENTS.md` roda ponta a ponta: evidência → claim → signal → proposal → Challenger → inbox → decisão preservada.
 - [x] Uma proposta sem alternativa `do nothing` é sinalizada pelo Challenger sem ser bloqueada.
 - [x] Uma decisão sobre proposta relacionada expõe a rejeição anterior (guard funcional, reuso comprovado do Slice 1/2).
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] Verifier independente reporta PASS em `validation.md`.

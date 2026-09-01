@@ -154,7 +154,7 @@ describe("decision guard extended to proposal subjects (FLOW-17/18)", () => {
     expect(res.statusCode).toBe(422);
   });
 
-  it("creating a new proposal from a signal whose prior proposal was rejected surfaces that rejection (FLOW-18)", async () => {
+  it("creating a new proposal from a signal whose prior proposal was rejected surfaces that rejection, but not an unrelated accept (FLOW-18)", async () => {
     const signalId = await buildSignal(projectId);
     const firstRes = await createProposalFromSignal(projectId, signalId, "Primeira tentativa");
     const firstProposalId = firstRes.json().proposalId;
@@ -167,10 +167,20 @@ describe("decision guard extended to proposal subjects (FLOW-17/18)", () => {
       subjectId: firstProposalId,
     });
 
-    const secondRes = await createProposalFromSignal(projectId, signalId, "Segunda tentativa");
-    expect(secondRes.statusCode).toBe(201);
-    const prior = secondRes.json().priorRelatedDecisions;
+    const acceptedRes = await createProposalFromSignal(projectId, signalId, "Aceita à parte");
+    const acceptedProposalId = acceptedRes.json().proposalId;
+    await decide(projectId, {
+      decision: "accept",
+      rationale: "Essa outra foi aceita.",
+      subjectType: "proposal",
+      subjectId: acceptedProposalId,
+    });
+
+    const thirdRes = await createProposalFromSignal(projectId, signalId, "Terceira tentativa");
+    expect(thirdRes.statusCode).toBe(201);
+    const prior = thirdRes.json().priorRelatedDecisions;
     expect(prior).toHaveLength(1);
+    expect(prior.map((d: { decision: string }) => d.decision)).toEqual(["reject"]);
     expect(prior[0]).toMatchObject({ decision: "reject", subjectId: firstProposalId });
   });
 

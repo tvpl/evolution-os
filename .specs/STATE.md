@@ -57,11 +57,11 @@
 
 ## Handoff
 
-- **Feature**: slice-3-evidence-to-decision — Execute concluído (T1-T10, todos os 10 tasks); aguardando Verifier independente
-- **Phase / Task**: Verify (dispatch do Verifier independente ainda não rodou)
-- **Completed**: slices 0, 1 e 2 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados). Slice 3: todos os 10 tasks implementados e commitados (evidence quarantine/activation, claims N:N, analysis-provider determinístico, signals com dedup atômico, proposals draft+ready+Challenger, inbox, decision guard estendido a `subjectType='proposal'`, fechamento de docs); gate full verde (168 hub + 8 node integration + 27 unit, typecheck, check_docs, validate_spec/validate_tasks todos limpos)
-- **In-progress**: nenhum — Execute completo. `spec.md`: Goals e 4/5 Success Criteria marcados `[x]` (o 5º, "Verifier independente reporta PASS", aberto até a Verificação rodar); FLOW-01..18 em Phase=Execute/Status=Implementing (a subir para Verified pós-Verifier)
-- **Next step**: Dispatch do Verifier independente para slice-3-evidence-to-decision (evidence-or-zero, discrimination sensor); fechar gaps se houver; marcar FLOW-01..18 como Verified e a 5ª Success Criteria; depois seguir para Slice 4 (experiment-loop, M3) conforme `docs/06-delivery/09-spec-driven-execution-plan.md`
+- **Feature**: slice-3-evidence-to-decision — **CONCLUÍDO** (Execute + Verify, Verifier independente PASS após 3 rounds de fix→re-verify)
+- **Phase / Task**: Fechado. Próxima feature: Slice 4 (experiment-loop, M3) ainda não iniciada (sem spec/design/tasks)
+- **Completed**: slices 0, 1, 2 e 3 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados). Slice 3: todos os 10 tasks implementados; Verifier independente rodou 3 rounds (round 1 FAIL — FLOW-18 sem implementação + 3 mutantes sobreviventes; round 2 FAIL — FLOW-18 implementado mas 1 mutante novo sobrevivente no próprio fix; round 3 PASS — 12/12 mutações desenhadas mortas, 18/18 FLOW verificados por valor). Relatório completo em `.specs/features/slice-3-evidence-to-decision/validation.md`. Gate full verde: 172 hub + 8 node integration + 27 unit, typecheck, check_docs, validate_spec/validate_tasks/validate_state todos limpos
+- **In-progress**: nenhum. `spec.md`: Goals e todas as 5 Success Criteria `[x]`; FLOW-01..18 todos em Phase=Verified/Status=Verified
+- **Next step**: Iniciar Slice 4 (experiment-loop, M3, EP-032/033/042, depende do Slice 3) com o ciclo completo Specify→Design→Tasks→Execute→Verify, conforme `docs/06-delivery/09-spec-driven-execution-plan.md`
 - **Blockers**: none
-- **Uncommitted files**: none (tudo commitado até `de832ba`)
+- **Uncommitted files**: none (tudo a ser commitado nesta rodada de fechamento aponta para o commit que sucede `c1cf2a9`)
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7

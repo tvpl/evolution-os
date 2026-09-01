@@ -44,6 +44,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: FLOW-16 (spec.md:123) (.specs)
 - last seen: 2026-09-01T11:43:33Z
 
+### L-006 - A filtered query's own filter needs a negative fixture: when a test sets up only rows that match the predicate, deleting the predicate changes nothing and the mutant survives — add a row that must be excluded.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/hub/test` · harmful: 0
+- features: slice-3-evidence-to-decision
+- evidence: apps/hub/src/evolution/proposals.ts:106 (mutant N1) (apps/hub/test)
+- last seen: 2026-09-01T11:55:24Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

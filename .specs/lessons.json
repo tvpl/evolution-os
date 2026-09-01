@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 6,
+  "next_id": 7,
   "lessons": [
     {
       "id": "L-001",
@@ -94,6 +94,24 @@
       ],
       "created": "2026-09-01T11:43:33Z",
       "last_seen": "2026-09-01T11:43:33Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::a filtered query s own filter needs a negative fixture when a test sets up only rows that match the predicate deleting the predicate changes nothing and the mutant survives add a row that must be excluded",
+      "text": "A filtered query's own filter needs a negative fixture: when a test sets up only rows that match the predicate, deleting the predicate changes nothing and the mutant survives — add a row that must be excluded.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/hub/src/evolution/proposals.ts:106 (mutant N1) (apps/hub/test)"
+      ],
+      "created": "2026-09-01T11:55:24Z",
+      "last_seen": "2026-09-01T11:55:24Z"
     }
   ]
 }
