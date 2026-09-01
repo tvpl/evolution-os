@@ -116,6 +116,60 @@ export interface ExperimentRow {
   closedAt: string | null;
 }
 
+export type AttachArtifactOutcome =
+  | { kind: "attached" }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" }
+  | { kind: "invalid_artifact_reference" };
+
+/**
+ * EXP-05/06: só anexa a um experimento `running`; exige que o artifact
+ * pertença ao mesmo projeto; idempotente — anexar duas vezes não duplica
+ * (mesmo padrão `ON CONFLICT DO NOTHING` do dedup de signals no Slice 3).
+ */
+export async function attachProofArtifact(
+  pool: DbPool,
+  projectId: string,
+  experimentId: string,
+  artifactId: string,
+): Promise<AttachArtifactOutcome> {
+  const expRes = await pool.query("select status from experiments where id = $1 and project_id = $2", [
+    experimentId,
+    projectId,
+  ]);
+  const expRow = expRes.rows[0] as { status: string } | undefined;
+  if (!expRow) return { kind: "not_found" };
+  if (expRow.status !== "running") return { kind: "invalid_transition" };
+
+  const artRes = await pool.query("select project_id from artifacts where id = $1", [artifactId]);
+  const artRow = artRes.rows[0] as { project_id: string } | undefined;
+  if (!artRow || artRow.project_id !== projectId) return { kind: "invalid_artifact_reference" };
+
+  await pool.query(
+    "insert into experiment_artifacts (experiment_id, artifact_id) values ($1, $2) on conflict do nothing",
+    [experimentId, artifactId],
+  );
+  return { kind: "attached" };
+}
+
+export interface ProofArtifactRow {
+  id: string;
+  type: string;
+  title: string;
+}
+
+export async function listProofArtifacts(pool: DbPool, experimentId: string): Promise<ProofArtifactRow[]> {
+  const res = await pool.query(
+    `select a.id, a.type, a.title
+       from experiment_artifacts ea
+       join artifacts a on a.id = ea.artifact_id
+      where ea.experiment_id = $1
+      order by a.created_at`,
+    [experimentId],
+  );
+  return res.rows as ProofArtifactRow[];
+}
+
 export async function getExperiment(
   pool: DbPool,
   projectId: string,

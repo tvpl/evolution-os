@@ -154,12 +154,12 @@ T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Anexar um artifact existente do projeto ao experimento persiste o link
-- [ ] Anexar o mesmo artifact duas vezes não duplica a linha (idempotente)
-- [ ] Anexar artifact de outro projeto é rejeitado 422
-- [ ] Listagem retorna todos os artifacts anexados
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Anexar um artifact existente do projeto ao experimento persiste o link
+- [x] Anexar o mesmo artifact duas vezes não duplica a linha (idempotente)
+- [x] Anexar artifact de outro projeto é rejeitado 422
+- [x] Listagem retorna todos os artifacts anexados
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

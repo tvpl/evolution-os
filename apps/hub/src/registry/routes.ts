@@ -29,7 +29,14 @@ import { activateEvidence, createEvidence, listEvidence } from "../evolution/evi
 import { createClaim, listClaims } from "../evolution/claims.js";
 import { linkSignal, listSignals } from "../evolution/signals.js";
 import { createProposal, listProposals, moveProposalToReady } from "../evolution/proposals.js";
-import { startExperiment, getExperiment, type Variant, type VerificationPlan } from "../evolution/experiments.js";
+import {
+  startExperiment,
+  getExperiment,
+  attachProofArtifact,
+  listProofArtifacts,
+  type Variant,
+  type VerificationPlan,
+} from "../evolution/experiments.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -811,6 +818,50 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "experiment does not exist in this project");
     }
     return reply.send(experiment);
+  });
+
+  app.post("/projects/:id/experiments/:experimentId/artifacts", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, experimentId } = req.params as { id: string; experimentId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "experiment.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "experiment.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { artifactId?: string };
+    if (!body.artifactId) {
+      return problem(reply, 422, "invalid_artifact_reference", "artifactId is required");
+    }
+    const outcome = await attachProofArtifact(pool, id, experimentId, body.artifactId);
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "experiment does not exist in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "experiment is not running");
+      case "invalid_artifact_reference":
+        return problem(
+          reply,
+          422,
+          "invalid_artifact_reference",
+          `artifact '${body.artifactId}' does not belong to this project`,
+        );
+      case "attached":
+        return reply.status(201).send({ experimentId, artifactId: body.artifactId });
+    }
+  });
+
+  app.get("/projects/:id/experiments/:experimentId/artifacts", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, experimentId } = req.params as { id: string; experimentId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const experiment = await getExperiment(pool, id, experimentId);
+    if (!experiment) {
+      return problem(reply, 404, "not_found", "experiment does not exist in this project");
+    }
+    const artifacts = await listProofArtifacts(pool, experimentId);
+    return reply.send({ artifacts });
   });
 
   app.get("/projects", async (req, reply) => {
