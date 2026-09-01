@@ -104,12 +104,12 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Publicar um manifest válido persiste a versão e retorna `{moduleId, version, digest, signature, sbom}`
-- [ ] Republicar a mesma versão com o mesmo manifest retorna o mesmo digest sem criar uma segunda linha
-- [ ] Republicar a mesma versão com um manifest diferente é rejeitado 409
-- [ ] Manifest sem `id`/`version`/`publisher`, sem components, com tipo de component inválido, `version` não-SemVer, ou IDs de component duplicados é rejeitado 422 (todos os casos cobertos)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥8 tests pass
+- [x] Publicar um manifest válido persiste a versão e retorna `{moduleId, version, digest, signature, sbom}`
+- [x] Republicar a mesma versão com o mesmo manifest retorna o mesmo digest sem criar uma segunda linha
+- [x] Republicar a mesma versão com um manifest diferente é rejeitado 409
+- [x] Manifest sem `id`/`version`/`publisher`, sem components, com tipo de component inválido, `version` não-SemVer, ou IDs de component duplicados é rejeitado 422 (todos os casos cobertos)
+- [x] Gate check passes: full
+- [x] Test count: ≥8 tests pass
 
 **Tests**: integration
 **Gate**: full

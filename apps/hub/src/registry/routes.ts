@@ -56,6 +56,7 @@ import {
   type InventoryComponent,
   type InvariantType,
 } from "../evolution/harness.js";
+import { publishModule } from "../evolution/modules.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1307,6 +1308,30 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const observatory = await getHarnessObservatory(pool, id);
     return reply.send(observatory);
+  });
+
+  app.post("/orgs/current/modules", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const grant = await enforceCapability(pool, scope, "module.write", "orgs/current/modules", req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await publishModule(pool, scope, req.body);
+    switch (outcome.kind) {
+      case "invalid":
+        return problem(reply, 422, "invalid_manifest", "manifest is malformed or missing required fields");
+      case "conflict":
+        return problem(reply, 409, "version_conflict", "this module id/version was already published with a different manifest, or belongs to another org");
+      case "published":
+        return reply.status(201).send({
+          moduleId: outcome.moduleId,
+          version: outcome.version,
+          digest: outcome.digest,
+          signature: outcome.signature,
+          sbom: outcome.sbom,
+        });
+    }
   });
 
   app.get("/projects", async (req, reply) => {
