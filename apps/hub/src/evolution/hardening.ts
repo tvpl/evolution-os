@@ -88,3 +88,39 @@ export async function sweepEvidenceRetention(pool: DbPool, orgId: string): Promi
   );
   return { kind: "swept", redactedCount: result.rowCount ?? 0 };
 }
+
+export interface UserFleetRow {
+  id: string;
+  email: string;
+  displayName: string | null;
+  deactivatedAt: string | null;
+}
+
+/** HARD-22: lista usuários do org com status ativo/desativado exato. */
+export async function listUsers(pool: DbPool, orgId: string): Promise<UserFleetRow[]> {
+  const rows = await pool.query(
+    `select id, email, display_name as "displayName", deactivated_at as "deactivatedAt"
+       from users where org_id = $1 order by email`,
+    [orgId],
+  );
+  return rows.rows as UserFleetRow[];
+}
+
+export type DeactivateUserOutcome = { kind: "deactivated" } | { kind: "not_found" };
+
+/**
+ * HARD-18/20/21: desprovisiona - só bloqueia NOVAS sessões via `dev-login`
+ * (Assumption confirmada na spec: sessões já emitidas são stateless e não
+ * são revogadas). Idempotente: desativar de novo não é erro.
+ */
+export async function deactivateUser(pool: DbPool, scope: AuthScope, userId: string): Promise<DeactivateUserOutcome> {
+  const existing = await pool.query("select org_id from users where id = $1", [userId]);
+  const row = existing.rows[0] as { org_id: string } | undefined;
+  if (!row || row.org_id !== scope.orgId) return { kind: "not_found" };
+
+  await pool.query(
+    "update users set deactivated_at = coalesce(deactivated_at, now()) where id = $1",
+    [userId],
+  );
+  return { kind: "deactivated" };
+}

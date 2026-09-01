@@ -78,7 +78,14 @@ import {
   getCampaignProgress,
   exportCampaign,
 } from "../evolution/portfolio.js";
-import { listNodeFleet, revokeNode, setRetentionPolicy, sweepEvidenceRetention } from "../evolution/hardening.js";
+import {
+  listNodeFleet,
+  revokeNode,
+  setRetentionPolicy,
+  sweepEvidenceRetention,
+  listUsers,
+  deactivateUser,
+} from "../evolution/hardening.js";
 import { exportAuditLog } from "../policy/policy.js";
 
 /**
@@ -1745,6 +1752,28 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 422, "retention_not_configured", "configure a retention window before sweeping");
     }
     return reply.send({ redactedCount: outcome.redactedCount });
+  });
+
+  app.get("/orgs/current/users", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const users = await listUsers(pool, scope.orgId);
+    return reply.send({ users });
+  });
+
+  app.post("/orgs/current/users/:userId/deactivate", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const grant = await enforceCapability(pool, scope, "admin.write", "orgs/current/users", req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const { userId } = req.params as { userId: string };
+    const outcome = await deactivateUser(pool, scope, userId);
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "user does not exist in this org");
+    }
+    return reply.send({ userId, deactivated: true });
   });
 
   app.get("/projects", async (req, reply) => {

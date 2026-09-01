@@ -61,14 +61,18 @@ export function buildServer({ pool }: ServerOptions): FastifyInstance {
       return problem(reply, 422, "invalid_request", "email is required");
     }
     const user = await pool.query(
-      "select u.id as user_id, u.org_id, w.id as workspace_id from users u join workspaces w on w.org_id = u.org_id where u.email = $1",
+      "select u.id as user_id, u.org_id, w.id as workspace_id, u.deactivated_at from users u join workspaces w on w.org_id = u.org_id where u.email = $1",
       [body.email],
     );
     const row = user.rows[0] as
-      | { user_id: string; org_id: string; workspace_id: string }
+      | { user_id: string; org_id: string; workspace_id: string; deactivated_at: Date | null }
       | undefined;
     if (!row) {
       return problem(reply, 401, "unknown_identity", "no dev user with this email");
+    }
+    if (row.deactivated_at) {
+      // HARD-19: distinto de unknown_identity - o usuário existe, mas foi desprovisionado.
+      return problem(reply, 401, "identity_deactivated", "this identity has been deactivated");
     }
     const scope: AuthScope = {
       userId: row.user_id,
