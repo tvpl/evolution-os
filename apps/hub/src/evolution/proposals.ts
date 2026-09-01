@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
+import { challenge, type ClaimForChallenge } from "./analysis-provider.js";
 
 export interface ProposalAlternativeInput {
   id: string;
@@ -72,6 +73,59 @@ export async function createProposal(
     ],
   );
   return { kind: "created", proposalId };
+}
+
+export type ReadyOutcome =
+  | { kind: "ready"; findings: string[] }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" };
+
+/**
+ * FLOW-13/14: roda o Challenger determinístico (T4) contra a única claim
+ * ligada via `signal_id` (ou nenhuma, se a proposal veio de
+ * `investigationState`) e grava `challenger_findings` + `status` na MESMA
+ * operação. O Challenger nunca bloqueia a transição — no máximo anexa
+ * findings junto do novo status (EVO-FR-009).
+ */
+export async function moveProposalToReady(
+  pool: DbPool,
+  projectId: string,
+  proposalId: string,
+): Promise<ReadyOutcome> {
+  const res = await pool.query(
+    `select status, signal_id as "signalId", cost_of_inaction as "costOfInaction", alternatives
+       from proposals where id = $1 and project_id = $2`,
+    [proposalId, projectId],
+  );
+  const row = res.rows[0] as
+    | { status: string; signalId: string | null; costOfInaction: string | null; alternatives: ProposalAlternativeInput[] }
+    | undefined;
+  if (!row) return { kind: "not_found" };
+  if (row.status !== "draft") return { kind: "invalid_transition" };
+
+  let claims: ClaimForChallenge[] = [];
+  if (row.signalId) {
+    const claimRes = await pool.query(
+      `select c.id, c.epistemic_type as "epistemicType",
+              coalesce(array_agg(ce.evidence_id) filter (where ce.evidence_id is not null), '{}') as "evidenceIds"
+         from signals s
+         join claims c on c.id = s.claim_id
+         left join claim_evidence ce on ce.claim_id = c.id
+        where s.id = $1
+        group by c.id, c.epistemic_type`,
+      [row.signalId],
+    );
+    claims = claimRes.rows as ClaimForChallenge[];
+  }
+
+  const findings = challenge({ costOfInaction: row.costOfInaction, alternatives: row.alternatives }, claims);
+
+  await pool.query(
+    `update proposals set status = 'readyForReview', ready_at = now(), challenger_findings = $2
+      where id = $1`,
+    [proposalId, JSON.stringify(findings)],
+  );
+  return { kind: "ready", findings };
 }
 
 export interface ProposalRow {

@@ -28,7 +28,7 @@ import { computeDiff } from "../twin/diff.js";
 import { activateEvidence, createEvidence, listEvidence } from "../evolution/evidence.js";
 import { createClaim, listClaims } from "../evolution/claims.js";
 import { linkSignal, listSignals } from "../evolution/signals.js";
-import { createProposal, listProposals } from "../evolution/proposals.js";
+import { createProposal, listProposals, moveProposalToReady } from "../evolution/proposals.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -692,6 +692,26 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
         );
       case "created":
         return reply.status(201).send({ proposalId: outcome.proposalId, status: "draft" });
+    }
+  });
+
+  app.post("/projects/:id/proposals/:proposalId/ready", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, proposalId } = req.params as { id: string; proposalId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "proposal.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "proposal.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await moveProposalToReady(pool, id, proposalId);
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "proposal does not exist in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "proposal is not in draft status");
+      case "ready":
+        return reply.send({ proposalId, status: "readyForReview", challengerFindings: outcome.findings });
     }
   });
 

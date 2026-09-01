@@ -228,10 +228,10 @@ T8 → T9 → T10
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Proposal sem do-nothing e com 1 evidência só ganha os 2 findings esperados e MUDA de status (não bloqueia)
-- [ ] Proposal bem formada (com do-nothing, custo de inação, múltiplas fontes) vai a readyForReview com findings vazios
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Proposal sem do-nothing e com 1 evidência só ganha os 2 findings esperados e MUDA de status (não bloqueia)
+- [x] Proposal bem formada (com do-nothing, custo de inação, múltiplas fontes) vai a readyForReview com findings vazios
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
