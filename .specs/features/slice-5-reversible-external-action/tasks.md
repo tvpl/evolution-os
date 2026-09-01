@@ -121,11 +121,11 @@ T6
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Webhook com assinatura válida e delivery ID novo persiste o evento e atualiza `lastEventAt`
-- [ ] Webhook com assinatura inválida é rejeitado 401 sem gravar
-- [ ] Webhook com delivery ID repetido é no-op (200, sem duplicar linha)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Webhook com assinatura válida e delivery ID novo persiste o evento e atualiza `lastEventAt`
+- [x] Webhook com assinatura inválida é rejeitado 401 sem gravar
+- [x] Webhook com delivery ID repetido é no-op (200, sem duplicar linha)
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

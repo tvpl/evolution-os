@@ -39,7 +39,7 @@ import {
   type Variant,
   type VerificationPlan,
 } from "../evolution/experiments.js";
-import { connectGitHub } from "../evolution/github-connector.js";
+import { connectGitHub, ingestWebhook } from "../evolution/github-connector.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -965,6 +965,35 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           status: "connected",
           webhookSecret: outcome.webhookSecret,
         });
+    }
+  });
+
+  // Rota deliberadamente sem requireScope: um webhook real do GitHub nunca
+  // carrega um Bearer token nosso. Ver comentário em ingestWebhook.
+  app.post("/projects/:id/connectors/github/:connectionId/webhook", async (req, reply) => {
+    const { id, connectionId } = req.params as { id: string; connectionId: string };
+    const deliveryIdHeader = req.headers["x-github-delivery"];
+    if (typeof deliveryIdHeader !== "string" || !deliveryIdHeader) {
+      return problem(reply, 422, "invalid_webhook", "x-github-delivery header is required");
+    }
+    const signatureHeader = req.headers["x-hub-signature-256"];
+    const outcome = await ingestWebhook(
+      pool,
+      id,
+      connectionId,
+      deliveryIdHeader,
+      typeof signatureHeader === "string" ? signatureHeader : undefined,
+      req.body ?? {},
+    );
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "connection does not exist in this project");
+      case "invalid_signature":
+        return problem(reply, 401, "invalid_signature", "webhook signature does not match");
+      case "duplicate":
+        return reply.status(200).send({ status: "duplicate" });
+      case "ingested":
+        return reply.status(200).send({ status: "ingested" });
     }
   });
 
