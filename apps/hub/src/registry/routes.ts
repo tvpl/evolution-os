@@ -29,6 +29,7 @@ import { activateEvidence, createEvidence, listEvidence } from "../evolution/evi
 import { createClaim, listClaims } from "../evolution/claims.js";
 import { linkSignal, listSignals } from "../evolution/signals.js";
 import { createProposal, listProposals, moveProposalToReady } from "../evolution/proposals.js";
+import { startExperiment, getExperiment, type Variant, type VerificationPlan } from "../evolution/experiments.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -65,6 +66,35 @@ async function requireOwnedProject(
     return false;
   }
   return true;
+}
+
+/** EXP-02: exige exatamente 2 variantes, cada uma com id e name string. */
+function isValidVariants(variants: unknown): variants is Variant[] {
+  if (!Array.isArray(variants) || variants.length !== 2) return false;
+  return variants.every(
+    (v) =>
+      v !== null &&
+      typeof v === "object" &&
+      typeof (v as Record<string, unknown>).id === "string" &&
+      typeof (v as Record<string, unknown>).name === "string",
+  );
+}
+
+/** EXP-03: exige todos os 5 campos do plano de verificação, com tipos válidos. */
+function isValidVerificationPlan(plan: unknown): plan is VerificationPlan {
+  if (plan === null || typeof plan !== "object") return false;
+  const p = plan as Record<string, unknown>;
+  return (
+    typeof p.hypothesis === "string" &&
+    p.hypothesis.length > 0 &&
+    typeof p.baselineMetric === "string" &&
+    p.baselineMetric.length > 0 &&
+    typeof p.threshold === "number" &&
+    Number.isFinite(p.threshold) &&
+    (p.comparison === "gte" || p.comparison === "lte") &&
+    typeof p.observationWindow === "string" &&
+    p.observationWindow.length > 0
+  );
 }
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
@@ -727,6 +757,60 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     const { status } = req.query as { status?: string };
     const proposals = await listProposals(pool, id, status);
     return reply.send({ proposals });
+  });
+
+  app.post("/projects/:id/proposals/:proposalId/experiments", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, proposalId } = req.params as { id: string; proposalId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "experiment.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "experiment.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as {
+      variants?: unknown;
+      verificationPlan?: unknown;
+      environment?: Record<string, unknown>;
+    };
+    if (!isValidVariants(body.variants)) {
+      return problem(reply, 422, "invalid_variants", "exactly 2 variants with id and name are required");
+    }
+    if (!isValidVerificationPlan(body.verificationPlan)) {
+      return problem(
+        reply,
+        422,
+        "invalid_verification_plan",
+        "hypothesis, baselineMetric, threshold, comparison and observationWindow are required",
+      );
+    }
+    const outcome = await startExperiment(pool, scope, id, proposalId, {
+      variants: body.variants,
+      verificationPlan: body.verificationPlan,
+      ...(body.environment !== undefined ? { environment: body.environment } : {}),
+    });
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "proposal does not exist in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "proposal is not in readyForReview status");
+      case "started":
+        return reply
+          .status(201)
+          .send({ experimentId: outcome.experimentId, status: "running", proposalDigest: outcome.digest });
+    }
+  });
+
+  app.get("/projects/:id/experiments/:experimentId", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, experimentId } = req.params as { id: string; experimentId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const experiment = await getExperiment(pool, id, experimentId);
+    if (!experiment) {
+      return problem(reply, 404, "not_found", "experiment does not exist in this project");
+    }
+    return reply.send(experiment);
   });
 
   app.get("/projects", async (req, reply) => {

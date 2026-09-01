@@ -129,12 +129,12 @@ T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Experimento criado a partir de proposal `readyForReview` com 2 variantes e plano completo persiste `status=running`, digest presente, e a proposal muda para `executing`
-- [ ] Variantes com tamanho != 2 são rejeitadas 422 sem criar linha
-- [ ] Plano de verificação incompleto é rejeitado 422 sem criar linha
-- [ ] Iniciar experimento numa proposal fora de `readyForReview` é rejeitado 409
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] Experimento criado a partir de proposal `readyForReview` com 2 variantes e plano completo persiste `status=running`, digest presente, e a proposal muda para `executing`
+- [x] Variantes com tamanho != 2 são rejeitadas 422 sem criar linha
+- [x] Plano de verificação incompleto é rejeitado 422 sem criar linha
+- [x] Iniciar experimento numa proposal fora de `readyForReview` é rejeitado 409
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full
