@@ -97,13 +97,13 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Declarar uma relação `composition` persiste e aparece no outbound do source e no inbound do target
-- [ ] Declarar com `type` fora do set fechado é rejeitado 422
-- [ ] Declarar para projeto inexistente ou de outro org é rejeitado 404
-- [ ] Declarar de um projeto para si mesmo é rejeitado 422
-- [ ] Declarar a mesma `(source,target,type)` duas vezes não duplica
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Declarar uma relação `composition` persiste e aparece no outbound do source e no inbound do target
+- [x] Declarar com `type` fora do set fechado é rejeitado 422
+- [x] Declarar para projeto inexistente ou de outro org é rejeitado 404
+- [x] Declarar de um projeto para si mesmo é rejeitado 422
+- [x] Declarar a mesma `(source,target,type)` duas vezes não duplica
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full

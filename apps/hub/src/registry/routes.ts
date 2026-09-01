@@ -67,6 +67,7 @@ import {
   rollbackInstallation,
   uninstallModule,
 } from "../evolution/modules.js";
+import { declareRelation, listRelations } from "../evolution/portfolio.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1517,6 +1518,41 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const lockfile = await getProjectLockfile(pool, id);
     return reply.send({ lockfile });
+  });
+
+  app.post("/projects/:id/relations", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "portfolio.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "portfolio.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { targetProjectId?: string; type?: string };
+    if (!body.targetProjectId || !body.type) {
+      return problem(reply, 422, "invalid_relation", "targetProjectId and type are required");
+    }
+    const outcome = await declareRelation(pool, scope, id, { targetProjectId: body.targetProjectId, type: body.type });
+    switch (outcome.kind) {
+      case "invalid_type":
+        return problem(reply, 422, "invalid_relation_type", "type must be one of composition, dependency, implementation, ownership, influence");
+      case "self_relation":
+        return problem(reply, 422, "self_relation", "a project cannot relate to itself");
+      case "not_found":
+        return problem(reply, 404, "not_found", "target project does not exist in this org");
+      case "declared":
+        return reply.status(201).send({ relationId: outcome.relationId });
+    }
+  });
+
+  app.get("/projects/:id/relations", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const relations = await listRelations(pool, id);
+    return reply.send(relations);
   });
 
   app.get("/projects", async (req, reply) => {
