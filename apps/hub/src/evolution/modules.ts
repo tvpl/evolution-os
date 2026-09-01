@@ -532,3 +532,31 @@ export async function rollbackInstallation(
     return { kind: "rolled_back", installationId: id, version: proven.version, digest: proven.digest };
   });
 }
+
+export type UninstallOutcome =
+  | { kind: "uninstalled"; installationId: string }
+  | { kind: "invalid_transition" }
+  | { kind: "not_found" };
+
+/** MODL-18/19: append-only - nenhuma linha de `module_installations` é apagada por esta ação. */
+export async function uninstallModule(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  moduleId: string,
+): Promise<UninstallOutcome> {
+  return withTx(pool, async (client) => {
+    const current = await getCurrentInstallation(client, projectId, moduleId);
+    if (!current) return { kind: "not_found" };
+    if (current.status === "uninstalled") return { kind: "invalid_transition" };
+
+    const nextSeq = current.seq + 1;
+    const id = `mi_${randomUUID().replaceAll("-", "")}`;
+    await client.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'uninstalled', 'uninstalled')`,
+      [id, projectId, scope.orgId, scope.workspaceId, moduleId, nextSeq, current.version, current.digest, JSON.stringify(current.capabilities)],
+    );
+    return { kind: "uninstalled", installationId: id };
+  });
+}

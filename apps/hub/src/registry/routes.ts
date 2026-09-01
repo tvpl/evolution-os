@@ -65,6 +65,7 @@ import {
   updateModule,
   quarantineInstallation,
   rollbackInstallation,
+  uninstallModule,
 } from "../evolution/modules.js";
 
 /**
@@ -1486,6 +1487,26 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           digest: outcome.digest,
           status: "active",
         });
+    }
+  });
+
+  app.post("/projects/:id/modules/:moduleId/uninstall", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, moduleId } = req.params as { id: string; moduleId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "module.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "module.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await uninstallModule(pool, scope, id, moduleId);
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "module is not installed in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "installation is already uninstalled");
+      case "uninstalled":
+        return reply.status(200).send({ installationId: outcome.installationId, moduleId, status: "uninstalled" });
     }
   });
 

@@ -230,12 +230,12 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Desinstalar uma instalação `active` ou `quarantined` muda seu status para `uninstalled` e o módulo some do lockfile (leitura filtra por `active`)
-- [ ] Todo o histórico de lock daquele módulo/projeto continua consultável após a desinstalação (nenhuma linha apagada)
-- [ ] Atualizar ou fazer rollback de uma instalação `uninstalled` é rejeitado 409
-- [ ] Toda rota deste slice é negada cross-tenant (403)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥6 tests pass
+- [x] Desinstalar uma instalação `active` ou `quarantined` muda seu status para `uninstalled` e o módulo some do lockfile (leitura filtra por `active`)
+- [x] Todo o histórico de lock daquele módulo/projeto continua consultável após a desinstalação (nenhuma linha apagada)
+- [x] Atualizar ou fazer rollback de uma instalação `uninstalled` é rejeitado 409
+- [x] Toda rota deste slice é negada cross-tenant (403)
+- [x] Gate check passes: full
+- [x] Test count: ≥6 tests pass
 
 **Tests**: integration
 **Gate**: full
