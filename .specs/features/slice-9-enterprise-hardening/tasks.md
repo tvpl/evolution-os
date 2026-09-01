@@ -78,12 +78,13 @@ T7
 - [x] Migration aplica de zero e é idempotente
 - [x] Novo grant `admin.write` aparece para os dois tenants dev
 - [x] Gate check passes: full
-- [x] Test count: ≥2 tests pass
+- [x] Test count: ≥2 tests pass ✅ (2 tests, 415 total)
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(hub): add enterprise hardening migration and capability grant`
+**Status**: ✅ Done
 
 ---
 
