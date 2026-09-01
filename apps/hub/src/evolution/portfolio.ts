@@ -373,3 +373,36 @@ export async function grantException(
     return { kind: "exempted" };
   });
 }
+
+export interface ProgressItem {
+  projectId: string;
+  wave: number;
+  status: string;
+}
+
+/**
+ * PORT-16/17: exatamente `{projectId, wave, status}` por item, ordenado por
+ * wave/declaração - nenhum campo de rank/score é computado ou retornado,
+ * de propósito (CORE-FR-053).
+ */
+export async function getCampaignProgress(
+  pool: DbPool,
+  portfolioProjectId: string,
+  campaignId: string,
+): Promise<ProgressItem[] | null> {
+  const campaignRes = await pool.query(`select id from campaigns where id = $1 and portfolio_project_id = $2`, [
+    campaignId,
+    portfolioProjectId,
+  ]);
+  if (!campaignRes.rows[0]) return null;
+
+  const res = await pool.query(
+    `select ci.target_project_id as "projectId", cw.seq as "wave", ci.status
+       from campaign_items ci
+       join campaign_waves cw on cw.id = ci.wave_id
+      where ci.campaign_id = $1
+      order by cw.seq, ci.created_at`,
+    [campaignId],
+  );
+  return res.rows as ProgressItem[];
+}

@@ -202,10 +202,10 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Progresso de uma campaign com 2 waves retorna a lista ordenada com exatamente os 3 campos por item, nenhum campo extra (asserção de shape exato, não `toHaveProperty`)
-- [ ] Progresso de campaign inexistente/outro org é rejeitado 404
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Progresso de uma campaign com 2 waves retorna a lista ordenada com exatamente os 3 campos por item, nenhum campo extra (asserção de shape exato, não `toHaveProperty`)
+- [x] Progresso de campaign inexistente/outro org é rejeitado 404
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
