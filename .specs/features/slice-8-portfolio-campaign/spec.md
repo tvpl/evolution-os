@@ -8,11 +8,11 @@ Até o Slice 7, cada projeto evolui isoladamente — nada liga um `portfolio` a 
 
 ## Goals
 
-- [ ] Um projeto pode declarar uma relação tipada com outro projeto do mesmo org (`composition`, `dependency`, `implementation`, `ownership` ou `influence` — os 5 termos de CORE-FR-002), consultável nos dois sentidos.
-- [ ] Um portfolio tem um dashboard agregado que soma, por projeto-membro (relação `composition`), contagens determinísticas de proposals abertas, decisions rejeitadas e experiments em andamento — sem inventar uma fórmula de "score" de saúde não especificada em nenhuma doc-fonte.
-- [ ] Uma campaign nasce de um finding comum e organiza os projetos-alvo em waves (cohorts) sequenciais — uma wave só libera para conclusão depois que a wave anterior está inteiramente resolvida (completed ou exempted), dando o comportamento canary/gradual exigido pelo build-sequence.
-- [ ] Um projeto-alvo pode receber uma exceção local a uma campaign com justificativa obrigatória, contando como resolvido para efeito de liberar a próxima wave, sem apagar o rastro de que foi uma exceção.
-- [ ] O progresso de uma campaign é comparável entre projetos sem nenhum campo de ranking/score — apenas status e wave, nunca uma posição relativa "punitiva" entre equipes (CORE-FR-053).
+- [x] Um projeto pode declarar uma relação tipada com outro projeto do mesmo org (`composition`, `dependency`, `implementation`, `ownership` ou `influence` — os 5 termos de CORE-FR-002), consultável nos dois sentidos.
+- [x] Um portfolio tem um dashboard agregado que soma, por projeto-membro (relação `composition`), contagens determinísticas de proposals abertas, decisions rejeitadas e experiments em andamento — sem inventar uma fórmula de "score" de saúde não especificada em nenhuma doc-fonte.
+- [x] Uma campaign nasce de um finding comum e organiza os projetos-alvo em waves (cohorts) sequenciais — uma wave só libera para conclusão depois que a wave anterior está inteiramente resolvida (completed ou exempted), dando o comportamento canary/gradual exigido pelo build-sequence.
+- [x] Um projeto-alvo pode receber uma exceção local a uma campaign com justificativa obrigatória, contando como resolvido para efeito de liberar a próxima wave, sem apagar o rastro de que foi uma exceção.
+- [x] O progresso de uma campaign é comparável entre projetos sem nenhum campo de ranking/score — apenas status e wave, nunca uma posição relativa "punitiva" entre equipes (CORE-FR-053).
 
 ## Out of Scope
 
@@ -157,25 +157,25 @@ Até o Slice 7, cada projeto evolui isoladamente — nada liga um `portfolio` a 
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PORT-01 | P1: Relações — declaração tipada, consultável nos 2 sentidos | Design | Pending |
-| PORT-02 | P1: Relações — rejeita tipo fora do set fechado (422) | Design | Pending |
-| PORT-03 | P1: Relações — rejeita projeto inexistente/outro org (404) | Design | Pending |
-| PORT-04 | P1: Relações — idempotência do mesmo (source,target,type) | Design | Pending |
-| PORT-05 | P1: Dashboard — agrega contagens exatas por membro | Design | Pending |
-| PORT-06 | P1: Dashboard — rejeita projeto inexistente (404) | Design | Pending |
-| PORT-07 | P1: Dashboard — lista vazia quando não há membros | Design | Pending |
-| PORT-08 | P1: Campaign — criação com waves e items pending | Design | Pending |
-| PORT-09 | P1: Campaign — rejeita wave vazia/target inválido (422/404) | Design | Pending |
-| PORT-10 | P1: Campaign — completar item da wave 1 | Design | Pending |
-| PORT-11 | P1: Campaign — bloqueia wave N+1 com wave N pending (409) | Design | Pending |
-| PORT-12 | P1: Campaign — libera wave N+1 quando wave N resolvida | Design | Pending |
-| PORT-13 | P1: Exceção — concede com justificativa | Design | Pending |
-| PORT-14 | P1: Exceção — rejeita sem justificativa (422) | Design | Pending |
-| PORT-15 | P1: Exceção — mix completed+exempted libera wave seguinte | Design | Pending |
-| PORT-16 | P1: Progresso — sem campo de rank/score | Design | Pending |
-| PORT-17 | P1: Progresso — rejeita campaign inexistente (404) | Design | Pending |
-| PORT-18 | P1: Export — waves/items/decisions do proposal vinculado | Design | Pending |
-| PORT-19 | P1: Export — rejeita campaign de outro org (404) | Design | Pending |
+| PORT-01 | P1: Relações — declaração tipada, consultável nos 2 sentidos | Execute | Implementing |
+| PORT-02 | P1: Relações — rejeita tipo fora do set fechado (422) | Execute | Implementing |
+| PORT-03 | P1: Relações — rejeita projeto inexistente/outro org (404) | Execute | Implementing |
+| PORT-04 | P1: Relações — idempotência do mesmo (source,target,type) | Execute | Implementing |
+| PORT-05 | P1: Dashboard — agrega contagens exatas por membro | Execute | Implementing |
+| PORT-06 | P1: Dashboard — rejeita projeto inexistente (404) | Execute | Implementing |
+| PORT-07 | P1: Dashboard — lista vazia quando não há membros | Execute | Implementing |
+| PORT-08 | P1: Campaign — criação com waves e items pending | Execute | Implementing |
+| PORT-09 | P1: Campaign — rejeita wave vazia/target inválido (422/404) | Execute | Implementing |
+| PORT-10 | P1: Campaign — completar item da wave 1 | Execute | Implementing |
+| PORT-11 | P1: Campaign — bloqueia wave N+1 com wave N pending (409) | Execute | Implementing |
+| PORT-12 | P1: Campaign — libera wave N+1 quando wave N resolvida | Execute | Implementing |
+| PORT-13 | P1: Exceção — concede com justificativa | Execute | Implementing |
+| PORT-14 | P1: Exceção — rejeita sem justificativa (422) | Execute | Implementing |
+| PORT-15 | P1: Exceção — mix completed+exempted libera wave seguinte | Execute | Implementing |
+| PORT-16 | P1: Progresso — sem campo de rank/score | Execute | Implementing |
+| PORT-17 | P1: Progresso — rejeita campaign inexistente (404) | Execute | Implementing |
+| PORT-18 | P1: Export — waves/items/decisions do proposal vinculado | Execute | Implementing |
+| PORT-19 | P1: Export — rejeita campaign de outro org (404) | Execute | Implementing |
 
 **ID format:** `PORT-NN`
 
@@ -187,8 +187,8 @@ Até o Slice 7, cada projeto evolui isoladamente — nada liga um `portfolio` a 
 
 ## Success Criteria
 
-- [ ] `validate_spec.py` sai 0 para esta spec.
-- [ ] O vertical slice completo roda ponta a ponta: declarar relações `composition` → dashboard agregado do portfolio → criar campaign em waves a partir de um finding comum → completar/excepcionar items respeitando o gate canary entre waves → progresso comparável sem ranking → exportar auditoria completa.
-- [ ] Nenhuma wave avança enquanto a anterior tiver algum item `pending`.
-- [ ] Nenhuma resposta de progresso ou dashboard contém um campo de rank/score sintético.
+- [x] `validate_spec.py` sai 0 para esta spec.
+- [x] O vertical slice completo roda ponta a ponta: declarar relações `composition` → dashboard agregado do portfolio → criar campaign em waves a partir de um finding comum → completar/excepcionar items respeitando o gate canary entre waves → progresso comparável sem ranking → exportar auditoria completa.
+- [x] Nenhuma wave avança enquanto a anterior tiver algum item `pending`.
+- [x] Nenhuma resposta de progresso ou dashboard contém um campo de rank/score sintético.
 - [ ] Verifier independente reporta PASS em `validation.md`.

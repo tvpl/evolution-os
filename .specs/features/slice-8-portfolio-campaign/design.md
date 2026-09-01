@@ -145,3 +145,18 @@ campaign_items(id text PK,
 | Meta-capability única `portfolio.write` para relações + campaigns | Cobre declarar relação, criar campaign, completar/excepcionar item | Mesmo padrão de uma capability por domínio desde o Slice 0; relações e campaigns são o mesmo domínio conceitual (portfolio) |
 
 Decisão de projeto-level: **nenhuma** — reuso do padrão deny-by-default e da tabela `decisions` são aplicações de convenções já estabelecidas (Slices 0 e 1), não uma convenção nova.
+
+---
+
+## Review do slice (checklist de `docs/06-delivery/05-build-sequence.md`)
+
+| Pergunta | Resposta |
+| --- | --- |
+| Usuário entende o valor? | Sim — um portfolio owner agora vê contagens agregadas reais dos seus projetos-membro, cria uma campaign a partir de um finding comum, e a rolagem avança em ondas (canary): nenhuma wave avança enquanto a anterior não estiver inteiramente resolvida, e cada equipe pode pedir uma exceção local justificada sem perder autonomia — exatamente o valor descrito em PRD-001 §6 |
+| O novo artifact está no knowledge model? | Sim — `project_relations` é a primeira implementação real de `spec.relations` (CORE-FR-002), declarado no manifest schema desde o Slice 0 mas nunca antes persistido; `campaigns`/`campaign_waves`/`campaign_items` estendem o Project Twin com o conceito de portfolio/campanha que PRD-001 §8 já previa, sem inventar uma entidade fora do schema documentado |
+| Evidence/decision lineage existe? | Sim, por reuso direto: `campaign_items.proposal_id` aponta para uma `proposals` row já existente (Slice 3); o export busca as `decisions` (Slice 1) daquele proposal via a coluna `subject_id` já existente — a campaign nunca cria uma decisão nova, só referencia a lineage que já existe. O dashboard também é 100% leitura direta das tabelas dos Slices 3/4, sem nenhuma tabela de agregação intermediária a manter sincronizada |
+| Policy e classification cobrem o fluxo? | Sim — `portfolio.write` segue o mesmo deny-by-default dos Slices 0-7, concedida aos dois tenants dev na mesma edição (T1); toda rota de campaign é aninhada sob o portfolio dono (`requireOwnedProject` no `:id` do portfolio), nunca no projeto-alvo do item |
+| Failure/retry/idempotency definidos? | Sim — declarar a mesma relação duas vezes é idempotente (replay do id existente); criar uma campaign com wave/target inválidos não persiste nada (transação única); toda transição de item (`complete`/`exception`) é bloqueada 409 se o item já é terminal, sem sobrescrever um estado terminal por engano |
+| Evals incluem negative cases? | Sim: tipo de relação inválido, self-relation, target inexistente/outro org, relação duplicada (idempotência), dashboard de projeto inexistente, wave vazia/zero waves/target inválido na criação de campaign, completar wave N+1 com wave N pendente, completar/excepcionar item já terminal, exceção sem justificativa, `proposalId` de outro projeto, progresso/export de campaign inexistente ou de outro portfolio, cross-tenant em toda rota nova |
+| O profile Lite continua possível? | Não aplicável a este slice por design — portfolio dashboard e campaign orchestration são explicitamente recursos Team/Enterprise (`07-deployment-topologies.md` §11), nunca Lite; nenhuma compatibilidade Lite precisa ser preservada aqui |
+| Alguma hipótese do ecossistema foi invalidada? | Não invalidou nenhum ADR. Nenhum desvio de spec foi encontrado durante o fechamento — a implementação de T1-T7 seguiu a spec/design sem precisar de correção de conformidade (ao contrário do Slice 6, cujo T5 precisou de uma correção de capability antes de fechar) |

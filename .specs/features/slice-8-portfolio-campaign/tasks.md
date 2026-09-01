@@ -248,9 +248,9 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Plano de execução marca slice 8 como `implemented`
-- [ ] Checklist de review do slice respondido
-- [ ] Gate check passes: build (inclui `check_docs.py`)
+- [x] Plano de execução marca slice 8 como `implemented`
+- [x] Checklist de review do slice respondido
+- [x] Gate check passes: build (inclui `check_docs.py`)
 
 **Tests**: none
 **Gate**: build
