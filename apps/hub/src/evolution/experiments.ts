@@ -170,6 +170,61 @@ export async function listProofArtifacts(pool: DbPool, experimentId: string): Pr
   return res.rows as ProofArtifactRow[];
 }
 
+export interface EvaluationResult {
+  verdict: "hypothesis_met" | "hypothesis_not_met" | "inconclusive";
+  rationale: string;
+}
+
+/**
+ * EXP-08/09/10: função pura, sem I/O — mesmo espírito do `analysis-provider.ts`
+ * (Slice 3). `observedValue === null` é "não sei ainda" (EVO-FR-004,
+ * `insufficient_context`), distinto de omitir o campo (rejeitado 422 na rota,
+ * antes de chegar aqui).
+ */
+export function evaluateExperiment(plan: VerificationPlan, observedValue: number | null): EvaluationResult {
+  if (observedValue === null) {
+    return { verdict: "inconclusive", rationale: "observed metric was explicitly marked unavailable" };
+  }
+  const met = plan.comparison === "gte" ? observedValue >= plan.threshold : observedValue <= plan.threshold;
+  return {
+    verdict: met ? "hypothesis_met" : "hypothesis_not_met",
+    rationale: `observed ${observedValue} ${plan.comparison} threshold ${plan.threshold}: ${
+      met ? "condition met" : "condition not met"
+    }`,
+  };
+}
+
+export type SubmitEvaluationOutcome =
+  | { kind: "evaluated"; verdict: string; rationale: string }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" };
+
+/** EXP-08/09/10/12: só avalia um experimento `running`; grava veredito +
+ * rationale e transiciona para `evaluated` na mesma operação. */
+export async function submitEvaluation(
+  pool: DbPool,
+  projectId: string,
+  experimentId: string,
+  observedValue: number | null,
+): Promise<SubmitEvaluationOutcome> {
+  const res = await pool.query(
+    `select status, verification_plan as "verificationPlan" from experiments where id = $1 and project_id = $2`,
+    [experimentId, projectId],
+  );
+  const row = res.rows[0] as { status: string; verificationPlan: VerificationPlan } | undefined;
+  if (!row) return { kind: "not_found" };
+  if (row.status !== "running") return { kind: "invalid_transition" };
+
+  const { verdict, rationale } = evaluateExperiment(row.verificationPlan, observedValue);
+  await pool.query(
+    `update experiments
+        set status = 'evaluated', observed_value = $2, verdict = $3, verdict_rationale = $4, evaluated_at = now()
+      where id = $1`,
+    [experimentId, JSON.stringify(observedValue), verdict, rationale],
+  );
+  return { kind: "evaluated", verdict, rationale };
+}
+
 export async function getExperiment(
   pool: DbPool,
   projectId: string,

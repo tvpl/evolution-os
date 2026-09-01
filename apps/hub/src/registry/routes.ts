@@ -34,6 +34,7 @@ import {
   getExperiment,
   attachProofArtifact,
   listProofArtifacts,
+  submitEvaluation,
   type Variant,
   type VerificationPlan,
 } from "../evolution/experiments.js";
@@ -102,6 +103,12 @@ function isValidVerificationPlan(plan: unknown): plan is VerificationPlan {
     typeof p.observationWindow === "string" &&
     p.observationWindow.length > 0
   );
+}
+
+/** EXP-08/09/10: exige um número finito ou `null` explícito. */
+function isValidObservedValue(value: unknown): value is number | null {
+  if (value === null) return true;
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void {
@@ -862,6 +869,38 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     }
     const artifacts = await listProofArtifacts(pool, experimentId);
     return reply.send({ artifacts });
+  });
+
+  app.post("/projects/:id/experiments/:experimentId/evaluate", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, experimentId } = req.params as { id: string; experimentId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "experiment.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "experiment.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { observedValue?: unknown };
+    if (!("observedValue" in body)) {
+      return problem(reply, 422, "invalid_observation", "observedValue is required (a finite number or null)");
+    }
+    if (!isValidObservedValue(body.observedValue)) {
+      return problem(reply, 422, "invalid_observation", "observedValue must be a finite number or null");
+    }
+    const outcome = await submitEvaluation(pool, id, experimentId, body.observedValue);
+    switch (outcome.kind) {
+      case "not_found":
+        return problem(reply, 404, "not_found", "experiment does not exist in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "experiment is not running");
+      case "evaluated":
+        return reply.send({
+          experimentId,
+          status: "evaluated",
+          verdict: outcome.verdict,
+          rationale: outcome.rationale,
+        });
+    }
   });
 
   app.get("/projects", async (req, reply) => {

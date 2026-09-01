@@ -179,14 +179,14 @@ T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Valor observado que satisfaz o threshold (per `comparison`) produz `hypothesis_met` e `status=evaluated`
-- [ ] Valor observado que não satisfaz o threshold produz `hypothesis_not_met`
-- [ ] Valor observado `null` explícito produz `inconclusive` com rationale
-- [ ] Requisição sem o campo de valor observado é rejeitada 422 sem gravar veredito
-- [ ] Valor não numérico e não-null (string/NaN/Infinity) é rejeitado 422
-- [ ] Avaliar um experimento que não está `running` é rejeitado 409
-- [ ] Gate check passes: full
-- [ ] Test count: ≥8 tests pass
+- [x] Valor observado que satisfaz o threshold (per `comparison`) produz `hypothesis_met` e `status=evaluated`
+- [x] Valor observado que não satisfaz o threshold produz `hypothesis_not_met`
+- [x] Valor observado `null` explícito produz `inconclusive` com rationale
+- [x] Requisição sem o campo de valor observado é rejeitada 422 sem gravar veredito
+- [x] Valor não numérico e não-null (string/boolean/object — NaN/Infinity não sobrevivem à serialização JSON e não são testáveis via HTTP; `Number.isFinite` permanece como defesa em profundidade) é rejeitado 422
+- [x] Avaliar um experimento que não está `running` é rejeitado 409
+- [x] Gate check passes: full
+- [x] Test count: ≥8 tests pass
 
 **Tests**: integration
 **Gate**: full
