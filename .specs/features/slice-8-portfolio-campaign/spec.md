@@ -157,25 +157,25 @@ Até o Slice 7, cada projeto evolui isoladamente — nada liga um `portfolio` a 
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PORT-01 | P1: Relações — declaração tipada, consultável nos 2 sentidos | Execute | Implementing |
-| PORT-02 | P1: Relações — rejeita tipo fora do set fechado (422) | Execute | Implementing |
-| PORT-03 | P1: Relações — rejeita projeto inexistente/outro org (404) | Execute | Implementing |
-| PORT-04 | P1: Relações — idempotência do mesmo (source,target,type) | Execute | Implementing |
-| PORT-05 | P1: Dashboard — agrega contagens exatas por membro | Execute | Implementing |
-| PORT-06 | P1: Dashboard — rejeita projeto inexistente (404) | Execute | Implementing |
-| PORT-07 | P1: Dashboard — lista vazia quando não há membros | Execute | Implementing |
-| PORT-08 | P1: Campaign — criação com waves e items pending | Execute | Implementing |
-| PORT-09 | P1: Campaign — rejeita wave vazia/target inválido (422/404) | Execute | Implementing |
-| PORT-10 | P1: Campaign — completar item da wave 1 | Execute | Implementing |
-| PORT-11 | P1: Campaign — bloqueia wave N+1 com wave N pending (409) | Execute | Implementing |
-| PORT-12 | P1: Campaign — libera wave N+1 quando wave N resolvida | Execute | Implementing |
-| PORT-13 | P1: Exceção — concede com justificativa | Execute | Implementing |
-| PORT-14 | P1: Exceção — rejeita sem justificativa (422) | Execute | Implementing |
-| PORT-15 | P1: Exceção — mix completed+exempted libera wave seguinte | Execute | Implementing |
-| PORT-16 | P1: Progresso — sem campo de rank/score | Execute | Implementing |
-| PORT-17 | P1: Progresso — rejeita campaign inexistente (404) | Execute | Implementing |
-| PORT-18 | P1: Export — waves/items/decisions do proposal vinculado | Execute | Implementing |
-| PORT-19 | P1: Export — rejeita campaign de outro org (404) | Execute | Implementing |
+| PORT-01 | P1: Relações — declaração tipada, consultável nos 2 sentidos | Execute | Verified |
+| PORT-02 | P1: Relações — rejeita tipo fora do set fechado (422) | Execute | Verified |
+| PORT-03 | P1: Relações — rejeita projeto inexistente/outro org (404) | Execute | Verified |
+| PORT-04 | P1: Relações — idempotência do mesmo (source,target,type) | Execute | Verified |
+| PORT-05 | P1: Dashboard — agrega contagens exatas por membro | Execute | Verified |
+| PORT-06 | P1: Dashboard — rejeita projeto inexistente (404) | Execute | Verified |
+| PORT-07 | P1: Dashboard — lista vazia quando não há membros | Execute | Verified |
+| PORT-08 | P1: Campaign — criação com waves e items pending | Execute | Verified |
+| PORT-09 | P1: Campaign — rejeita wave vazia/target inválido (422/404) | Execute | Verified |
+| PORT-10 | P1: Campaign — completar item da wave 1 | Execute | Verified |
+| PORT-11 | P1: Campaign — bloqueia wave N+1 com wave N pending (409) | Execute | Verified |
+| PORT-12 | P1: Campaign — libera wave N+1 quando wave N resolvida | Execute | Verified |
+| PORT-13 | P1: Exceção — concede com justificativa | Execute | Verified |
+| PORT-14 | P1: Exceção — rejeita sem justificativa (422) | Execute | Verified |
+| PORT-15 | P1: Exceção — mix completed+exempted libera wave seguinte | Execute | Verified |
+| PORT-16 | P1: Progresso — sem campo de rank/score | Execute | Verified |
+| PORT-17 | P1: Progresso — rejeita campaign inexistente (404) | Execute | Verified |
+| PORT-18 | P1: Export — waves/items/decisions do proposal vinculado | Execute | Verified |
+| PORT-19 | P1: Export — rejeita campaign de outro org (404) | Execute | Verified |
 
 **ID format:** `PORT-NN`
 
@@ -191,4 +191,4 @@ Até o Slice 7, cada projeto evolui isoladamente — nada liga um `portfolio` a 
 - [x] O vertical slice completo roda ponta a ponta: declarar relações `composition` → dashboard agregado do portfolio → criar campaign em waves a partir de um finding comum → completar/excepcionar items respeitando o gate canary entre waves → progresso comparável sem ranking → exportar auditoria completa.
 - [x] Nenhuma wave avança enquanto a anterior tiver algum item `pending`.
 - [x] Nenhuma resposta de progresso ou dashboard contém um campo de rank/score sintético.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] Verifier independente reporta PASS em `validation.md`.
