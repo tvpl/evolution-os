@@ -51,6 +51,7 @@ import {
   declareEvalCase,
   listEvalCases,
   runEval,
+  evaluateExperimentFromEvalRun,
   type InventoryComponent,
   type InvariantType,
 } from "../evolution/harness.js";
@@ -1258,6 +1259,42 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           runId: outcome.runId,
           score: { passed: outcome.passed, total: outcome.total },
           results: outcome.results,
+        });
+    }
+  });
+
+  app.post("/projects/:id/harness/experiments/:experimentId/evaluate-from-eval-run", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, experimentId } = req.params as { id: string; experimentId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "harness.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "harness.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const outcome = await evaluateExperimentFromEvalRun(pool, scope, id, experimentId);
+    switch (outcome.kind) {
+      case "requires_inventory":
+        return problem(reply, 422, "harness_requires_inventory", "declare a harness inventory before running evals");
+      case "requires_eval_cases":
+        return problem(
+          reply,
+          422,
+          "harness_requires_eval_cases",
+          "declare at least one eval case before running evals",
+        );
+      case "not_found":
+        return problem(reply, 404, "not_found", "experiment does not exist in this project");
+      case "invalid_transition":
+        return problem(reply, 409, "invalid_transition", "experiment is not running");
+      case "evaluated":
+        return reply.send({
+          experimentId,
+          status: "evaluated",
+          runId: outcome.runId,
+          score: { passed: outcome.passed, total: outcome.total },
+          verdict: outcome.verdict,
+          rationale: outcome.rationale,
         });
     }
   });

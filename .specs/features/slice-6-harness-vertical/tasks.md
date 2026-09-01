@@ -173,11 +173,11 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Avaliar um experimento `running` a partir do eval run muda seu status para `evaluated` com o veredito calculado a partir do score
-- [ ] Avaliar um experimento de outro projeto é rejeitado 404
-- [ ] Avaliar um experimento que não está `running` é rejeitado 409
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Avaliar um experimento `running` a partir do eval run muda seu status para `evaluated` com o veredito calculado a partir do score
+- [x] Avaliar um experimento de outro projeto é rejeitado 404
+- [x] Avaliar um experimento que não está `running` é rejeitado 409
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

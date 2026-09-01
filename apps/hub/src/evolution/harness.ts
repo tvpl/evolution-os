@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DbPool } from "../platform/db.js";
 import type { AuthScope } from "../identity/session.js";
+import { submitEvaluation } from "./experiments.js";
 
 export interface InventoryComponent {
   id: string;
@@ -185,6 +186,46 @@ export async function runEval(pool: DbPool, scope: AuthScope, projectId: string)
     [runId, projectId, scope.orgId, scope.workspaceId, inventory.version, passed, total, JSON.stringify(results)],
   );
   return { kind: "ran", runId, passed, total, results };
+}
+
+export type EvaluateFromEvalRunOutcome =
+  | { kind: "evaluated"; runId: string; passed: number; total: number; verdict: string; rationale: string }
+  | { kind: "requires_inventory" }
+  | { kind: "requires_eval_cases" }
+  | { kind: "not_found" }
+  | { kind: "invalid_transition" };
+
+/**
+ * HRN-10/11/12: roda o dataset (T4) e submete o score `passed/total` como
+ * `observedValue` para `submitEvaluation` (Slice 4), sem nenhuma alteração
+ * nessa função — o mesmo gate genérico de promoção (`observability-evals.md`
+ * §9) é reusado, não duplicado.
+ */
+export async function evaluateExperimentFromEvalRun(
+  pool: DbPool,
+  scope: AuthScope,
+  projectId: string,
+  experimentId: string,
+): Promise<EvaluateFromEvalRunOutcome> {
+  const runOutcome = await runEval(pool, scope, projectId);
+  if (runOutcome.kind !== "ran") {
+    return runOutcome;
+  }
+
+  const score = runOutcome.passed / runOutcome.total;
+  const evalOutcome = await submitEvaluation(pool, projectId, experimentId, score);
+  if (evalOutcome.kind !== "evaluated") {
+    return evalOutcome;
+  }
+
+  return {
+    kind: "evaluated",
+    runId: runOutcome.runId,
+    passed: runOutcome.passed,
+    total: runOutcome.total,
+    verdict: evalOutcome.verdict,
+    rationale: evalOutcome.rationale,
+  };
 }
 
 export async function getCurrentInventory(pool: DbPool, projectId: string): Promise<InventoryRow | null> {
