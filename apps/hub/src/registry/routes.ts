@@ -691,7 +691,11 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           `signal '${body.signalId}' does not belong to this project`,
         );
       case "created":
-        return reply.status(201).send({ proposalId: outcome.proposalId, status: "draft" });
+        return reply.status(201).send({
+          proposalId: outcome.proposalId,
+          status: "draft",
+          priorRelatedDecisions: outcome.priorRelatedDecisions,
+        });
     }
   });
 

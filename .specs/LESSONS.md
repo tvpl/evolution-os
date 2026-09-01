@@ -26,6 +26,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/hub/src/identity/session.ts:36 (hub/identity)
 - last seen: 2026-08-31T01:51:25Z
 
+### L-003 - Assert spec-named payload fields on their value (toBe/toEqual), never with toHaveProperty alone — presence-only checks let a hardcoded or blanked field pass the whole suite.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/hub/test` · harmful: 0
+- features: slice-3-evidence-to-decision
+- evidence: M1/M2/M8 — apps/hub/src/evolution/evidence.ts:41,79 + proposals.ts:164 (apps/hub/test)
+- last seen: 2026-09-01T11:43:29Z
+
+### L-004 - When a design reduces an AC to an already-implemented generic mechanism, re-read the AC's trigger clause — reusing a prior slice's guard covers the AC only if the trigger matches, otherwise the AC ships untested.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `.specs` · harmful: 0
+- features: slice-3-evidence-to-decision
+- evidence: FLOW-18 (spec.md:125,127) (.specs)
+- last seen: 2026-09-01T11:43:32Z
+
+### L-005 - Ordering criteria in an AC must name the field they sort by; 'most-recent-first' leaves created_at vs ready_at undecided and makes the test unfalsifiable against intent.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `.specs` · harmful: 0
+- features: slice-3-evidence-to-decision
+- evidence: FLOW-16 (spec.md:123) (.specs)
+- last seen: 2026-09-01T11:43:33Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

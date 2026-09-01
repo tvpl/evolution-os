@@ -91,8 +91,14 @@ describe("proposal inbox (FLOW-16)", () => {
     expect(ids.indexOf(second)).toBeLessThan(ids.indexOf(first));
 
     for (const p of proposals) {
-      expect(p).toHaveProperty("challengerFindings");
       expect(p.status).toBe("readyForReview");
+      expect(p.challengerFindings).toEqual(
+        expect.arrayContaining([
+          "missing_do_nothing_alternative",
+          "single_source_evidence",
+          "missing_cost_of_inaction",
+        ]),
+      );
     }
   });
 

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 3,
+  "next_id": 6,
   "lessons": [
     {
       "id": "L-001",
@@ -40,6 +40,60 @@
       ],
       "created": "2026-08-31T01:51:25Z",
       "last_seen": "2026-08-31T01:51:25Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::assert spec named payload fields on their value tobe toequal never with tohaveproperty alone presence only checks let a hardcoded or blanked field pass the whole suite",
+      "text": "Assert spec-named payload fields on their value (toBe/toEqual), never with toHaveProperty alone — presence-only checks let a hardcoded or blanked field pass the whole suite.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M1/M2/M8 — apps/hub/src/evolution/evidence.ts:41,79 + proposals.ts:164 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T11:43:29Z",
+      "last_seen": "2026-09-01T11:43:29Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::when a design reduces an ac to an already implemented generic mechanism re read the ac s trigger clause reusing a prior slice s guard covers the ac only if the trigger matches otherwise the ac ships untested",
+      "text": "When a design reduces an AC to an already-implemented generic mechanism, re-read the AC's trigger clause — reusing a prior slice's guard covers the AC only if the trigger matches, otherwise the AC ships untested.",
+      "signal": "ac_gap",
+      "scope": ".specs",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FLOW-18 (spec.md:125,127) (.specs)"
+      ],
+      "created": "2026-09-01T11:43:32Z",
+      "last_seen": "2026-09-01T11:43:32Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_precision_gap::ordering criteria in an ac must name the field they sort by most recent first leaves created at vs ready at undecided and makes the test unfalsifiable against intent",
+      "text": "Ordering criteria in an AC must name the field they sort by; 'most-recent-first' leaves created_at vs ready_at undecided and makes the test unfalsifiable against intent.",
+      "signal": "spec_precision_gap",
+      "scope": ".specs",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FLOW-16 (spec.md:123) (.specs)"
+      ],
+      "created": "2026-09-01T11:43:33Z",
+      "last_seen": "2026-09-01T11:43:33Z"
     }
   ]
 }

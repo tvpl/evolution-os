@@ -37,6 +37,44 @@ async function createDraftProposal(target: string): Promise<string> {
   return res.json().proposalId;
 }
 
+async function buildSignal(target: string): Promise<string> {
+  const evd = await app.inject({
+    method: "POST",
+    url: `/projects/${target}/evidence`,
+    headers: { authorization: `Bearer ${tokenA}` },
+    payload: { type: "humanStatement", statement: `Evidência ${Math.random()}` },
+  });
+  const { evidenceId } = evd.json();
+  await app.inject({
+    method: "POST",
+    url: `/projects/${target}/evidence/${evidenceId}/activate`,
+    headers: { authorization: `Bearer ${tokenA}` },
+  });
+  const clm = await app.inject({
+    method: "POST",
+    url: `/projects/${target}/claims`,
+    headers: { authorization: `Bearer ${tokenA}` },
+    payload: { statement: "x", epistemicType: "fact", evidenceIds: [evidenceId] },
+  });
+  const { claimId } = clm.json();
+  const sig = await app.inject({
+    method: "POST",
+    url: `/projects/${target}/signals`,
+    headers: { authorization: `Bearer ${tokenA}` },
+    payload: { claimId },
+  });
+  return sig.json().signalId;
+}
+
+function createProposalFromSignal(target: string, signalId: string, title: string) {
+  return app.inject({
+    method: "POST",
+    url: `/projects/${target}/proposals`,
+    headers: { authorization: `Bearer ${tokenA}` },
+    payload: { title, summary: "y", proposalType: "adopt", signalId },
+  });
+}
+
 function decide(target: string, body: Record<string, unknown>) {
   return app.inject({
     method: "POST",
@@ -114,6 +152,32 @@ describe("decision guard extended to proposal subjects (FLOW-17/18)", () => {
       subjectId: foreignProposalId,
     });
     expect(res.statusCode).toBe(422);
+  });
+
+  it("creating a new proposal from a signal whose prior proposal was rejected surfaces that rejection (FLOW-18)", async () => {
+    const signalId = await buildSignal(projectId);
+    const firstRes = await createProposalFromSignal(projectId, signalId, "Primeira tentativa");
+    const firstProposalId = firstRes.json().proposalId;
+    expect(firstRes.json().priorRelatedDecisions).toEqual([]);
+
+    await decide(projectId, {
+      decision: "reject",
+      rationale: "Ainda não é prioridade.",
+      subjectType: "proposal",
+      subjectId: firstProposalId,
+    });
+
+    const secondRes = await createProposalFromSignal(projectId, signalId, "Segunda tentativa");
+    expect(secondRes.statusCode).toBe(201);
+    const prior = secondRes.json().priorRelatedDecisions;
+    expect(prior).toHaveLength(1);
+    expect(prior[0]).toMatchObject({ decision: "reject", subjectId: firstProposalId });
+  });
+
+  it("creating a proposal from a signal with no prior rejection returns an empty priorRelatedDecisions", async () => {
+    const signalId = await buildSignal(projectId);
+    const res = await createProposalFromSignal(projectId, signalId, "Sem histórico");
+    expect(res.json().priorRelatedDecisions).toEqual([]);
   });
 
   it("decisions listing includes proposal-subject decisions", async () => {

@@ -103,13 +103,26 @@ describe("proposals — draft creation (FLOW-12/15)", () => {
       signalId,
     });
     expect(res.statusCode).toBe(201);
-    expect(res.json()).toEqual({ proposalId: expect.stringMatching(/^prp_/), status: "draft" });
+    expect(res.json()).toEqual({
+      proposalId: expect.stringMatching(/^prp_/),
+      status: "draft",
+      priorRelatedDecisions: [],
+    });
 
-    const row = await pool.query("select status, alternatives from proposals where id = $1", [
-      res.json().proposalId,
-    ]);
+    const row = await pool.query(
+      `select status, alternatives, why_now as "whyNow", cost_of_inaction as "costOfInaction",
+              recommended_alternative_id as "recommendedAlternativeId"
+         from proposals where id = $1`,
+      [res.json().proposalId],
+    );
     expect(row.rows[0].status).toBe("draft");
-    expect(row.rows[0].alternatives).toHaveLength(2);
+    expect(row.rows[0].alternatives).toEqual([
+      { id: "alt-1", type: "adopt", title: "Adotar" },
+      { id: "alt-2", type: "doNothing", title: "Não fazer nada" },
+    ]);
+    expect(row.rows[0].whyNow).toBe("Concorrente já adotou.");
+    expect(row.rows[0].costOfInaction).toBe("Débito técnico crescente.");
+    expect(row.rows[0].recommendedAlternativeId).toBe("alt-1");
   });
 
   it("a proposal with no signal and no investigationState is rejected 422", async () => {

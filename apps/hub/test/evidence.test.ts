@@ -66,9 +66,10 @@ describe("evidence quarantine and activation (FLOW-01/02/03/04)", () => {
     const res = await createEvidence({ type: "humanStatement", statement: "O concorrente lançou a feature X." });
     expect(res.statusCode).toBe(201);
     expect(res.json()).toEqual({ evidenceId: expect.stringMatching(/^evd_/), status: "quarantine" });
-    const row = await pool.query("select status, content_digest from evidence where id = $1", [
+    const row = await pool.query("select type, status, content_digest from evidence where id = $1", [
       res.json().evidenceId,
     ]);
+    expect(row.rows[0].type).toBe("humanStatement");
     expect(row.rows[0].status).toBe("quarantine");
     expect(row.rows[0].content_digest).toMatch(/^sha256:/);
   });
@@ -80,10 +81,11 @@ describe("evidence quarantine and activation (FLOW-01/02/03/04)", () => {
       sourceType: "url",
     });
     expect(res.statusCode).toBe(201);
-    const row = await pool.query("select source_reference, source_type from evidence where id = $1", [
+    const row = await pool.query("select type, source_reference, source_type from evidence where id = $1", [
       res.json().evidenceId,
     ]);
     expect(row.rows[0]).toEqual({
+      type: "referenceOnly",
       source_reference: "https://example.com/announcement",
       source_type: "url",
     });
@@ -126,7 +128,17 @@ describe("evidence quarantine and activation (FLOW-01/02/03/04)", () => {
     expect(res.statusCode).toBe(422);
   });
 
-  it("listing returns status and digest for every evidence", async () => {
+  it("listing returns each evidence's actual current status and digest", async () => {
+    const quarantined = await createEvidence({ type: "humanStatement", statement: "Ainda em quarentena." });
+    const { evidenceId: quarantinedId } = quarantined.json();
+    const activated = await createEvidence({ type: "humanStatement", statement: "Vai ser ativada." });
+    const { evidenceId: activatedId } = activated.json();
+    await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/evidence/${activatedId}/activate`,
+      headers: { authorization: `Bearer ${tokenA}` },
+    });
+
     const res = await app.inject({
       method: "GET",
       url: `/projects/${projectId}/evidence`,
@@ -136,9 +148,40 @@ describe("evidence quarantine and activation (FLOW-01/02/03/04)", () => {
     const { evidence } = res.json();
     expect(evidence.length).toBeGreaterThanOrEqual(3);
     for (const e of evidence) {
-      expect(e).toHaveProperty("status");
       expect(e.contentDigest).toMatch(/^sha256:/);
     }
+    const quarantinedItem = evidence.find((e: { id: string }) => e.id === quarantinedId);
+    const activatedItem = evidence.find((e: { id: string }) => e.id === activatedId);
+    expect(quarantinedItem.status).toBe("quarantine");
+    expect(activatedItem.status).toBe("active");
+  });
+
+  it("two evidences with identical content are both created without error (dedup out of scope)", async () => {
+    const sameContent = `Conteúdo duplicado ${Math.random()}`;
+    const first = await createEvidence({ type: "humanStatement", statement: sameContent });
+    const second = await createEvidence({ type: "humanStatement", statement: sameContent });
+    expect(first.statusCode).toBe(201);
+    expect(second.statusCode).toBe(201);
+    expect(first.json().evidenceId).not.toBe(second.json().evidenceId);
+
+    const rows = await pool.query("select content_digest from evidence where id = any($1)", [
+      [first.json().evidenceId, second.json().evidenceId],
+    ]);
+    expect(rows.rows[0].content_digest).toBe(rows.rows[1].content_digest);
+  });
+
+  it("the status column accepts source_unavailable so a future slice can flag stale evidence", async () => {
+    const created = await createEvidence({ type: "referenceOnly", sourceReference: "https://example.com/gone" });
+    const { evidenceId } = created.json();
+    await pool.query("update evidence set status = 'source_unavailable' where id = $1", [evidenceId]);
+
+    const res = await app.inject({
+      method: "GET",
+      url: `/projects/${projectId}/evidence`,
+      headers: { authorization: `Bearer ${tokenA}` },
+    });
+    const item = res.json().evidence.find((e: { id: string }) => e.id === evidenceId);
+    expect(item.status).toBe("source_unavailable");
   });
 
   it("activating unknown evidence returns 404", async () => {

@@ -22,8 +22,16 @@ export interface CreateProposalInput {
   investigationState?: string;
 }
 
+export interface PriorRejectedDecision {
+  id: string;
+  decision: string;
+  rationale: string;
+  subjectId: string;
+  decidedAt: string;
+}
+
 export type CreateProposalOutcome =
-  | { kind: "created"; proposalId: string }
+  | { kind: "created"; proposalId: string; priorRelatedDecisions: PriorRejectedDecision[] }
   | { kind: "requires_evidence" }
   | { kind: "invalid_signal_reference" };
 
@@ -32,6 +40,12 @@ export type CreateProposalOutcome =
  * claim com lastro em evidência (via `signalId`, que já exige uma claim
  * válida) OU de um `investigationState` explícito — nunca as duas coisas
  * ausentes ao mesmo tempo.
+ *
+ * FLOW-18: quando a proposal nasce de um `signalId`, outras propostas do
+ * MESMO signal já rejeitadas são surfaced como `priorRelatedDecisions` —
+ * visibilidade, nunca bloqueio (o guard de rejeição não reaparece
+ * silenciosamente, agora também no momento da criação, não só numa nova
+ * decisão sobre o mesmo subject como o FLOW-17 já cobre).
  */
 export async function createProposal(
   pool: DbPool,
@@ -49,6 +63,10 @@ export async function createProposal(
       return { kind: "invalid_signal_reference" };
     }
   }
+
+  const priorRelatedDecisions = input.signalId
+    ? await findPriorRejectedDecisionsForSignal(pool, projectId, input.signalId)
+    : [];
 
   const proposalId = `prp_${randomUUID().replaceAll("-", "")}`;
   await pool.query(
@@ -72,7 +90,26 @@ export async function createProposal(
       JSON.stringify(input.impact ?? {}),
     ],
   );
-  return { kind: "created", proposalId };
+  return { kind: "created", proposalId, priorRelatedDecisions };
+}
+
+async function findPriorRejectedDecisionsForSignal(
+  pool: DbPool,
+  projectId: string,
+  signalId: string,
+): Promise<PriorRejectedDecision[]> {
+  const res = await pool.query(
+    `select d.id, d.decision, d.rationale, d.subject_id as "subjectId", d.decided_at as "decidedAt"
+       from decisions d
+       join proposals p on p.id = d.subject_id
+      where d.subject_type = 'proposal'
+        and d.decision = 'reject'
+        and p.project_id = $1
+        and p.signal_id = $2
+      order by d.decided_at desc`,
+    [projectId, signalId],
+  );
+  return res.rows as PriorRejectedDecision[];
 }
 
 export type ReadyOutcome =
