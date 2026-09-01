@@ -135,6 +135,23 @@ describe("update a module with a blocking permission diff (MODL-12/13/14)", () =
     expect(lock.json().lockfile[0].version).toBe("2.0.0");
   });
 
+  it("succeeds even if an unchanged, already-locked capability's grant was later revoked - only added capabilities gate the update", async () => {
+    await grantCapability("module-test.base.read");
+    const moduleId = "io.evolutionos.modules.update-unchanged-cap-revoked";
+    await publish(manifestV1(moduleId));
+    await publish(manifestV2(moduleId));
+    const projectId = await registerProject();
+    await install(projectId, moduleId, "1.0.0");
+
+    // module-test.base.read is present in both v1 and v2 - it is not part of the
+    // permission diff for this update, so revoking it after install must not block.
+    await revokeCapability("module-test.base.read");
+
+    const res = await update(projectId, moduleId, "2.0.0");
+    expect(res.statusCode).toBe(200);
+    expect(res.json().permissionDiff).toEqual({ added: [], removed: [] });
+  });
+
   it("reports a removed capability in the diff when the new version drops one", async () => {
     await grantCapability("module-test.base.read");
     const moduleId = "io.evolutionos.modules.update-removed";

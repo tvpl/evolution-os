@@ -124,6 +124,12 @@ describe("install a module with capability policy check and lockfile (MODL-07/08
         installedAt: expect.any(String),
       },
     ]);
+
+    const row = await pool.query(
+      `select seq from module_installations where project_id = $1 and module_id = $2`,
+      [projectId, manifest.id],
+    );
+    expect(row.rows[0].seq).toBe(1);
   });
 
   it("rejects install with a missing capability grant, listing exactly what is missing", async () => {
@@ -178,6 +184,23 @@ describe("install a module with capability policy check and lockfile (MODL-07/08
         where module_id = $1 and version = $2`,
       [manifest.id, manifest.version],
     );
+    const projectId = await registerProject();
+    const res = await install(projectId, manifest.id, manifest.version);
+    expect(res.statusCode).toBe(409);
+    expect(res.json().title).toBe("signature_invalid");
+  });
+
+  it("rejects install when the persisted signature itself is corrupted, independent of the manifest", async () => {
+    await grantCapability("module-test.resource.read");
+    const manifest = baseManifest({ id: "io.evolutionos.modules.install-corrupt-signature" });
+    await publish(manifest);
+    // Corrupt only the signature column - manifest/digest stay exactly as signed, so this
+    // exercises the actual Ed25519 verify() call rather than the digest-mismatch short-circuit.
+    await pool.query(`update module_versions set signature = $1 where module_id = $2 and version = $3`, [
+      Buffer.from("not-a-real-signature").toString("base64"),
+      manifest.id,
+      manifest.version,
+    ]);
     const projectId = await registerProject();
     const res = await install(projectId, manifest.id, manifest.version);
     expect(res.statusCode).toBe(409);

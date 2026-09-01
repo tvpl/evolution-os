@@ -98,6 +98,26 @@ describe("verify module signatures on read and list the registry (MODL-05/06/20)
     expect(res.json().signatureValid).toBe(false);
   });
 
+  it("returns signatureValid: false when the signature itself is corrupted, independent of the manifest", async () => {
+    const manifest = baseManifest({ id: "io.evolutionos.modules.corrupt-signature-test" });
+    const published = await publish(tokenA, manifest);
+    expect(published.json().signature.length).toBeGreaterThan(0);
+
+    // Corrupt only the persisted signature - manifest and digest stay exactly as signed,
+    // so this exercises the actual Ed25519 verify() call, not the earlier digest-mismatch
+    // short-circuit that the manifest-tampering test above triggers.
+    const corrupted = Buffer.from("not-a-real-signature").toString("base64");
+    await pool.query(`update module_versions set signature = $1 where module_id = $2 and version = $3`, [
+      corrupted,
+      manifest.id,
+      manifest.version,
+    ]);
+
+    const res = await readVersion(tokenA, manifest.id, manifest.version);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().signatureValid).toBe(false);
+  });
+
   it("returns 404 for an unknown module version", async () => {
     const res = await readVersion(tokenA, "io.evolutionos.modules.does-not-exist", "9.9.9");
     expect(res.statusCode).toBe(404);
