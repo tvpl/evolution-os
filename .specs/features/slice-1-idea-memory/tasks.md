@@ -162,10 +162,10 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Registro com constraints grava cada um com `authority='declared'`
-- [ ] Registro sem constraints não falha (lista vazia)
-- [ ] Gate check passes: full
-- [ ] Test count: ≥3 tests pass
+- [x] Registro com constraints grava cada um com `authority='declared'`
+- [x] Registro sem constraints não falha (lista vazia)
+- [x] Gate check passes: full
+- [x] Test count: ≥3 tests pass
 
 **Tests**: integration
 **Gate**: full

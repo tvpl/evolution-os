@@ -7,6 +7,7 @@ import {
   insertHypotheses,
   type HypothesisInput,
 } from "../idea-memory/hypotheses.js";
+import { insertConstraints, type ConstraintInput } from "../idea-memory/constraints.js";
 
 /** JSON canônico (chaves ordenadas em profundidade) para digest estável. */
 export function canonicalJson(value: unknown): string {
@@ -99,6 +100,13 @@ export async function registerProject(
     ] as HypothesisInput[] | undefined;
     if (hypotheses?.length) {
       await insertHypotheses(client, projectId, scope, hypotheses);
+    }
+
+    const constraints = (input.manifest["spec"] as Record<string, unknown> | undefined)?.[
+      "constraints"
+    ] as ConstraintInput[] | undefined;
+    if (constraints?.length) {
+      await insertConstraints(client, projectId, scope, constraints);
     }
 
     const envelope: EventEnvelope = {
