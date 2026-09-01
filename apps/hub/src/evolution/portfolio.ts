@@ -406,3 +406,71 @@ export async function getCampaignProgress(
   );
   return res.rows as ProgressItem[];
 }
+
+export interface ProposalDecisionRow {
+  id: string;
+  decision: string;
+  actor: string;
+  rationale: string;
+  decidedAt: string;
+}
+
+/**
+ * PORT-18: reusa a tabela `decisions` do Slice 1 via `subject_id` (já
+ * existente desde então) - nenhuma migração nova, nenhuma duplicação do
+ * mecanismo de gravação de decisão.
+ */
+async function getProposalDecisions(pool: DbPool, proposalId: string): Promise<ProposalDecisionRow[]> {
+  const res = await pool.query(
+    `select id, decision, actor, rationale, decided_at as "decidedAt"
+       from decisions where subject_type = 'proposal' and subject_id = $1
+      order by decided_at desc`,
+    [proposalId],
+  );
+  return res.rows as ProposalDecisionRow[];
+}
+
+export interface ExportCampaignItem {
+  targetProjectId: string;
+  status: string;
+  exceptionReason: string | null;
+  proposalId: string | null;
+  decisions: ProposalDecisionRow[];
+}
+
+export interface ExportCampaignWave {
+  seq: number;
+  items: ExportCampaignItem[];
+}
+
+export interface CampaignExport {
+  finding: string;
+  waves: ExportCampaignWave[];
+}
+
+/** PORT-18/19: agrega o estado final de cada item com as decisions do proposal vinculado, quando houver. */
+export async function exportCampaign(
+  pool: DbPool,
+  portfolioProjectId: string,
+  campaignId: string,
+): Promise<CampaignExport | null> {
+  const detail = await getCampaign(pool, portfolioProjectId, campaignId);
+  if (!detail) return null;
+
+  const waves: ExportCampaignWave[] = [];
+  for (const wave of detail.waves) {
+    const items: ExportCampaignItem[] = [];
+    for (const item of wave.items) {
+      const decisions = item.proposalId ? await getProposalDecisions(pool, item.proposalId) : [];
+      items.push({
+        targetProjectId: item.targetProjectId,
+        status: item.status,
+        exceptionReason: item.exceptionReason,
+        proposalId: item.proposalId,
+        decisions,
+      });
+    }
+    waves.push({ seq: wave.seq, items });
+  }
+  return { finding: detail.finding, waves };
+}

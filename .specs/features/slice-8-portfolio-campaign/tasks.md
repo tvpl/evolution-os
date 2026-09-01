@@ -225,10 +225,10 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Exportar uma campaign com 1 item completed (com proposal+decision) e 1 exempted (com justificativa) retorna ambos com seus dados exatos, incluindo a decision do proposal vinculado
-- [ ] Exportar campaign de outro org é rejeitado 404
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Exportar uma campaign com 1 item completed (com proposal+decision) e 1 exempted (com justificativa) retorna ambos com seus dados exatos, incluindo a decision do proposal vinculado
+- [x] Exportar campaign de outro org é rejeitado 404
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full

@@ -76,6 +76,7 @@ import {
   completeItem,
   grantException,
   getCampaignProgress,
+  exportCampaign,
 } from "../evolution/portfolio.js";
 
 /**
@@ -1672,6 +1673,18 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 404, "not_found", "campaign does not exist in this portfolio");
     }
     return reply.send({ items: progress });
+  });
+
+  app.get("/projects/:id/campaigns/:campaignId/export", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, campaignId } = req.params as { id: string; campaignId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const exported = await exportCampaign(pool, id, campaignId);
+    if (!exported) {
+      return problem(reply, 404, "not_found", "campaign does not exist in this portfolio");
+    }
+    return reply.send(exported);
   });
 
   app.get("/projects", async (req, reply) => {
