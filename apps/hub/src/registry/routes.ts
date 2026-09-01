@@ -67,7 +67,13 @@ import {
   rollbackInstallation,
   uninstallModule,
 } from "../evolution/modules.js";
-import { declareRelation, listRelations, getPortfolioDashboard } from "../evolution/portfolio.js";
+import {
+  declareRelation,
+  listRelations,
+  getPortfolioDashboard,
+  createCampaign,
+  getCampaign,
+} from "../evolution/portfolio.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1562,6 +1568,45 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const members = await getPortfolioDashboard(pool, id);
     return reply.send({ members });
+  });
+
+  app.post("/projects/:id/campaigns", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "portfolio.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "portfolio.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { finding?: string; waves?: { targetProjectIds?: string[] }[] };
+    if (!body.finding || !Array.isArray(body.waves)) {
+      return problem(reply, 422, "invalid_campaign", "finding and waves are required");
+    }
+    const outcome = await createCampaign(pool, scope, id, {
+      finding: body.finding,
+      waves: body.waves.map((w) => ({ targetProjectIds: w.targetProjectIds ?? [] })),
+    });
+    switch (outcome.kind) {
+      case "invalid_wave":
+        return problem(reply, 422, "invalid_wave", "every wave must declare at least one target project id, and at least one wave is required");
+      case "not_found":
+        return problem(reply, 404, "not_found", "a target project does not exist in this org");
+      case "created":
+        return reply.status(201).send({ campaignId: outcome.campaignId });
+    }
+  });
+
+  app.get("/projects/:id/campaigns/:campaignId", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, campaignId } = req.params as { id: string; campaignId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const campaign = await getCampaign(pool, id, campaignId);
+    if (!campaign) {
+      return problem(reply, 404, "not_found", "campaign does not exist in this portfolio");
+    }
+    return reply.send(campaign);
   });
 
   app.get("/projects", async (req, reply) => {

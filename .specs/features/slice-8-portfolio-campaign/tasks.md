@@ -148,13 +148,13 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Criar uma campaign com 2 waves persiste campaign+waves+items `pending`, em ordem
-- [ ] Criar com wave vazia é rejeitado 422, nada persistido
-- [ ] Criar com zero waves é rejeitado 422, nada persistido
-- [ ] Criar com target project inexistente/outro org é rejeitado 404, nada persistido
-- [ ] Ler a campaign retorna waves/items exatos
-- [ ] Gate check passes: full
-- [ ] Test count: ≥7 tests pass
+- [x] Criar uma campaign com 2 waves persiste campaign+waves+items `pending`, em ordem
+- [x] Criar com wave vazia é rejeitado 422, nada persistido
+- [x] Criar com zero waves é rejeitado 422, nada persistido
+- [x] Criar com target project inexistente/outro org é rejeitado 404, nada persistido
+- [x] Ler a campaign retorna waves/items exatos
+- [x] Gate check passes: full
+- [x] Test count: ≥7 tests pass
 
 **Tests**: integration
 **Gate**: full

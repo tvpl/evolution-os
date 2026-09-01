@@ -128,3 +128,126 @@ export async function getPortfolioDashboard(pool: DbPool, portfolioProjectId: st
   }
   return results;
 }
+
+export interface CreateCampaignWaveInput {
+  targetProjectIds: string[];
+}
+
+export interface CreateCampaignInput {
+  finding: string;
+  waves: CreateCampaignWaveInput[];
+}
+
+export type CreateCampaignOutcome =
+  | { kind: "created"; campaignId: string }
+  | { kind: "invalid_wave" }
+  | { kind: "not_found" };
+
+/** PORT-08/09: toda a criação (campaign + waves + items pending) numa única transação - wave vazia/target inválido não persiste nada. */
+export async function createCampaign(
+  pool: DbPool,
+  scope: AuthScope,
+  portfolioProjectId: string,
+  input: CreateCampaignInput,
+): Promise<CreateCampaignOutcome> {
+  if (!input.finding || input.waves.length === 0) return { kind: "invalid_wave" };
+  for (const wave of input.waves) {
+    if (!wave.targetProjectIds || wave.targetProjectIds.length === 0) return { kind: "invalid_wave" };
+  }
+
+  const allTargets = [...new Set(input.waves.flatMap((w) => w.targetProjectIds))];
+  for (const targetProjectId of allTargets) {
+    const target = await pool.query("select org_id from projects where id = $1", [targetProjectId]);
+    const targetRow = target.rows[0] as { org_id: string } | undefined;
+    if (!targetRow || targetRow.org_id !== scope.orgId) return { kind: "not_found" };
+  }
+
+  return withTx(pool, async (client) => {
+    const campaignId = `cam_${randomUUID().replaceAll("-", "")}`;
+    await client.query(
+      `insert into campaigns (id, org_id, workspace_id, portfolio_project_id, finding) values ($1, $2, $3, $4, $5)`,
+      [campaignId, scope.orgId, scope.workspaceId, portfolioProjectId, input.finding],
+    );
+    for (let i = 0; i < input.waves.length; i++) {
+      const waveId = `caw_${randomUUID().replaceAll("-", "")}`;
+      const seq = i + 1;
+      await client.query(`insert into campaign_waves (id, campaign_id, seq) values ($1, $2, $3)`, [
+        waveId,
+        campaignId,
+        seq,
+      ]);
+      for (const targetProjectId of input.waves[i]!.targetProjectIds) {
+        const itemId = `cai_${randomUUID().replaceAll("-", "")}`;
+        await client.query(
+          `insert into campaign_items (id, campaign_id, wave_id, target_project_id) values ($1, $2, $3, $4)`,
+          [itemId, campaignId, waveId, targetProjectId],
+        );
+      }
+    }
+    return { kind: "created", campaignId };
+  });
+}
+
+export interface CampaignItemRow {
+  id: string;
+  targetProjectId: string;
+  status: string;
+  proposalId: string | null;
+  exceptionReason: string | null;
+}
+
+export interface CampaignWaveRow {
+  id: string;
+  seq: number;
+  name: string | null;
+  items: CampaignItemRow[];
+}
+
+export interface CampaignDetail {
+  id: string;
+  finding: string;
+  waves: CampaignWaveRow[];
+}
+
+export async function getCampaign(
+  pool: DbPool,
+  portfolioProjectId: string,
+  campaignId: string,
+): Promise<CampaignDetail | null> {
+  const campaignRes = await pool.query(
+    `select id, finding from campaigns where id = $1 and portfolio_project_id = $2`,
+    [campaignId, portfolioProjectId],
+  );
+  const campaignRow = campaignRes.rows[0] as { id: string; finding: string } | undefined;
+  if (!campaignRow) return null;
+
+  const wavesRes = await pool.query(`select id, seq, name from campaign_waves where campaign_id = $1 order by seq`, [
+    campaignId,
+  ]);
+  const itemsRes = await pool.query(
+    `select id, wave_id as "waveId", target_project_id as "targetProjectId", status,
+            proposal_id as "proposalId", exception_reason as "exceptionReason"
+       from campaign_items where campaign_id = $1 order by created_at`,
+    [campaignId],
+  );
+
+  const itemsByWave = new Map<string, CampaignItemRow[]>();
+  for (const row of itemsRes.rows as Array<CampaignItemRow & { waveId: string }>) {
+    const list = itemsByWave.get(row.waveId) ?? [];
+    list.push({
+      id: row.id,
+      targetProjectId: row.targetProjectId,
+      status: row.status,
+      proposalId: row.proposalId,
+      exceptionReason: row.exceptionReason,
+    });
+    itemsByWave.set(row.waveId, list);
+  }
+  const waves = (wavesRes.rows as Array<{ id: string; seq: number; name: string | null }>).map((w) => ({
+    id: w.id,
+    seq: w.seq,
+    name: w.name,
+    items: itemsByWave.get(w.id) ?? [],
+  }));
+  return { id: campaignRow.id, finding: campaignRow.finding, waves };
+}
