@@ -67,7 +67,7 @@ import {
   rollbackInstallation,
   uninstallModule,
 } from "../evolution/modules.js";
-import { declareRelation, listRelations } from "../evolution/portfolio.js";
+import { declareRelation, listRelations, getPortfolioDashboard } from "../evolution/portfolio.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -1553,6 +1553,15 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const relations = await listRelations(pool, id);
     return reply.send(relations);
+  });
+
+  app.get("/projects/:id/portfolio/dashboard", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const members = await getPortfolioDashboard(pool, id);
+    return reply.send({ members });
   });
 
   app.get("/projects", async (req, reply) => {

@@ -123,12 +123,12 @@ T6 → T7 → T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Dashboard com 2 membros `composition` retorna as contagens exatas de cada um
-- [ ] Dashboard sem nenhuma relação `composition` retorna lista vazia, não erro
-- [ ] Dashboard de projeto inexistente é rejeitado 404
-- [ ] Membro sem nenhuma proposal/decision/experiment aparece com todas as contagens em 0
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Dashboard com 2 membros `composition` retorna as contagens exatas de cada um
+- [x] Dashboard sem nenhuma relação `composition` retorna lista vazia, não erro
+- [x] Dashboard de projeto inexistente é rejeitado 404
+- [x] Membro sem nenhuma proposal/decision/experiment aparece com todas as contagens em 0
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full

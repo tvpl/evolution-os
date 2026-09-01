@@ -84,3 +84,47 @@ export async function listRelations(pool: DbPool, projectId: string): Promise<Pr
   );
   return { outbound: outbound.rows as RelationRow[], inbound: inbound.rows as RelationRow[] };
 }
+
+export interface DashboardMember {
+  projectId: string;
+  openProposalsCount: number;
+  rejectedDecisionsCount: number;
+  runningExperimentsCount: number;
+}
+
+/**
+ * PORT-05/06/07: agrega contagens diretas e determinísticas dos membros
+ * `composition` de um portfolio - nunca um "health score" ponderado (nenhuma
+ * doc-fonte define pesos; ver design.md Out of Scope/Assumptions).
+ */
+export async function getPortfolioDashboard(pool: DbPool, portfolioProjectId: string): Promise<DashboardMember[]> {
+  const members = await pool.query(
+    `select target_project_id as "projectId" from project_relations
+      where source_project_id = $1 and type = 'composition' order by created_at`,
+    [portfolioProjectId],
+  );
+  const memberIds = (members.rows as { projectId: string }[]).map((r) => r.projectId);
+
+  const results: DashboardMember[] = [];
+  for (const projectId of memberIds) {
+    const [openProposals, rejectedDecisions, runningExperiments] = await Promise.all([
+      pool.query(
+        `select count(*)::int as n from proposals where project_id = $1 and status in ('draft', 'readyForReview')`,
+        [projectId],
+      ),
+      pool.query(`select count(*)::int as n from decisions where project_id = $1 and decision = 'reject'`, [
+        projectId,
+      ]),
+      pool.query(`select count(*)::int as n from experiments where project_id = $1 and status = 'running'`, [
+        projectId,
+      ]),
+    ]);
+    results.push({
+      projectId,
+      openProposalsCount: (openProposals.rows[0] as { n: number }).n,
+      rejectedDecisionsCount: (rejectedDecisions.rows[0] as { n: number }).n,
+      runningExperimentsCount: (runningExperiments.rows[0] as { n: number }).n,
+    });
+  }
+  return results;
+}
