@@ -136,20 +136,20 @@ Até o Slice 5, o EvolutionOS decide sobre ideias, sistemas e repositórios — 
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| HRN-01 | P1: Inventário — declaração versionada | Execute | Implementing |
-| HRN-02 | P1: Inventário — leitura da versão mais recente | Execute | Implementing |
-| HRN-03 | P1: Inventário — rejeita projeto inexistente | Execute | Implementing |
-| HRN-04 | P1: Eval dataset — declaração de caso | Execute | Implementing |
-| HRN-05 | P1: Eval dataset — rejeita invariantType/params inválidos | Execute | Implementing |
-| HRN-06 | P1: Eval dataset — listagem | Execute | Implementing |
-| HRN-07 | P1: Eval run — execução determinística com score | Execute | Implementing |
-| HRN-08 | P1: Eval run — rejeita sem inventário | Execute | Implementing |
-| HRN-09 | P1: Eval run — rejeita sem eval cases | Execute | Implementing |
-| HRN-10 | P1: Avaliação de experimento via eval run (reuso Slice 4) | Execute | Implementing |
-| HRN-11 | P1: Avaliação — rejeita experimento de outro projeto | Execute | Implementing |
-| HRN-12 | P1: Avaliação — rejeita experimento não running | Execute | Implementing |
-| HRN-13 | P1: Observatory — visão agregada | Execute | Implementing |
-| HRN-14 | P1: Observatory — rejeita projeto inexistente | Execute | Implementing |
+| HRN-01 | P1: Inventário — declaração versionada | Execute | Verified |
+| HRN-02 | P1: Inventário — leitura da versão mais recente | Execute | Verified |
+| HRN-03 | P1: Inventário — rejeita projeto inexistente | Execute | Verified |
+| HRN-04 | P1: Eval dataset — declaração de caso | Execute | Verified |
+| HRN-05 | P1: Eval dataset — rejeita invariantType/params inválidos | Execute | Verified |
+| HRN-06 | P1: Eval dataset — listagem | Execute | Verified |
+| HRN-07 | P1: Eval run — execução determinística com score | Execute | Verified |
+| HRN-08 | P1: Eval run — rejeita sem inventário | Execute | Verified |
+| HRN-09 | P1: Eval run — rejeita sem eval cases | Execute | Verified |
+| HRN-10 | P1: Avaliação de experimento via eval run (reuso Slice 4) | Execute | Verified |
+| HRN-11 | P1: Avaliação — rejeita experimento de outro projeto | Execute | Verified |
+| HRN-12 | P1: Avaliação — rejeita experimento não running | Execute | Verified |
+| HRN-13 | P1: Observatory — visão agregada | Execute | Verified |
+| HRN-14 | P1: Observatory — rejeita projeto inexistente | Execute | Verified |
 
 **ID format:** `HRN-NN`
 
@@ -165,4 +165,4 @@ Até o Slice 5, o EvolutionOS decide sobre ideias, sistemas e repositórios — 
 - [x] O vertical slice completo roda ponta a ponta: declarar inventário → declarar dataset → rodar eval determinístico → score alimenta a avaliação de um experimento do Slice 4 sem nenhuma mudança no mecanismo de experimento → Observatory mostra tudo agregado.
 - [x] Um caso `requires_skill` cujo skill não está no inventário falha com um motivo específico, não um erro genérico.
 - [x] Nenhuma chamada a LLM ou execução real de skill/MCP acontece em nenhum endpoint deste slice.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] Verifier independente reporta PASS em `validation.md`.
