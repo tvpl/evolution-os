@@ -87,6 +87,13 @@ describe("run the harness eval dataset (HRN-07/08/09)", () => {
     expect(res.json().title).toBe("harness_requires_eval_cases");
   });
 
+  it("rejects running with neither inventory nor eval cases declared, checking inventory first", async () => {
+    const projectId = await registerHarness();
+    const res = await runEval(projectId);
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("harness_requires_inventory");
+  });
+
   it("runs the dataset against the current inventory, persisting a run with score and results", async () => {
     const projectId = await registerHarness();
     await declareInventory(projectId, { skills: [{ id: "triage", name: "Triage", version: "1.0.0" }] });

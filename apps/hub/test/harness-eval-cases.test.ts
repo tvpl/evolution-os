@@ -119,18 +119,43 @@ describe("harness eval dataset (HRN-04/05/06)", () => {
     expect(res.statusCode).toBe(422);
   });
 
-  it("lists every declared case", async () => {
+  it("lists every declared case with its exact name, invariantType and params, in declaration order", async () => {
     const res = await app.inject({
       method: "GET",
       url: `/projects/${projectId}/harness/eval-cases`,
       headers: { authorization: `Bearer ${tokenA}` },
     });
     expect(res.statusCode).toBe(200);
-    expect(res.json().evalCases.length).toBeGreaterThanOrEqual(4);
-    for (const c of res.json().evalCases) {
-      expect(c).toHaveProperty("invariantType");
-      expect(c).toHaveProperty("params");
-    }
+    expect(res.json().evalCases).toEqual([
+      {
+        id: expect.any(String),
+        name: "Precisa da skill de triagem",
+        invariantType: "requires_skill",
+        params: { skillId: "triage" },
+        createdAt: expect.any(String),
+      },
+      {
+        id: expect.any(String),
+        name: "Pelo menos 2 skills",
+        invariantType: "min_component_count",
+        params: { category: "skills", min: 2 },
+        createdAt: expect.any(String),
+      },
+      {
+        id: expect.any(String),
+        name: "Precisa do MCP de governança",
+        invariantType: "requires_mcp",
+        params: { mcpId: "governance" },
+        createdAt: expect.any(String),
+      },
+      {
+        id: expect.any(String),
+        name: "Não pode ter o MCP legado",
+        invariantType: "forbids_mcp",
+        params: { mcpId: "legacy" },
+        createdAt: expect.any(String),
+      },
+    ]);
   });
 
   it("is denied cross-tenant", async () => {

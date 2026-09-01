@@ -201,6 +201,37 @@ describe("evaluate an experiment from a harness eval run (HRN-10/11/12)", () => 
     expect(res.json().title).toBe("invalid_transition");
   });
 
+  it("is gated specifically by experiment.write, not harness.write", async () => {
+    const projectId = await registerHarness();
+    await declareInventory(projectId, { skills: [{ id: "triage", name: "Triage", version: "1.0.0" }] });
+    await declareCase(projectId, {
+      name: "Precisa da skill de triagem",
+      invariantType: "requires_skill",
+      params: { skillId: "triage" },
+    });
+    const experimentId = await createRunningExperiment(projectId);
+
+    await pool.query(
+      "delete from capability_grants where org_id = $1 and workspace_id = $2 and capability = $3",
+      ["org_dev_a", "ws_dev_a", "experiment.write"],
+    );
+    try {
+      const denied = await evaluateFromEvalRun(projectId, experimentId);
+      expect(denied.statusCode).toBe(403);
+      expect(denied.json().title).toBe("capability_denied");
+    } finally {
+      await pool.query(
+        `insert into capability_grants (id, org_id, workspace_id, principal, capability)
+         values ($1, $2, $3, '*', $4)
+         on conflict (org_id, workspace_id, principal, capability) do nothing`,
+        ["grant_org_dev_a_experiment.write", "org_dev_a", "ws_dev_a", "experiment.write"],
+      );
+    }
+
+    const allowed = await evaluateFromEvalRun(projectId, experimentId);
+    expect(allowed.statusCode).toBe(200);
+  });
+
   it("is denied cross-tenant", async () => {
     const projectId = await registerHarness();
     await declareInventory(projectId, {});
