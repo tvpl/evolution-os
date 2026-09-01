@@ -202,12 +202,12 @@ T6 → T7
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Projeto `type=service` com snapshot de 3 manifests reporta a divergência
-- [ ] Snapshot consistente com o declarado retorna lista vazia de mismatches
-- [ ] Projeto sem snapshot retorna `observed: null` sem erro
-- [ ] Resposta cita a versão do snapshot usado
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Projeto `type=service` com snapshot de 3 manifests reporta a divergência
+- [x] Snapshot consistente com o declarado retorna lista vazia de mismatches
+- [x] Projeto sem snapshot retorna `observed: null` sem erro
+- [x] Resposta cita a versão do snapshot usado
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full

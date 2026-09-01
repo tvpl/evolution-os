@@ -24,6 +24,7 @@ import type { AuthScope } from "../identity/session.js";
 import { authenticateNode } from "../nodes/auth.js";
 import { ingestSnapshot, listSnapshots, type SnapshotInput } from "../twin/snapshots.js";
 import { confirmCandidate, listCandidates, rejectCandidate } from "../twin/candidates.js";
+import { computeDiff } from "../twin/diff.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -474,6 +475,18 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
       return problem(reply, 409, "candidate_not_pending", "candidate has already been decided");
     }
     return reply.send({ candidate: outcome.candidate });
+  });
+
+  app.get("/projects/:id/diff", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const diff = await computeDiff(pool, id);
+    if (!diff) {
+      return problem(reply, 404, "not_found", "project does not exist");
+    }
+    return reply.send(diff);
   });
 
   app.get("/projects", async (req, reply) => {
