@@ -26,13 +26,17 @@ async function registerProject(name: string): Promise<string> {
   return res.json().projectId;
 }
 
-function declareComposition(portfolioId: string, memberId: string) {
+function declareRelation(portfolioId: string, memberId: string, type: string) {
   return app.inject({
     method: "POST",
     url: `/projects/${portfolioId}/relations`,
     headers: { authorization: `Bearer ${tokenA}` },
-    payload: { targetProjectId: memberId, type: "composition" },
+    payload: { targetProjectId: memberId, type },
   });
+}
+
+function declareComposition(portfolioId: string, memberId: string) {
+  return declareRelation(portfolioId, memberId, "composition");
 }
 
 function getDashboard(projectId: string, token = tokenA) {
@@ -140,6 +144,16 @@ describe("deterministic portfolio dashboard (PORT-05/06/07)", () => {
 
   it("returns an empty members list, not an error, when the portfolio has no composition relations", async () => {
     const portfolioId = await registerProject("empty");
+    const res = await getDashboard(portfolioId);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().members).toEqual([]);
+  });
+
+  it("never includes a project linked by a non-composition relation (e.g. dependency)", async () => {
+    const portfolioId = await registerProject("non-composition");
+    const dependencyId = await registerProject("non-composition-dep");
+    await declareRelation(portfolioId, dependencyId, "dependency");
+
     const res = await getDashboard(portfolioId);
     expect(res.statusCode).toBe(200);
     expect(res.json().members).toEqual([]);
