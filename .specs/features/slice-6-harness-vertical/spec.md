@@ -8,11 +8,11 @@ Até o Slice 5, o EvolutionOS decide sobre ideias, sistemas e repositórios — 
 
 ## Goals
 
-- [ ] Um projeto do tipo `harness` pode declarar um inventário versionado (skills/MCPs/modelos) e ler o inventário mais recente.
-- [ ] Um dataset de eval (casos com invariantes determinísticos) pode ser declarado e listado para um harness.
-- [ ] Rodar o dataset contra o inventário atual produz um score determinístico (passed/total) por caso, sem chamada a LLM.
-- [ ] O score de um eval run alimenta a avaliação de um experimento de upgrade/remoção do Slice 4 SEM nenhuma mudança no mecanismo de experimento — reuso direto, não duplicação.
-- [ ] Uma visão agregada (Harness Observatory) expõe inventário + eval cases + último eval run num único lugar.
+- [x] Um projeto do tipo `harness` pode declarar um inventário versionado (skills/MCPs/modelos) e ler o inventário mais recente.
+- [x] Um dataset de eval (casos com invariantes determinísticos) pode ser declarado e listado para um harness.
+- [x] Rodar o dataset contra o inventário atual produz um score determinístico (passed/total) por caso, sem chamada a LLM.
+- [x] O score de um eval run alimenta a avaliação de um experimento de upgrade/remoção do Slice 4 SEM nenhuma mudança no mecanismo de experimento — reuso direto, não duplicação.
+- [x] Uma visão agregada (Harness Observatory) expõe inventário + eval cases + último eval run num único lugar.
 
 ## Out of Scope
 
@@ -136,20 +136,20 @@ Até o Slice 5, o EvolutionOS decide sobre ideias, sistemas e repositórios — 
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| HRN-01 | P1: Inventário — declaração versionada | Design | Pending |
-| HRN-02 | P1: Inventário — leitura da versão mais recente | Design | Pending |
-| HRN-03 | P1: Inventário — rejeita projeto inexistente | Design | Pending |
-| HRN-04 | P1: Eval dataset — declaração de caso | Design | Pending |
-| HRN-05 | P1: Eval dataset — rejeita invariantType/params inválidos | Design | Pending |
-| HRN-06 | P1: Eval dataset — listagem | Design | Pending |
-| HRN-07 | P1: Eval run — execução determinística com score | Design | Pending |
-| HRN-08 | P1: Eval run — rejeita sem inventário | Design | Pending |
-| HRN-09 | P1: Eval run — rejeita sem eval cases | Design | Pending |
-| HRN-10 | P1: Avaliação de experimento via eval run (reuso Slice 4) | Design | Pending |
-| HRN-11 | P1: Avaliação — rejeita experimento de outro projeto | Design | Pending |
-| HRN-12 | P1: Avaliação — rejeita experimento não running | Design | Pending |
-| HRN-13 | P1: Observatory — visão agregada | Design | Pending |
-| HRN-14 | P1: Observatory — rejeita projeto inexistente | Design | Pending |
+| HRN-01 | P1: Inventário — declaração versionada | Execute | Implementing |
+| HRN-02 | P1: Inventário — leitura da versão mais recente | Execute | Implementing |
+| HRN-03 | P1: Inventário — rejeita projeto inexistente | Execute | Implementing |
+| HRN-04 | P1: Eval dataset — declaração de caso | Execute | Implementing |
+| HRN-05 | P1: Eval dataset — rejeita invariantType/params inválidos | Execute | Implementing |
+| HRN-06 | P1: Eval dataset — listagem | Execute | Implementing |
+| HRN-07 | P1: Eval run — execução determinística com score | Execute | Implementing |
+| HRN-08 | P1: Eval run — rejeita sem inventário | Execute | Implementing |
+| HRN-09 | P1: Eval run — rejeita sem eval cases | Execute | Implementing |
+| HRN-10 | P1: Avaliação de experimento via eval run (reuso Slice 4) | Execute | Implementing |
+| HRN-11 | P1: Avaliação — rejeita experimento de outro projeto | Execute | Implementing |
+| HRN-12 | P1: Avaliação — rejeita experimento não running | Execute | Implementing |
+| HRN-13 | P1: Observatory — visão agregada | Execute | Implementing |
+| HRN-14 | P1: Observatory — rejeita projeto inexistente | Execute | Implementing |
 
 **ID format:** `HRN-NN`
 
@@ -161,8 +161,8 @@ Até o Slice 5, o EvolutionOS decide sobre ideias, sistemas e repositórios — 
 
 ## Success Criteria
 
-- [ ] `validate_spec.py` sai 0 para esta spec.
-- [ ] O vertical slice completo roda ponta a ponta: declarar inventário → declarar dataset → rodar eval determinístico → score alimenta a avaliação de um experimento do Slice 4 sem nenhuma mudança no mecanismo de experimento → Observatory mostra tudo agregado.
-- [ ] Um caso `requires_skill` cujo skill não está no inventário falha com um motivo específico, não um erro genérico.
-- [ ] Nenhuma chamada a LLM ou execução real de skill/MCP acontece em nenhum endpoint deste slice.
+- [x] `validate_spec.py` sai 0 para esta spec.
+- [x] O vertical slice completo roda ponta a ponta: declarar inventário → declarar dataset → rodar eval determinístico → score alimenta a avaliação de um experimento do Slice 4 sem nenhuma mudança no mecanismo de experimento → Observatory mostra tudo agregado.
+- [x] Um caso `requires_skill` cujo skill não está no inventário falha com um motivo específico, não um erro genérico.
+- [x] Nenhuma chamada a LLM ou execução real de skill/MCP acontece em nenhum endpoint deste slice.
 - [ ] Verifier independente reporta PASS em `validation.md`.
