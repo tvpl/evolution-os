@@ -75,6 +75,34 @@ describe("schema violations are rejected", () => {
     expect(result.errors.join("\n")).toContain("slug");
   });
 
+  it("manifest with valid spec.hypotheses passes (IDEA-01)", () => {
+    const project = loadExample("evolution.project.example.yaml") as {
+      spec: Record<string, unknown>;
+    };
+    project.spec["hypotheses"] = [
+      {
+        id: "hyp-001",
+        statement: "Operadores aceitarão recomendações com evidência.",
+        type: "desirability",
+        evidenceState: "untested",
+        status: "active",
+      },
+    ];
+    expect(validateProject(project)).toEqual({ ok: true, errors: [] });
+  });
+
+  it("hypothesis without statement fails naming the field (IDEA-01)", () => {
+    const project = loadExample("evolution.project.example.yaml") as {
+      spec: Record<string, unknown>;
+    };
+    project.spec["hypotheses"] = [
+      { id: "hyp-001", type: "desirability", evidenceState: "untested", status: "active" },
+    ];
+    const result = validateProject(project);
+    expect(result.ok).toBe(false);
+    expect(result.errors.join("\n")).toContain("statement");
+  });
+
   it("idea project without intent.problem fails (manifest spec rule 3)", () => {
     const idea = {
       apiVersion: "evolutionos.io/v1alpha1",

@@ -91,10 +91,10 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Manifest com `spec.hypotheses` válido passa `validateProject`
-- [ ] Hipótese sem `statement` é rejeitada nomeando o campo
-- [ ] Gate check passes: `pnpm test:unit`
-- [ ] Test count: ≥2 novos tests pass (sem deleção)
+- [x] Manifest com `spec.hypotheses` válido passa `validateProject`
+- [x] Hipótese sem `statement` é rejeitada nomeando o campo
+- [x] Gate check passes: `pnpm test:unit`
+- [x] Test count: ≥2 novos tests pass (sem deleção)
 
 **Tests**: unit
 **Gate**: quick

@@ -53,6 +53,24 @@
           },
           "additionalProperties": true
         },
+        "hypotheses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "statement", "type", "evidenceState", "status"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "statement": { "type": "string", "minLength": 1 },
+              "type": { "type": "string" },
+              "evidenceState": { "type": "string" },
+              "metric": { "type": "string" },
+              "threshold": { "type": "string" },
+              "status": { "type": "string", "minLength": 1 },
+              "reviewTrigger": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
         "constraints": {
           "type": "array",
           "items": {
