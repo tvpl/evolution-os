@@ -120,4 +120,17 @@ describe("connect a GitHub repo (GH-01/02/03)", () => {
     });
     expect(res.statusCode).toBe(404);
   });
+
+  it("without the connector.write grant is denied 403 capability_denied (deny-by-default)", async () => {
+    await pool.query(
+      "delete from capability_grants where org_id = 'org_dev_a' and capability = 'connector.write'",
+    );
+    try {
+      const res = await connect({ owner: "acme", repo: "no-grant" });
+      expect(res.statusCode).toBe(403);
+      expect(res.json().title).toBe("capability_denied");
+    } finally {
+      await seedDevGrants(pool);
+    }
+  });
 });

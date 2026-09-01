@@ -192,4 +192,18 @@ describe("ci status becomes automatic proof artifact (GH-12/13/14)", () => {
     });
     expect(res.statusCode).toBe(403);
   });
+
+  it("without the connector.github.write grant is denied 403 capability_denied (deny-by-default)", async () => {
+    const actionId = await createAction("key-ci-no-grant", {});
+    await pool.query(
+      "delete from capability_grants where org_id = 'org_dev_a' and capability = 'connector.github.write'",
+    );
+    try {
+      const res = await recordCiStatus(actionId, { context: "ci/build", state: "success" });
+      expect(res.statusCode).toBe(403);
+      expect(res.json().title).toBe("capability_denied");
+    } finally {
+      await seedDevGrants(pool);
+    }
+  });
 });

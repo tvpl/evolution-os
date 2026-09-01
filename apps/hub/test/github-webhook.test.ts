@@ -106,6 +106,35 @@ describe("ingest github webhooks (GH-04/05/06)", () => {
     expect(after.rows[0].n).toBe(before.rows[0].n);
   });
 
+  it("a signature of the correct length but the wrong content is rejected 401 (not just a length mismatch)", async () => {
+    const body = { action: "opened", number: 21 };
+    const before = await pool.query("select count(*)::int as n from github_webhook_events where connection_id = $1", [
+      connectionId,
+    ]);
+    const wrongButSameLength = `sha256=${"a".repeat(64)}`;
+    const res = await sendWebhook("delivery-wrong-content-sig", wrongButSameLength, body);
+    expect(res.statusCode).toBe(401);
+    expect(res.json().title).toBe("invalid_signature");
+    const after = await pool.query("select count(*)::int as n from github_webhook_events where connection_id = $1", [
+      connectionId,
+    ]);
+    expect(after.rows[0].n).toBe(before.rows[0].n);
+  });
+
+  it("a payload signed with a different connection's secret is rejected 401 on this connection's webhook", async () => {
+    const otherConnected = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/connectors/github`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: { owner: "acme", repo: "widgets-other" },
+    });
+    const otherSecret = otherConnected.json().webhookSecret;
+    const body = { action: "opened", number: 22 };
+    const res = await sendWebhook("delivery-wrong-connection-secret", sign(otherSecret, body), body);
+    expect(res.statusCode).toBe(401);
+    expect(res.json().title).toBe("invalid_signature");
+  });
+
   it("replaying an already-seen delivery id is a no-op, not a duplicate row", async () => {
     const body = { action: "opened", number: 3 };
     const first = await sendWebhook("delivery-replay", sign(webhookSecret, body), body);
@@ -131,6 +160,59 @@ describe("ingest github webhooks (GH-04/05/06)", () => {
       payload: body,
     });
     expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 404 when the connection belongs to a different project", async () => {
+    const otherProject = await app.inject({
+      method: "POST",
+      url: "/projects",
+      headers: { authorization: `Bearer ${tokenA}`, "idempotency-key": "gh-webhook-other-project" },
+      payload: {
+        apiVersion: "evolutionos.io/v1alpha1",
+        kind: "EvolutionProject",
+        metadata: { name: "Other Proj", slug: "proj-gh-webhook-other", type: "idea", status: "discovery" },
+        spec: { intent: { problem: "x" } },
+      },
+    });
+    const otherProjectId = otherProject.json().projectId;
+    const body = { action: "opened" };
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${otherProjectId}/connectors/github/${connectionId}/webhook`,
+      headers: { "x-github-delivery": "delivery-wrong-project", "x-hub-signature-256": sign(webhookSecret, body) },
+      payload: body,
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("the same delivery id on two different connections does not collide (dedup is per connection)", async () => {
+    const secondConnected = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/connectors/github`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: { owner: "acme", repo: "widgets-second-for-dedup" },
+    });
+    const secondConnectionId = secondConnected.json().connectionId;
+    const secondSecret = secondConnected.json().webhookSecret;
+
+    const body = { action: "opened", number: 30 };
+    const first = await sendWebhook("delivery-shared-id", sign(webhookSecret, body), body);
+    expect(first.statusCode).toBe(200);
+    expect(first.json().status).toBe("ingested");
+
+    const second = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/connectors/github/${secondConnectionId}/webhook`,
+      headers: { "x-github-delivery": "delivery-shared-id", "x-hub-signature-256": sign(secondSecret, body) },
+      payload: body,
+    });
+    expect(second.statusCode).toBe(200);
+    expect(second.json().status).toBe("ingested");
+
+    const row = await pool.query(
+      "select count(*)::int as n from github_webhook_events where delivery_id = 'delivery-shared-id'",
+    );
+    expect(row.rows[0].n).toBe(2);
   });
 
   it("rejects a request missing the x-github-delivery header", async () => {

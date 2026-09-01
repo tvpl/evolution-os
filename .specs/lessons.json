@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 12,
+  "next_id": 17,
   "lessons": [
     {
       "id": "L-001",
@@ -202,6 +202,96 @@
       ],
       "created": "2026-09-01T12:33:44Z",
       "last_seen": "2026-09-01T12:33:44Z"
+    },
+    {
+      "id": "L-012",
+      "key": "ac_gap::a cross tenant 403 does not cover a capability ac requireownedproject returns access denied before enforcecapability runs so assert 403 with title capability denied after deleting the grant row",
+      "text": "A cross-tenant 403 does not cover a capability AC: requireOwnedProject returns access_denied before enforceCapability runs, so assert 403 with title capability_denied after deleting the grant row.",
+      "signal": "ac_gap",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "GH-11 / apps/hub/test/github-action.test.ts:143-151 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:06Z",
+      "last_seen": "2026-09-01T13:14:06Z"
+    },
+    {
+      "id": "L-013",
+      "key": "surviving_mutant::a negative signature token test must use a forged value of the same length as the real one or the length guard short circuits and the comparison under test is never executed",
+      "text": "A negative signature/token test must use a forged value of the same length as the real one, or the length guard short-circuits and the comparison under test is never executed.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M2 / apps/hub/test/github-webhook.test.ts:100 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    },
+    {
+      "id": "L-014",
+      "key": "surviving_mutant::asserting a generated identifier with a prefix regex or against the same response that produced it proves nothing assert its full expected value built from the known inputs",
+      "text": "Asserting a generated identifier with a prefix regex, or against the same response that produced it, proves nothing: assert its full expected value built from the known inputs.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M9,M10 / apps/hub/test/github-action.test.ts:83,89 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    },
+    {
+      "id": "L-015",
+      "key": "surviving_mutant::scoping and conflict rules need a second instance in the fixture two connections two projects two orgs and one varied field per discriminating column or the scoping clause can be deleted with tests still green",
+      "text": "Scoping and conflict rules need a second instance in the fixture (two connections, two projects, two orgs) and one varied field per discriminating column, or the scoping clause can be deleted with tests still green.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M8,M15 / apps/hub/test/github-action.test.ts:126-131 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    },
+    {
+      "id": "L-016",
+      "key": "spec_deviation::when reusing an org scoped idempotency table for a project scoped resource include the projectid in the request digest or check resource ownership before the replay branch returns",
+      "text": "When reusing an org-scoped idempotency table for a project-scoped resource, include the projectId in the request digest or check resource ownership before the replay branch returns.",
+      "signal": "spec_deviation",
+      "scope": "apps/hub/src",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/hub/src/evolution/github-connector.ts:144-165 (PROBE-B) (apps/hub/src)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
     }
   ]
 }

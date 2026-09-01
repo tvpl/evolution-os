@@ -80,6 +80,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: EXP-10 - apps/hub/test/experiments-evaluate.test.ts:118 (routes)
 - last seen: 2026-09-01T12:33:44Z
 
+### L-012 - A cross-tenant 403 does not cover a capability AC: requireOwnedProject returns access_denied before enforceCapability runs, so assert 403 with title capability_denied after deleting the grant row.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `apps/hub/test` · harmful: 0
+- features: slice-5-reversible-external-action
+- evidence: GH-11 / apps/hub/test/github-action.test.ts:143-151 (apps/hub/test)
+- last seen: 2026-09-01T13:14:06Z
+
+### L-013 - A negative signature/token test must use a forged value of the same length as the real one, or the length guard short-circuits and the comparison under test is never executed.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/hub/test` · harmful: 0
+- features: slice-5-reversible-external-action
+- evidence: M2 / apps/hub/test/github-webhook.test.ts:100 (apps/hub/test)
+- last seen: 2026-09-01T13:14:07Z
+
+### L-014 - Asserting a generated identifier with a prefix regex, or against the same response that produced it, proves nothing: assert its full expected value built from the known inputs.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/hub/test` · harmful: 0
+- features: slice-5-reversible-external-action
+- evidence: M9,M10 / apps/hub/test/github-action.test.ts:83,89 (apps/hub/test)
+- last seen: 2026-09-01T13:14:07Z
+
+### L-015 - Scoping and conflict rules need a second instance in the fixture (two connections, two projects, two orgs) and one varied field per discriminating column, or the scoping clause can be deleted with tests still green.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/hub/test` · harmful: 0
+- features: slice-5-reversible-external-action
+- evidence: M8,M15 / apps/hub/test/github-action.test.ts:126-131 (apps/hub/test)
+- last seen: 2026-09-01T13:14:07Z
+
+### L-016 - When reusing an org-scoped idempotency table for a project-scoped resource, include the projectId in the request digest or check resource ownership before the replay branch returns.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `apps/hub/src` · harmful: 0
+- features: slice-5-reversible-external-action
+- evidence: apps/hub/src/evolution/github-connector.ts:144-165 (PROBE-B) (apps/hub/src)
+- last seen: 2026-09-01T13:14:07Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

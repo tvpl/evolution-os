@@ -142,6 +142,7 @@ export async function createGitHubAction(
   input: CreateActionInput,
 ): Promise<CreateActionOutcome> {
   const digest = canonicalDigest({
+    projectId,
     connectionId: input.connectionId,
     actionType: input.actionType,
     title: input.title,
