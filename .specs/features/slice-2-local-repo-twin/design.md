@@ -124,3 +124,18 @@ candidates(id text PK, project_id, org_id, workspace_id, snapshot_id, kind
 | Confirmação promove para `artifacts` (`type='component'`) | Reuso da tabela do Slice 1 | Evita nova tabela "entities" sem segundo caso de uso comprovado (YAGNI) |
 
 Nenhuma decisão aqui atinge o critério de projeto-level — todas ficam nesta tabela.
+
+---
+
+## Review do slice (checklist de `docs/06-delivery/05-build-sequence.md`)
+
+| Pergunta | Resposta |
+| --- | --- |
+| Usuário entende o valor? | Sim — `evo snapshot` num monorepo real gera candidates confirmáveis e o diff mostra a divergência declarado/observado sem tocar código nenhum |
+| O novo artifact está no knowledge model? | Sim — snapshot é `observed`, candidate é `inferred`, confirmação vira `declared` (via `artifacts` reusado); os quatro estados de verdade do knowledge model ganham seus dois primeiros exemplos reais além de `declared` |
+| Evidence/decision lineage existe? | N/A pleno ainda (Evidence real chega no Slice 3); mas `candidates.snapshot_id` já amarra toda proposta à sua origem observável, prova de conceito do lineage |
+| Policy e classification cobrem o fluxo? | Sim — `twin.read`/`candidate.decide` seguem o mesmo deny-by-default; node auth (`x-node-id`+`x-node-token`) valida tenant do node contra o projeto antes de aceitar qualquer snapshot |
+| Failure/retry/idempotency definidos? | Sync concorrente não perde dados (testado); dedup de candidates por `(project_id, location, kind)` com índice único parcial; import/confirm rodam em `withTx` |
+| Evals incluem negative cases? | Sim: node token forjado, payload inválido, candidate já decidido, cross-tenant em toda rota nova, repo sem `.git`, repo sem manifest |
+| O profile Lite continua possível? | Sim — nenhuma infraestrutura nova além do mesmo Postgres; o coletor roda 100% local |
+| Alguma hipótese do ecossistema foi invalidada? | Duas correções reais durante o Execute: (1) o índice único de dedup de candidates faltava a coluna `kind`, colidindo `component`×`contains` na mesma location; (2) `evo snapshot` usa `--project` explícito em vez do auto-matching por remote/manifest descrito inicialmente na spec — documentado como SPEC_DEVIATION e como assumption corrigida, sem contrariar nenhum ADR |
