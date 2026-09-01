@@ -157,12 +157,13 @@ T7
 - [x] Exportar de um org sem nenhum entry retorna lista vazia + cadeia válida, não erro
 - [x] Exportar como um org nunca inclui entries de outro org (testado com dois orgs com entries distintos)
 - [x] Gate check passes: full
-- [x] Test count: ≥3 tests pass
+- [x] Test count: ≥3 tests pass ✅ (2 test files, 3 assertions worth of coverage across ordering/isolation/empty, 430 total)
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(hub): export org-wide audit trail with chain integrity verdict`
+**Status**: ✅ Done
 
 ---
 
