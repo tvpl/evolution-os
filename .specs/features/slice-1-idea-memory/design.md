@@ -147,3 +147,18 @@ decisions(id text PK, project_id, org_id, workspace_id, decision, actor, rationa
 | IDs de hipótese/constraint/artifact/decision | Usa o ID do manifest quando presente; gera um novo (`hyp_<ulid>` etc.) quando ausente | Manifest spec permite IDs client-side para hipóteses/constraints; import precisa preservá-los exatamente (IDEA-18) |
 
 Nenhuma decisão aqui atinge o critério de projeto-level (não é hard-to-reverse nem cross-feature) — todas ficam nesta tabela, sem novo AD-NNN.
+
+---
+
+## Review do slice (checklist de `docs/06-delivery/05-build-sequence.md`)
+
+| Pergunta | Resposta |
+| --- | --- |
+| Usuário entende o valor? | Sim — registrar uma ideia com hipóteses/constraints e ver tudo agregado no Project Overview, sem tocar código, prova "o produto serve sem código" |
+| O novo artifact está no knowledge model? | Sim — Hypothesis, Constraint, Artifact/ArtifactVersion e Decision viraram tabelas tipadas (não JSON blob), como o knowledge model exige |
+| Evidence/decision lineage existe? | Decisão registra rationale/alternatives/subject; lineage de Evidence real (fontes externas) só chega no Slice 3 — aqui `authority` já distingue declared do que virá como observed/inferred |
+| Policy e classification cobrem o fluxo? | Todas as novas rotas usam `enforceCapability`/`requireOwnedProject` (404-antes-de-403, mesmo padrão do Slice 0); grants dev estendidos para as 4 novas capabilities |
+| Failure/retry/idempotency definidos? | Registro com hipóteses continua atômico (rollback comprovado); artifact version usa row lock (`for update`) contra corrida; import é tudo-ou-nada numa transação |
+| Evals incluem negative cases? | Sim: ID duplicado, subject de outro projeto, versão inexistente, conflito de import, manifest inválido, cross-tenant em toda rota nova |
+| O profile Lite continua possível? | Sim — mesmo Hub single-process, mesma migration sequencial; nenhuma dependência nova de infraestrutura |
+| Alguma hipótese do ecossistema foi invalidada? | Uma correção real: IDs de hipótese/constraint são manifest-local (não globais) — a chave primária das tabelas precisou ser composta `(project_id, id)`; nenhum ADR foi contrariado, apenas um detalhe de design corrigido durante a implementação |
