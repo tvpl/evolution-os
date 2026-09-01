@@ -253,4 +253,19 @@ describe("install a module with capability policy check and lockfile (MODL-07/08
     const res = await install(projectId, manifest.id, manifest.version, loginB.json().token);
     expect(res.statusCode).toBe(403);
   });
+
+  it("rejects an install request body missing version with 422", async () => {
+    await grantCapability("module-test.resource.read");
+    const manifest = baseManifest({ id: "io.evolutionos.modules.install-missing-version-field" });
+    await publish(manifest);
+    const projectId = await registerProject();
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/modules/${manifest.id}/install`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: {},
+    });
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("invalid_install");
+  });
 });

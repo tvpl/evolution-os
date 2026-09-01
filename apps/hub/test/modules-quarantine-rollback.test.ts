@@ -53,6 +53,14 @@ function update(projectId: string, moduleId: string, version: string) {
   });
 }
 
+function getLockfile(projectId: string) {
+  return app.inject({
+    method: "GET",
+    url: `/projects/${projectId}/modules/lockfile`,
+    headers: { authorization: `Bearer ${tokenA}` },
+  });
+}
+
 function quarantine(projectId: string, moduleId: string, token = tokenA) {
   return app.inject({
     method: "POST",
@@ -202,5 +210,63 @@ describe("quarantine and rollback (MODL-15/16/17)", () => {
     expect(q.statusCode).toBe(403);
     const r = await rollback(projectId, moduleId, "1.0.0", tokenB);
     expect(r.statusCode).toBe(403);
+  });
+
+  it("rejects re-quarantining an already-quarantined installation with 409", async () => {
+    const moduleId = "io.evolutionos.modules.requarantine";
+    await publish(manifest(moduleId, "1.0.0"));
+    const projectId = await registerProject();
+    await install(projectId, moduleId, "1.0.0");
+    await quarantine(projectId, moduleId);
+
+    const res = await quarantine(projectId, moduleId);
+    expect(res.statusCode).toBe(409);
+    expect(res.json().title).toBe("invalid_transition");
+  });
+
+  it("determines the current installation by the highest seq value, not by insertion order", async () => {
+    const moduleId = "io.evolutionos.modules.seq-order-matters";
+    await publish(manifest(moduleId, "1.0.0"));
+    const projectId = await registerProject();
+    const installed = await install(projectId, moduleId, "1.0.0");
+    const installationId = installed.json().installationId;
+
+    // Insert two rows out of seq order: seq=5 (quarantined) physically BEFORE seq=3
+    // (active). If "current" were derived from insertion order instead of MAX(seq),
+    // this would read the physically-last row (seq=3, active) as current instead of
+    // the actually-latest one (seq=5, quarantined) - the module would wrongly still
+    // show up in the lockfile as active.
+    await pool.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, 'org_dev_a', 'ws_dev_a', $3, 5, '1.0.0', 'sha256:seq-order-test', '[]'::jsonb, 'quarantined', 'quarantined')`,
+      [`${installationId}-seq5`, projectId, moduleId],
+    );
+    await pool.query(
+      `insert into module_installations (id, project_id, org_id, workspace_id, module_id, seq, version, digest, capabilities, status, action)
+       values ($1, $2, 'org_dev_a', 'ws_dev_a', $3, 3, '1.0.0', 'sha256:seq-order-test', '[]'::jsonb, 'active', 'rolled_back')`,
+      [`${installationId}-seq3`, projectId, moduleId],
+    );
+
+    const lock = await getLockfile(projectId);
+    expect(lock.json().lockfile).toEqual([]);
+
+    const res = await quarantine(projectId, moduleId);
+    expect(res.statusCode).toBe(409);
+    expect(res.json().title).toBe("invalid_transition");
+  });
+
+  it("rejects a rollback request body missing version with 422", async () => {
+    const moduleId = "io.evolutionos.modules.rollback-missing-version-field";
+    await publish(manifest(moduleId, "1.0.0"));
+    const projectId = await registerProject();
+    await install(projectId, moduleId, "1.0.0");
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/modules/${moduleId}/rollback`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: {},
+    });
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("invalid_rollback");
   });
 });

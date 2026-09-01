@@ -301,6 +301,9 @@ async function getCurrentInstallation(
   projectId: string,
   moduleId: string,
 ): Promise<CurrentInstallationRow | undefined> {
+  // `order by seq desc` is load-bearing, not stylistic: Postgres gives no ordering
+  // guarantee to a bare `limit 1` even on an append-only table - dropping this clause
+  // would let install/update/quarantine/rollback silently act on a stale row.
   const res = await db.query(
     `select seq, version, digest, capabilities, status from module_installations
       where project_id = $1 and module_id = $2 order by seq desc limit 1 for update`,

@@ -239,4 +239,20 @@ describe("update a module with a blocking permission diff (MODL-12/13/14)", () =
     const res = await update(projectId, moduleId, "2.0.0", loginB.json().token);
     expect(res.statusCode).toBe(403);
   });
+
+  it("rejects an update request body missing version with 422", async () => {
+    await grantCapability("module-test.base.read");
+    const moduleId = "io.evolutionos.modules.update-missing-version-field";
+    await publish(manifestV1(moduleId));
+    const projectId = await registerProject();
+    await install(projectId, moduleId, "1.0.0");
+    const res = await app.inject({
+      method: "POST",
+      url: `/projects/${projectId}/modules/${moduleId}/update`,
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: {},
+    });
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("invalid_update");
+  });
 });
