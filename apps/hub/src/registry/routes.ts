@@ -5,7 +5,12 @@ import { enforceCapability, recordAudit } from "../policy/policy.js";
 import { registerProject } from "./registry.js";
 import { listHypotheses } from "../idea-memory/hypotheses.js";
 import { getProjectOverview } from "../idea-memory/overview.js";
-import { createArtifact, listArtifacts } from "../idea-memory/artifacts.js";
+import {
+  addArtifactVersion,
+  createArtifact,
+  getArtifactVersion,
+  listArtifacts,
+} from "../idea-memory/artifacts.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
 
@@ -196,6 +201,61 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const artifacts = await listArtifacts(pool, id);
     return reply.send({ artifacts });
+  });
+
+  app.post("/projects/:id/artifacts/:artifactId/versions", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, artifactId } = req.params as { id: string; artifactId: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "artifact.write"))) return reply;
+
+    const grant = await enforceCapability(pool, scope, "artifact.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+
+    const owner = await pool.query("select 1 from artifacts where id = $1 and project_id = $2", [
+      artifactId,
+      id,
+    ]);
+    if (!owner.rowCount) {
+      return problem(reply, 404, "not_found", "artifact does not exist in this project");
+    }
+
+    const body = (req.body ?? {}) as { reference?: string; content?: string };
+    const outcome = await addArtifactVersion(pool, artifactId, body);
+    if (outcome.kind === "invalid") {
+      return problem(reply, 422, "invalid_artifact_version", outcome.reason);
+    }
+    if (outcome.kind === "not_found") {
+      return problem(reply, 404, "not_found", "artifact does not exist");
+    }
+    return reply.status(201).send({ artifactId, version: outcome.version });
+  });
+
+  app.get("/projects/:id/artifacts/:artifactId/versions/:version", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id, artifactId, version } = req.params as {
+      id: string;
+      artifactId: string;
+      version: string;
+    };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+
+    const owner = await pool.query("select 1 from artifacts where id = $1 and project_id = $2", [
+      artifactId,
+      id,
+    ]);
+    if (!owner.rowCount) {
+      return problem(reply, 404, "not_found", "artifact does not exist in this project");
+    }
+
+    const row = await getArtifactVersion(pool, artifactId, Number(version));
+    if (!row) {
+      return problem(reply, 404, "not_found", "artifact version does not exist");
+    }
+    return reply.send(row);
   });
 
   app.get("/projects", async (req, reply) => {

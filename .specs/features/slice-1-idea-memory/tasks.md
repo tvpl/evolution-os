@@ -255,10 +255,10 @@ T10 → T11 → T12 → T13
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Duas novas versões incrementam `current_version` para 3 preservando v1/v2 inalteradas
-- [ ] Buscar v1 explicitamente retorna o conteúdo original, não o atual
-- [ ] Gate check passes: full
-- [ ] Test count: ≥4 tests pass
+- [x] Duas novas versões incrementam `current_version` para 3 preservando v1/v2 inalteradas
+- [x] Buscar v1 explicitamente retorna o conteúdo original, não o atual
+- [x] Gate check passes: full
+- [x] Test count: ≥4 tests pass
 
 **Tests**: integration
 **Gate**: full
