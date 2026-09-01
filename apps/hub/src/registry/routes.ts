@@ -39,6 +39,7 @@ import {
   type Variant,
   type VerificationPlan,
 } from "../evolution/experiments.js";
+import { connectGitHub } from "../evolution/github-connector.js";
 
 /**
  * Checagem de ownership reusada por overview/artifacts/decisions/timeline/
@@ -932,6 +933,37 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
           status: "closed",
           decision: outcome.decision,
           priorRelatedDecisions: outcome.priorRelatedDecisions,
+        });
+    }
+  });
+
+  app.post("/projects/:id/connectors/github", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope, "connector.write"))) return reply;
+    const grant = await enforceCapability(pool, scope, "connector.write", `projects/${id}`, req.correlationId);
+    if (!grant.allowed) {
+      return problem(reply, 403, "capability_denied", grant.reason, { correlationId: req.correlationId });
+    }
+    const body = (req.body ?? {}) as { owner?: string; repo?: string };
+    if (!body.owner || !body.repo) {
+      return problem(reply, 422, "invalid_connection", "owner and repo are required");
+    }
+    const outcome = await connectGitHub(pool, scope, id, { owner: body.owner, repo: body.repo });
+    switch (outcome.kind) {
+      case "already_connected":
+        return problem(
+          reply,
+          409,
+          "already_connected",
+          `${body.owner}/${body.repo} is already connected to this project`,
+        );
+      case "connected":
+        return reply.status(201).send({
+          connectionId: outcome.connectionId,
+          status: "connected",
+          webhookSecret: outcome.webhookSecret,
         });
     }
   });

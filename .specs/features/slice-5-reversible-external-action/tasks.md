@@ -97,11 +97,11 @@ T6
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Conectar owner/repo persiste `status=connected` e retorna um webhook secret
-- [ ] Conectar o mesmo par duas vezes no mesmo projeto é rejeitado 409
-- [ ] Conectar sem owner ou repo é rejeitado 422
-- [ ] Gate check passes: full
-- [ ] Test count: ≥5 tests pass
+- [x] Conectar owner/repo persiste `status=connected` e retorna um webhook secret
+- [x] Conectar o mesmo par duas vezes no mesmo projeto é rejeitado 409
+- [x] Conectar sem owner ou repo é rejeitado 422
+- [x] Gate check passes: full
+- [x] Test count: ≥5 tests pass
 
 **Tests**: integration
 **Gate**: full
