@@ -158,6 +158,31 @@ describe("gate campaign wave progression behind full resolution (PORT-10/11/12/1
     expect(res.statusCode).toBe(200);
   });
 
+  it("blocks wave 3 while wave 1 is still pending, even when only the immediately-preceding wave 2 is checked naively", async () => {
+    const portfolioId = await registerProject("gate-three-waves");
+    const memberA = await registerProject("gate-three-waves-a");
+    const memberB = await registerProject("gate-three-waves-b");
+    const memberC = await registerProject("gate-three-waves-c");
+    const campaignId = await createCampaign(portfolioId, [[memberA], [memberB], [memberC]]);
+    const wave2ItemId = (await getWaveItemIds(portfolioId, campaignId, 2))[0]!;
+    const wave3ItemId = (await getWaveItemIds(portfolioId, campaignId, 3))[0]!;
+
+    // The gate itself never lets wave 2 resolve while wave 1 is pending, so
+    // reaching "wave 2 resolved, wave 1 still pending" through the normal
+    // API is impossible - by induction, checking only the immediately-prior
+    // wave would happen to agree with checking every prior wave for any
+    // state the API alone can produce. Force the divergent state directly
+    // via SQL (bypassing the gate) to prove the check really does look at
+    // ALL prior waves, not just wave 2, independent of that induction.
+    await pool.query(`update campaign_items set status = 'completed', updated_at = now() where id = $1`, [
+      wave2ItemId,
+    ]);
+
+    const res = await completeItem(portfolioId, campaignId, wave3ItemId);
+    expect(res.statusCode).toBe(409);
+    expect(res.json().title).toBe("wave_not_resolved");
+  });
+
   it("rejects an exception without a justification with 422", async () => {
     const portfolioId = await registerProject("exception-no-just");
     const memberA = await registerProject("exception-no-just-a");
@@ -165,6 +190,17 @@ describe("gate campaign wave progression behind full resolution (PORT-10/11/12/1
     const itemId = (await getWaveItemIds(portfolioId, campaignId, 1))[0]!;
 
     const res = await grantException(portfolioId, campaignId, itemId, {});
+    expect(res.statusCode).toBe(422);
+    expect(res.json().title).toBe("justification_required");
+  });
+
+  it("rejects an exception with a whitespace-only justification with 422", async () => {
+    const portfolioId = await registerProject("exception-whitespace-just");
+    const memberA = await registerProject("exception-whitespace-just-a");
+    const campaignId = await createCampaign(portfolioId, [[memberA]]);
+    const itemId = (await getWaveItemIds(portfolioId, campaignId, 1))[0]!;
+
+    const res = await grantException(portfolioId, campaignId, itemId, { justification: "   " });
     expect(res.statusCode).toBe(422);
     expect(res.json().title).toBe("justification_required");
   });

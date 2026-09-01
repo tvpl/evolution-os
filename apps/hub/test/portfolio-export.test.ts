@@ -170,9 +170,44 @@ describe("export campaign audit trail with linked decisions (PORT-18/19)", () =>
     expect(res.json().waves[0].items[0].proposalId).toBeNull();
   });
 
+  it("never includes a decision recorded under the same subject_id but a different subject_type", async () => {
+    const portfolioId = await registerProject("subject-type-filter");
+    const memberA = await registerProject("subject-type-filter-a");
+    const proposalId = await createProposal(memberA);
+    await recordDecision(memberA, proposalId, "approve");
+    const campaignId = await createCampaign(portfolioId, [[memberA]]);
+    const itemId = (await getWaveItemIds(portfolioId, campaignId, 1))[0]!;
+    await completeItem(portfolioId, campaignId, itemId, { proposalId });
+
+    // Bypass the app's own subjectBelongsToProject validation to insert a
+    // decision with the SAME subject_id but a different subject_type - the
+    // export must filter by subject_type = 'proposal' too, not just
+    // subject_id, or this decision would leak in as if it belonged here.
+    await pool.query(
+      `insert into decisions (id, project_id, org_id, workspace_id, decision, actor, rationale, subject_type, subject_id)
+       values ('dec_wrong_subject_type', $1, 'org_dev_a', 'ws_dev_a', 'reject', 'tester', 'unrelated decision', 'hypothesis', $2)`,
+      [memberA, proposalId],
+    );
+
+    const res = await exportCampaign(portfolioId, campaignId);
+    const decisions = res.json().waves[0].items[0].decisions as { id: string }[];
+    expect(decisions).toHaveLength(1);
+    expect(decisions.map((d) => d.id)).not.toContain("dec_wrong_subject_type");
+  });
+
   it("rejects exporting an unknown campaign with 404", async () => {
     const portfolioId = await registerProject("unknown");
     const res = await exportCampaign(portfolioId, "cam_does_not_exist");
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("rejects exporting a campaign belonging to another portfolio project with 404", async () => {
+    const portfolioId = await registerProject("wrong-portfolio");
+    const otherPortfolioId = await registerProject("wrong-portfolio-other");
+    const memberA = await registerProject("wrong-portfolio-a");
+    const campaignId = await createCampaign(portfolioId, [[memberA]]);
+
+    const res = await exportCampaign(otherPortfolioId, campaignId);
     expect(res.statusCode).toBe(404);
   });
 

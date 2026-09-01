@@ -160,6 +160,21 @@ describe("create a campaign organized into sequential waves (PORT-08/09)", () =>
     expect(rows.rows[0].n).toBe(0);
   });
 
+  it("rejects creation with an invalid target in a LATER wave (not just the first), persisting nothing", async () => {
+    const portfolioId = await registerProject("bad-target-later-wave");
+    const memberA = await registerProject("bad-target-later-wave-a");
+    const res = await createCampaign(portfolioId, {
+      finding: "x",
+      waves: [{ targetProjectIds: [memberA] }, { targetProjectIds: ["prj_does_not_exist"] }],
+    });
+    expect(res.statusCode).toBe(404);
+
+    const rows = await pool.query(`select count(*)::int as n from campaigns where portfolio_project_id = $1`, [
+      portfolioId,
+    ]);
+    expect(rows.rows[0].n).toBe(0);
+  });
+
   it("rejects creation referencing a target project from another org, persisting nothing", async () => {
     const portfolioId = await registerProject("other-org-target");
     const otherOrgProjectId = await registerProjectAs(tokenB, "other-org-target-member");
@@ -173,6 +188,16 @@ describe("create a campaign organized into sequential waves (PORT-08/09)", () =>
   it("rejects reading an unknown campaign with 404", async () => {
     const portfolioId = await registerProject("unknown-campaign");
     const res = await getCampaign(portfolioId, "cam_does_not_exist");
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("rejects reading a campaign belonging to another portfolio project with 404", async () => {
+    const portfolioId = await registerProject("wrong-portfolio");
+    const otherPortfolioId = await registerProject("wrong-portfolio-other");
+    const memberA = await registerProject("wrong-portfolio-a");
+    const created = await createCampaign(portfolioId, { finding: "x", waves: [{ targetProjectIds: [memberA] }] });
+
+    const res = await getCampaign(otherPortfolioId, created.json().campaignId);
     expect(res.statusCode).toBe(404);
   });
 
