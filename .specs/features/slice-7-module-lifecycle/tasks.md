@@ -81,10 +81,10 @@ T8
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Migration aplica de zero e é idempotente
-- [ ] Novo grant `module.write` aparece para os dois tenants dev
-- [ ] Gate check passes: full
-- [ ] Test count: ≥2 tests pass
+- [x] Migration aplica de zero e é idempotente
+- [x] Novo grant `module.write` aparece para os dois tenants dev
+- [x] Gate check passes: full
+- [x] Test count: ≥2 tests pass
 
 **Tests**: integration
 **Gate**: full
