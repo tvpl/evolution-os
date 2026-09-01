@@ -12,6 +12,7 @@ import {
   listArtifacts,
 } from "../idea-memory/artifacts.js";
 import { listDecisions, recordDecision, type AlternativeInput } from "../idea-memory/decisions.js";
+import { getProjectTimeline } from "../idea-memory/timeline.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { AuthScope } from "../identity/session.js";
 
@@ -309,6 +310,15 @@ export function registerRegistryRoutes(app: FastifyInstance, pool: DbPool): void
     if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
     const decisions = await listDecisions(pool, id);
     return reply.send({ decisions });
+  });
+
+  app.get("/projects/:id/timeline", async (req, reply) => {
+    const scope = requireScope(req, reply);
+    if (!scope) return reply;
+    const { id } = req.params as { id: string };
+    if (!(await requireOwnedProject(pool, req, reply, id, scope))) return reply;
+    const timeline = await getProjectTimeline(pool, id);
+    return reply.send({ timeline });
   });
 
   app.get("/projects", async (req, reply) => {
