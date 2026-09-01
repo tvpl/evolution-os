@@ -114,3 +114,14 @@ None of the above are P1; TWIN-01 through TWIN-05 (P1/MVP) are all solidly cover
 4. **[P2 — weak assertion] TWIN-10 "preserve inferred unchanged" not proven by before/after diff.** Strengthen the existing confirm test to snapshot the candidate's `payload`/`location` before confirming and assert equality after.
 5. **[Edge case — untested] Candidate confirmable/rejectable after its origin snapshot is superseded.** Add an integration test for this scenario; currently only inferable from the absence of any "latest snapshot" check in the confirm/reject code path.
 6. **[Edge case — weak assertion] Zero-manifest snapshot Hub-level success (201) not directly asserted.** Add an explicit `expect(res.statusCode).toBe(201)` for a `manifests: []` sync in `apps/hub/test/snapshots.test.ts`.
+
+## Addendum — gaps fechados pelo orquestrador
+
+- **TWIN-14**: `diff.ts` agora compara também `name` (não só `type`) quando o snapshot tem 1 manifest; teste dedicado adicionado.
+- **Bug real encontrado ao corrigir TWIN-13**: `payloadEquals` comparava `JSON.stringify` bruto; `jsonb` do Postgres não preserva ordem de chaves no round-trip, então um payload IGUAL podia ser julgado diferente e reproposto indevidamente. Corrigido com stringify canônico (chaves ordenadas).
+- **Gap adicional encontrado no mesmo teste**: candidates `confirmed` não tinham guard de dedup nenhum (só pending/rejected eram checados) — resincronizar após confirmar duplicava um pending. Corrigido: `confirmed` agora também suprime nova proposta na mesma location+kind.
+- **TWIN-10**: asserção fortalecida para comparação completa de linha antes/depois (era `toMatchObject` parcial).
+- **TWIN-12**: adicionado o caso simétrico de reject sobre candidate não-pending (409).
+- **Edge cases**: snapshot sem manifests (201 na camada HTTP) e candidate confirmável após seu snapshot ser superado por um novo.
+
+Suite final: 114 (hub) + 8 (node) integração — todos verdes. Nenhum gap aberto restante.

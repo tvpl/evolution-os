@@ -57,11 +57,11 @@
 
 ## Handoff
 
-- **Feature**: slice-2-local-repo-twin — EM EXECUÇÃO (spec+design+tasks aprovados; T1/T2 concluídas; T3 em andamento)
-- **Phase / Task**: Execute — T3 (endpoints de snapshot + Cartographer determinístico), Phase 2
-- **Completed**: slice-0 (T1..T14, Verifier PASS) e slice-1 (T1..T13, Verifier PASS 6/6 mutantes, gaps 1-4 fechados) totalmente concluídos e verificados; slice-2 T1 (migration 003 + grants) e T2 (coletor de snapshot, 7 unit tests) concluídas
-- **In-progress** (file:line): `apps/hub/src/twin/cartographer.ts` criado (proposeFromSnapshot + insertCandidates); falta `apps/hub/src/twin/snapshots.ts`, wiring em `apps/hub/src/registry/routes.ts` (endpoint `POST/GET /projects/:id/snapshots`) e testes de integração de T3
-- **Next step**: Completar T3 (snapshots.ts + rota + testes), depois T4 (candidates), T5 (CLI `evo snapshot`), T6 (diff), T7 (fechamento) conforme `.specs/features/slice-2-local-repo-twin/tasks.md`
+- **Feature**: slice-3-evidence-to-decision — EM EXECUÇÃO (spec+design+tasks aprovados; T1 em andamento)
+- **Phase / Task**: Execute — T1 (migration 004 + capability grants), Phase 1
+- **Completed**: slices 0, 1 e 2 totalmente concluídos e verificados (Verifier PASS em todos, gaps fechados — slice-2 teve 2 bugs reais encontrados e corrigidos: payloadEquals não-canônico e dedup faltando o status `confirmed`)
+- **In-progress** (file:line): `apps/hub/migrations/004_evolution.sql` criado; `apps/hub/src/policy/policy.ts` já ganhou os grants (`evidence.write`, `claim.write`, `signal.write`, `proposal.write`, `proposal.decide`); falta o teste de integração de T1 (`apps/hub/test/evolution-migration.test.ts`) e rodar o gate
+- **Next step**: Terminar T1 (teste + gate), depois T2 (evidence), T3 (claims), T4 (analysis-provider), T5 (signals), T6-T8 (proposals+challenger+inbox), T9 (decisão), T10 (fechamento) conforme `.specs/features/slice-3-evidence-to-decision/tasks.md`
 - **Blockers**: none
-- **Uncommitted files**: `apps/hub/src/twin/cartographer.ts` (novo, ainda não commitado)
+- **Uncommitted files**: `apps/hub/migrations/004_evolution.sql`, `apps/hub/src/policy/policy.ts` (grants de evolution)
 - **Branch**: claude/docs-roadmap-ecosystem-fklxt7

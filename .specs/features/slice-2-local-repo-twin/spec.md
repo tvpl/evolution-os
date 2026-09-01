@@ -8,11 +8,11 @@ Até o Slice 1, um projeto só tem o que foi declarado manualmente no manifest �
 
 ## Goals
 
-- [ ] `evo snapshot` produz um inventário determinístico do repositório local (Git + manifests de pacote + linguagens) sem enviar código-fonte ao Hub.
-- [ ] O Hub armazena snapshots versionados ligados a um projeto, com fatos marcados `authority='observed'`.
-- [ ] Um proposer determinístico ("Cartographer") sugere entidades/relações candidatas a partir do snapshot mais recente, marcadas `authority='inferred'`.
-- [ ] Um humano confirma ou rejeita cada proposta; confirmação promove o fato, rejeição é preservada (nunca apagada).
-- [ ] Divergências entre declarado (manifest) e observado (snapshot) são visíveis sem sobrescrever o declarado.
+- [x] `evo snapshot` produz um inventário determinístico do repositório local (Git + manifests de pacote + linguagens) sem enviar código-fonte ao Hub.
+- [x] O Hub armazena snapshots versionados ligados a um projeto, com fatos marcados `authority='observed'`.
+- [x] Um proposer determinístico ("Cartographer") sugere entidades/relações candidatas a partir do snapshot mais recente, marcadas `authority='inferred'`.
+- [x] Um humano confirma ou rejeita cada proposta; confirmação promove o fato, rejeição é preservada (nunca apagada).
+- [x] Divergências entre declarado (manifest) e observado (snapshot) são visíveis sem sobrescrever o declarado.
 
 ## Out of Scope
 
@@ -126,22 +126,22 @@ Até o Slice 1, um projeto só tem o que foi declarado manualmente no manifest �
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| TWIN-01 | P1: Snapshot — coleta determinística e sync (NODE-FR-001/009) | Design | Pending |
-| TWIN-02 | P1: Snapshot — sem conteúdo de arquivo (NODE-FR-009, ADR-015) | Design | Pending |
-| TWIN-03 | P1: Snapshot — persistência versionada com authority observed | Design | Pending |
-| TWIN-04 | P1: Snapshot — falha fora de repo Git sem enviar nada | Design | Pending |
-| TWIN-05 | P1: Snapshot — listagem mais-recente-primeiro | Design | Pending |
-| TWIN-06 | P2: Cartographer — proposta de component/contains por manifest (EP-022) | Design | Pending |
-| TWIN-07 | P2: Cartographer — listagem de candidates com status pending | Design | Pending |
-| TWIN-08 | P2: Cartographer — nenhuma proposta quando não há o que reconciliar | Design | Pending |
-| TWIN-09 | P2: Cartographer — sem proposta duplicada pendente | Design | Pending |
-| TWIN-10 | P2: Confirmação — confirmar promove a declared preservando o inferred | Design | Pending |
-| TWIN-11 | P2: Confirmação — rejeitar preserva o registro (guard AGENTS.md) | Design | Pending |
-| TWIN-12 | P2: Confirmação — ação em candidate não-pending é 409 | Design | Pending |
-| TWIN-13 | P2: Confirmação — rejeitada não reaparece sem evidência nova | Design | Pending |
-| TWIN-14 | P3: Diff — divergência declarado vs. observado (knowledge model §4) | Design | Pending |
-| TWIN-15 | P3: Diff — sem divergência retorna lista vazia | Design | Pending |
-| TWIN-16 | P3: Diff — cita a versão do snapshot usado | Design | Pending |
+| TWIN-01 | P1: Snapshot — coleta determinística e sync (NODE-FR-001/009) | Execute | Verified |
+| TWIN-02 | P1: Snapshot — sem conteúdo de arquivo (NODE-FR-009, ADR-015) | Execute | Verified |
+| TWIN-03 | P1: Snapshot — persistência versionada com authority observed | Execute | Verified |
+| TWIN-04 | P1: Snapshot — falha fora de repo Git sem enviar nada | Execute | Verified |
+| TWIN-05 | P1: Snapshot — listagem mais-recente-primeiro | Execute | Verified |
+| TWIN-06 | P2: Cartographer — proposta de component/contains por manifest (EP-022) | Execute | Verified |
+| TWIN-07 | P2: Cartographer — listagem de candidates com status pending | Execute | Verified |
+| TWIN-08 | P2: Cartographer — nenhuma proposta quando não há o que reconciliar | Execute | Verified |
+| TWIN-09 | P2: Cartographer — sem proposta duplicada pendente | Execute | Verified |
+| TWIN-10 | P2: Confirmação — confirmar promove a declared preservando o inferred | Execute | Verified |
+| TWIN-11 | P2: Confirmação — rejeitar preserva o registro (guard AGENTS.md) | Execute | Verified |
+| TWIN-12 | P2: Confirmação — ação em candidate não-pending é 409 | Execute | Verified |
+| TWIN-13 | P2: Confirmação — rejeitada não reaparece sem evidência nova | Execute | Verified |
+| TWIN-14 | P3: Diff — divergência declarado vs. observado (knowledge model §4) | Execute | Verified |
+| TWIN-15 | P3: Diff — sem divergência retorna lista vazia | Execute | Verified |
+| TWIN-16 | P3: Diff — cita a versão do snapshot usado | Execute | Verified |
 
 **ID format:** `TWIN-NN`
 
@@ -153,9 +153,9 @@ Até o Slice 1, um projeto só tem o que foi declarado manualmente no manifest �
 
 ## Success Criteria
 
-- [ ] `validate_spec.py` sai 0 para esta spec.
-- [ ] `evo snapshot` num repo real produz um snapshot visível no Hub sem enviar código.
-- [ ] Um monorepo com 3 manifests gera 3 propostas confirmáveis/rejeitáveis, e a confirmação vira fato declarado sem apagar o inferido.
-- [ ] Uma proposta rejeitada não reaparece pending sem evidência nova.
-- [ ] O diff declarado/observado mostra divergência real sem alterar o manifest.
-- [ ] Verifier independente reporta PASS em `validation.md`.
+- [x] `validate_spec.py` sai 0 para esta spec.
+- [x] `evo snapshot` num repo real produz um snapshot visível no Hub sem enviar código.
+- [x] Um monorepo com 3 manifests gera 3 propostas confirmáveis/rejeitáveis, e a confirmação vira fato declarado sem apagar o inferido.
+- [x] Uma proposta rejeitada não reaparece pending sem evidência nova.
+- [x] O diff declarado/observado mostra divergência real sem alterar o manifest.
+- [x] Verifier independente reporta PASS em `validation.md`.
