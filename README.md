@@ -32,7 +32,7 @@ Este repositório documental foi preparado para iniciar construção com agentes
 3. Use o [`PRD da plataforma`](docs/01-product/PRD-001-core-platform.md) como contrato de produto.
 4. Consulte a [`arquitetura do sistema`](docs/02-architecture/01-system-architecture.md) e o [`runtime agentic`](docs/02-architecture/04-agentic-runtime.md).
 5. Antes de implementar, leia todos os [`ADRs`](docs/04-decisions/README.md).
-6. Converta o [`roadmap`](docs/06-delivery/01-mvp-and-roadmap.md) em issues usando os [`épicos`](docs/06-delivery/02-implementation-epics.md).
+6. Converta o [`roadmap`](docs/06-delivery/01-mvp-and-roadmap.md) em issues usando os [`épicos`](docs/06-delivery/02-implementation-epics.md); a ordem executável por feature está no [`plano de execução spec-driven`](docs/06-delivery/09-spec-driven-execution-plan.md).
 7. Revise o [`landscape`](docs/08-research/01-landscape-and-sources.md) e a [`contestação crítica`](docs/08-research/03-critical-review.md) antes de ampliar o escopo.
 8. Entregue o repositório a um coding agent junto com [`AGENTS.md`](AGENTS.md) e o [`playbook de bootstrap`](docs/06-delivery/07-ai-build-bootstrap.md).
 
@@ -69,6 +69,28 @@ Toda recomendação deve responder:
 9. **Como saberemos se melhorou?**
 
 Se alguma resposta essencial estiver ausente, o sistema deve observar ou pedir investigação — nunca inventar certeza.
+
+## Como rodar o trust skeleton (Slice 0)
+
+O primeiro vertical slice está implementado num monorepo pnpm (`apps/`, `packages/`). Pré-requisitos: Node 22+, pnpm 10+, binários do PostgreSQL 16.
+
+```bash
+pnpm install
+bash scripts/dev-db.sh start        # cluster Postgres local (127.0.0.1:55432)
+pnpm --filter @evolution-os/hub dev # Control Plane + workers (http://127.0.0.1:4010)
+HUB_URL=http://127.0.0.1:4010 pnpm --filter @evolution-os/console dev # console (http://127.0.0.1:4011)
+```
+
+Entre com a identidade dev `dev-a@evolutionos.local`, registre um projeto e veja-o chegar pela projeção (UI → API → outbox → projection → UI). Evolution Node CLI:
+
+```bash
+cd apps/node
+node --import tsx src/main.ts init --hub http://127.0.0.1:4010 --session <token>
+node --import tsx src/main.ts enroll --name meu-node
+node --import tsx src/main.ts sync --file ./artefato.txt
+```
+
+Testes e gates: `pnpm test` (unit + integração em Postgres real), `pnpm --filter @evolution-os/console test:e2e` (round-trip no browser), `python3 scripts/check_docs.py` (integridade das docs). A ordem executável das próximas features está no [`plano de execução spec-driven`](docs/06-delivery/09-spec-driven-execution-plan.md).
 
 ## Estado deste material
 

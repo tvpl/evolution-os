@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.evolutionos.io/v0/event.json",
+  "title": "EvolutionOS CloudEvents envelope v0",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "data",
+    "tenantid",
+    "workspaceid",
+    "correlationid",
+    "classification",
+    "schemaversion"
+  ],
+  "properties": {
+    "specversion": { "const": "1.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "source": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "pattern": "^io\\.evolutionos\\.[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*\\.v[0-9]+$"
+    },
+    "subject": { "type": "string" },
+    "time": { "type": "string", "format": "date-time" },
+    "datacontenttype": { "type": "string", "minLength": 1 },
+    "dataschema": { "type": "string" },
+    "data": { "type": "object" },
+    "tenantid": { "type": "string", "minLength": 1 },
+    "workspaceid": { "type": "string", "minLength": 1 },
+    "projectid": { "type": "string", "minLength": 1 },
+    "correlationid": { "type": "string", "minLength": 1 },
+    "causationid": { "type": "string" },
+    "traceparent": { "type": "string" },
+    "classification": { "type": "string", "minLength": 1 },
+    "schemaversion": { "type": "string", "minLength": 1 },
+    "idempotencykey": { "type": "string" }
+  },
+  "additionalProperties": true
+}

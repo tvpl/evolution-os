@@ -61,6 +61,7 @@
 - [Cenários de validação](../06-delivery/06-validation-scenarios.md)
 - [Bootstrap para desenvolvimento com IA](../06-delivery/07-ai-build-bootstrap.md)
 - [Questões abertas e spikes](../06-delivery/08-open-questions-spikes.md)
+- [Plano de execução spec-driven](../06-delivery/09-spec-driven-execution-plan.md)
 
 ## 07 — Especificações
 

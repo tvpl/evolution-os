@@ -1,0 +1,252 @@
+import { createHash } from "node:crypto";
+import type { DbClient, DbPool } from "../platform/db.js";
+import type { AuthScope } from "../identity/session.js";
+import { canonicalJson } from "../platform/canonical-json.js";
+
+export type Queryable = DbPool | DbClient;
+
+export type PolicyDecision = { allowed: true } | { allowed: false; reason: string };
+
+/**
+ * Deny-by-default (ADR-014, TRUST-09): uma capability só é permitida com grant
+ * explícito para o principal ('*' cobre todos os membros do workspace).
+ */
+export async function checkCapability(
+  db: Queryable,
+  scope: AuthScope,
+  capability: string,
+): Promise<PolicyDecision> {
+  const grant = await db.query(
+    `select 1 from capability_grants
+      where org_id = $1 and workspace_id = $2
+        and principal in ($3, '*') and capability = $4
+      limit 1`,
+    [scope.orgId, scope.workspaceId, scope.userId, capability],
+  );
+  if (grant.rowCount) return { allowed: true };
+  return {
+    allowed: false,
+    reason: `no grant for capability '${capability}' in workspace '${scope.workspaceId}'`,
+  };
+}
+
+export interface AuditEntry {
+  orgId: string;
+  actor: string;
+  action: string;
+  resource: string;
+  outcome: "allowed" | "denied" | "error";
+  reason?: string;
+  correlationId?: string;
+}
+
+export const AUDIT_GENESIS = "genesis";
+
+function computeEntryHash(fields: {
+  orgId: string;
+  actor: string;
+  action: string;
+  resource: string;
+  outcome: string;
+  reason: string | null;
+  correlationId: string | null;
+  at: string;
+  prevHash: string;
+}): string {
+  return createHash("sha256").update(canonicalJson(fields)).digest("hex");
+}
+
+/**
+ * HARD-06/09: assinatura pública inalterada - a cadeia de hash é computada e
+ * persistida internamente, então nenhum dos ~20+ call sites existentes desde
+ * o Slice 0 precisa mudar. Encadeia com o `entry_hash` do entry anterior do
+ * MESMO org (nunca globalmente); o primeiro entry de um org usa "genesis".
+ */
+export async function recordAudit(db: Queryable, entry: AuditEntry): Promise<void> {
+  const reason = entry.reason ?? null;
+  const correlationId = entry.correlationId ?? null;
+  const at = new Date().toISOString();
+
+  const last = await db.query(
+    `select entry_hash from audit_log where org_id = $1 order by id desc limit 1`,
+    [entry.orgId],
+  );
+  const lastRow = last.rows[0] as { entry_hash: string | null } | undefined;
+  const prevHash = lastRow?.entry_hash ?? AUDIT_GENESIS;
+
+  const entryHash = computeEntryHash({
+    orgId: entry.orgId,
+    actor: entry.actor,
+    action: entry.action,
+    resource: entry.resource,
+    outcome: entry.outcome,
+    reason,
+    correlationId,
+    at,
+    prevHash,
+  });
+
+  await db.query(
+    `insert into audit_log (org_id, actor, action, resource, outcome, reason, correlation_id, at, prev_hash, entry_hash)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [entry.orgId, entry.actor, entry.action, entry.resource, entry.outcome, reason, correlationId, at, prevHash, entryHash],
+  );
+}
+
+export interface AuditLogRow {
+  id: number;
+  actor: string;
+  action: string;
+  resource: string;
+  outcome: string;
+  reason: string | null;
+  correlationId: string | null;
+  at: string;
+}
+
+export interface AuditChainVerdict {
+  valid: boolean;
+  brokenAtId?: number;
+}
+
+/**
+ * HARD-07/08: recomputa o `entry_hash` de cada entry a partir dos seus
+ * próprios campos e confere contra o valor persistido e contra o
+ * `prev_hash` esperado (o `entry_hash` do entry anterior na mesma
+ * sequência) - detecta tanto uma adulteração de campo quanto uma quebra de
+ * elo, identificando o `id` exato onde a cadeia para de bater.
+ */
+export async function verifyAuditChain(db: Queryable, orgId: string): Promise<AuditChainVerdict> {
+  const rows = await db.query(
+    `select id, actor, action, resource, outcome, reason, correlation_id as "correlationId", at, prev_hash as "prevHash", entry_hash as "entryHash"
+       from audit_log where org_id = $1 order by id asc`,
+    [orgId],
+  );
+
+  let expectedPrev = AUDIT_GENESIS;
+  for (const row of rows.rows as Array<{
+    id: number;
+    actor: string;
+    action: string;
+    resource: string;
+    outcome: string;
+    reason: string | null;
+    correlationId: string | null;
+    at: Date;
+    prevHash: string | null;
+    entryHash: string | null;
+  }>) {
+    if (row.prevHash !== expectedPrev) return { valid: false, brokenAtId: row.id };
+
+    const expectedHash = computeEntryHash({
+      orgId,
+      actor: row.actor,
+      action: row.action,
+      resource: row.resource,
+      outcome: row.outcome,
+      reason: row.reason,
+      correlationId: row.correlationId,
+      at: row.at.toISOString(),
+      prevHash: row.prevHash,
+    });
+    if (expectedHash !== row.entryHash) return { valid: false, brokenAtId: row.id };
+
+    expectedPrev = row.entryHash;
+  }
+  return { valid: true };
+}
+
+export interface AuditExport {
+  entries: AuditLogRow[];
+  chainValid: boolean;
+}
+
+/** HARD-10/11: export org-scoped - `orgId` sempre vem do escopo da sessão, nunca do payload. */
+export async function exportAuditLog(db: Queryable, orgId: string): Promise<AuditExport> {
+  const rows = await db.query(
+    `select id, actor, action, resource, outcome, reason, correlation_id as "correlationId", at
+       from audit_log where org_id = $1 order by id asc`,
+    [orgId],
+  );
+  const verdict = await verifyAuditChain(db, orgId);
+  return { entries: rows.rows as AuditLogRow[], chainValid: verdict.valid };
+}
+
+/** Checa a capability e audita a negação; retorna a decisão para o chamador. */
+export async function enforceCapability(
+  db: Queryable,
+  scope: AuthScope,
+  capability: string,
+  resource: string,
+  correlationId?: string,
+): Promise<PolicyDecision> {
+  const decision = await checkCapability(db, scope, capability);
+  if (!decision.allowed) {
+    await recordAudit(db, {
+      orgId: scope.orgId,
+      actor: scope.userId,
+      action: capability,
+      resource,
+      outcome: "denied",
+      reason: decision.reason,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+  return decision;
+}
+
+/** Grants de desenvolvimento: capabilities do walking skeleton para os membros dos dois tenants. */
+export async function seedDevGrants(db: Queryable): Promise<void> {
+  const grants: Array<[string, string, string]> = [
+    ["org_dev_a", "ws_dev_a", "project.register"],
+    ["org_dev_a", "ws_dev_a", "project.read"],
+    ["org_dev_a", "ws_dev_a", "node.enroll"],
+    ["org_dev_a", "ws_dev_a", "project.overview.read"],
+    ["org_dev_a", "ws_dev_a", "hypothesis.write"],
+    ["org_dev_a", "ws_dev_a", "artifact.write"],
+    ["org_dev_a", "ws_dev_a", "decision.write"],
+    ["org_dev_a", "ws_dev_a", "twin.read"],
+    ["org_dev_a", "ws_dev_a", "candidate.decide"],
+    ["org_dev_a", "ws_dev_a", "evidence.write"],
+    ["org_dev_a", "ws_dev_a", "claim.write"],
+    ["org_dev_a", "ws_dev_a", "signal.write"],
+    ["org_dev_a", "ws_dev_a", "proposal.write"],
+    ["org_dev_a", "ws_dev_a", "proposal.decide"],
+    ["org_dev_a", "ws_dev_a", "experiment.write"],
+    ["org_dev_a", "ws_dev_a", "connector.write"],
+    ["org_dev_a", "ws_dev_a", "connector.github.write"],
+    ["org_dev_a", "ws_dev_a", "harness.write"],
+    ["org_dev_a", "ws_dev_a", "module.write"],
+    ["org_dev_a", "ws_dev_a", "portfolio.write"],
+    ["org_dev_a", "ws_dev_a", "admin.write"],
+    ["org_dev_b", "ws_dev_b", "project.register"],
+    ["org_dev_b", "ws_dev_b", "project.read"],
+    ["org_dev_b", "ws_dev_b", "node.enroll"],
+    ["org_dev_b", "ws_dev_b", "project.overview.read"],
+    ["org_dev_b", "ws_dev_b", "hypothesis.write"],
+    ["org_dev_b", "ws_dev_b", "artifact.write"],
+    ["org_dev_b", "ws_dev_b", "decision.write"],
+    ["org_dev_b", "ws_dev_b", "twin.read"],
+    ["org_dev_b", "ws_dev_b", "candidate.decide"],
+    ["org_dev_b", "ws_dev_b", "evidence.write"],
+    ["org_dev_b", "ws_dev_b", "claim.write"],
+    ["org_dev_b", "ws_dev_b", "signal.write"],
+    ["org_dev_b", "ws_dev_b", "proposal.write"],
+    ["org_dev_b", "ws_dev_b", "proposal.decide"],
+    ["org_dev_b", "ws_dev_b", "experiment.write"],
+    ["org_dev_b", "ws_dev_b", "connector.write"],
+    ["org_dev_b", "ws_dev_b", "connector.github.write"],
+    ["org_dev_b", "ws_dev_b", "harness.write"],
+    ["org_dev_b", "ws_dev_b", "module.write"],
+    ["org_dev_b", "ws_dev_b", "portfolio.write"],
+    ["org_dev_b", "ws_dev_b", "admin.write"],
+  ];
+  for (const [orgId, workspaceId, capability] of grants) {
+    await db.query(
+      `insert into capability_grants (id, org_id, workspace_id, principal, capability)
+       values ($1, $2, $3, '*', $4)
+       on conflict (org_id, workspace_id, principal, capability) do nothing`,
+      [`grant_${orgId}_${capability}`, orgId, workspaceId, capability],
+    );
+  }
+}

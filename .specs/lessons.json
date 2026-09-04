@@ -1,0 +1,297 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 17,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::validate spec py nao varre acs quando ha linha em branco apos acceptance criteria ate fix upstream confirmar shall nos acs por grep manual alem do exit 0",
+      "text": "validate_spec.py nao varre ACs quando ha linha em branco apos '**Acceptance Criteria**:'; ate fix upstream, confirmar SHALL nos ACs por grep manual alem do exit 0",
+      "signal": "surviving_mutant",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "docs-planning-ecosystem"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".claude/skills/tlc-spec-driven/scripts/validate_spec.py:173 (specs)"
+      ],
+      "created": "2026-08-30T20:42:50Z",
+      "last_seen": "2026-08-30T20:42:50Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::todo edge case listado na spec precisa de assercao dedicada propria guarda implementada sem teste vira gap no verifier g1 sessao sem workspace scope",
+      "text": "Todo edge case listado na spec precisa de asserção dedicada propria; guarda implementada sem teste vira gap no verifier (G1: sessao sem workspace scope)",
+      "signal": "ac_gap",
+      "scope": "hub/identity",
+      "status": "candidate",
+      "features": [
+        "slice-0-trust-skeleton"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/hub/src/identity/session.ts:36 (hub/identity)"
+      ],
+      "created": "2026-08-31T01:51:25Z",
+      "last_seen": "2026-08-31T01:51:25Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::assert spec named payload fields on their value tobe toequal never with tohaveproperty alone presence only checks let a hardcoded or blanked field pass the whole suite",
+      "text": "Assert spec-named payload fields on their value (toBe/toEqual), never with toHaveProperty alone — presence-only checks let a hardcoded or blanked field pass the whole suite.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M1/M2/M8 — apps/hub/src/evolution/evidence.ts:41,79 + proposals.ts:164 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T11:43:29Z",
+      "last_seen": "2026-09-01T11:43:29Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::when a design reduces an ac to an already implemented generic mechanism re read the ac s trigger clause reusing a prior slice s guard covers the ac only if the trigger matches otherwise the ac ships untested",
+      "text": "When a design reduces an AC to an already-implemented generic mechanism, re-read the AC's trigger clause — reusing a prior slice's guard covers the AC only if the trigger matches, otherwise the AC ships untested.",
+      "signal": "ac_gap",
+      "scope": ".specs",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FLOW-18 (spec.md:125,127) (.specs)"
+      ],
+      "created": "2026-09-01T11:43:32Z",
+      "last_seen": "2026-09-01T11:43:32Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_precision_gap::ordering criteria in an ac must name the field they sort by most recent first leaves created at vs ready at undecided and makes the test unfalsifiable against intent",
+      "text": "Ordering criteria in an AC must name the field they sort by; 'most-recent-first' leaves created_at vs ready_at undecided and makes the test unfalsifiable against intent.",
+      "signal": "spec_precision_gap",
+      "scope": ".specs",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FLOW-16 (spec.md:123) (.specs)"
+      ],
+      "created": "2026-09-01T11:43:33Z",
+      "last_seen": "2026-09-01T11:43:33Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::a filtered query s own filter needs a negative fixture when a test sets up only rows that match the predicate deleting the predicate changes nothing and the mutant survives add a row that must be excluded",
+      "text": "A filtered query's own filter needs a negative fixture: when a test sets up only rows that match the predicate, deleting the predicate changes nothing and the mutant survives — add a row that must be excluded.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-3-evidence-to-decision"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/hub/src/evolution/proposals.ts:106 (mutant N1) (apps/hub/test)"
+      ],
+      "created": "2026-09-01T11:55:24Z",
+      "last_seen": "2026-09-01T11:55:24Z"
+    },
+    {
+      "id": "L-007",
+      "key": "surviving_mutant::when a value is derived through a canonicalization helper assert the canonicalization property itself not just that the derived value exists and is reproducible for identical inputs",
+      "text": "When a value is derived through a canonicalization helper, assert the canonicalization property itself, not just that the derived value exists and is reproducible for identical inputs",
+      "signal": "surviving_mutant",
+      "scope": "hub-domain",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M5 - apps/hub/src/evolution/experiments.ts:46 (hub-domain)"
+      ],
+      "created": "2026-09-01T12:33:43Z",
+      "last_seen": "2026-09-01T12:33:43Z"
+    },
+    {
+      "id": "L-008",
+      "key": "ac_gap::for an acceptance criterion phrased as a bound exactly n any of n fields test every direction of the bound not one representative instance",
+      "text": "For an acceptance criterion phrased as a bound (exactly N, any of N fields), test every direction of the bound, not one representative instance",
+      "signal": "ac_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EXP-02 - apps/hub/test/experiments-start.test.ts:104 (routes)"
+      ],
+      "created": "2026-09-01T12:33:43Z",
+      "last_seen": "2026-09-01T12:33:43Z"
+    },
+    {
+      "id": "L-009",
+      "key": "surviving_mutant::assert every payload field a listing endpoint returns on its actual value never identity alone",
+      "text": "Assert every payload field a listing endpoint returns on its actual value, never identity alone",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M11 - apps/hub/src/evolution/experiments.ts:164 (routes)"
+      ],
+      "created": "2026-09-01T12:33:44Z",
+      "last_seen": "2026-09-01T12:33:44Z"
+    },
+    {
+      "id": "L-010",
+      "key": "surviving_mutant::every state transition guard in the implementation needs a test for the wrong state case it rejects even when no acceptance criterion names that case",
+      "text": "Every state-transition guard in the implementation needs a test for the wrong-state case it rejects, even when no acceptance criterion names that case",
+      "signal": "surviving_mutant",
+      "scope": "hub-domain",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M10 - apps/hub/src/evolution/experiments.ts:143 (hub-domain)"
+      ],
+      "created": "2026-09-01T12:33:44Z",
+      "last_seen": "2026-09-01T12:33:44Z"
+    },
+    {
+      "id": "L-011",
+      "key": "spec_precision_gap::assert a status transition against the persisted row never against a response field the route hardcodes",
+      "text": "Assert a status transition against the persisted row, never against a response field the route hardcodes",
+      "signal": "spec_precision_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "slice-4-experiment-loop"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EXP-10 - apps/hub/test/experiments-evaluate.test.ts:118 (routes)"
+      ],
+      "created": "2026-09-01T12:33:44Z",
+      "last_seen": "2026-09-01T12:33:44Z"
+    },
+    {
+      "id": "L-012",
+      "key": "ac_gap::a cross tenant 403 does not cover a capability ac requireownedproject returns access denied before enforcecapability runs so assert 403 with title capability denied after deleting the grant row",
+      "text": "A cross-tenant 403 does not cover a capability AC: requireOwnedProject returns access_denied before enforceCapability runs, so assert 403 with title capability_denied after deleting the grant row.",
+      "signal": "ac_gap",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "GH-11 / apps/hub/test/github-action.test.ts:143-151 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:06Z",
+      "last_seen": "2026-09-01T13:14:06Z"
+    },
+    {
+      "id": "L-013",
+      "key": "surviving_mutant::a negative signature token test must use a forged value of the same length as the real one or the length guard short circuits and the comparison under test is never executed",
+      "text": "A negative signature/token test must use a forged value of the same length as the real one, or the length guard short-circuits and the comparison under test is never executed.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M2 / apps/hub/test/github-webhook.test.ts:100 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    },
+    {
+      "id": "L-014",
+      "key": "surviving_mutant::asserting a generated identifier with a prefix regex or against the same response that produced it proves nothing assert its full expected value built from the known inputs",
+      "text": "Asserting a generated identifier with a prefix regex, or against the same response that produced it, proves nothing: assert its full expected value built from the known inputs.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M9,M10 / apps/hub/test/github-action.test.ts:83,89 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    },
+    {
+      "id": "L-015",
+      "key": "surviving_mutant::scoping and conflict rules need a second instance in the fixture two connections two projects two orgs and one varied field per discriminating column or the scoping clause can be deleted with tests still green",
+      "text": "Scoping and conflict rules need a second instance in the fixture (two connections, two projects, two orgs) and one varied field per discriminating column, or the scoping clause can be deleted with tests still green.",
+      "signal": "surviving_mutant",
+      "scope": "apps/hub/test",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M8,M15 / apps/hub/test/github-action.test.ts:126-131 (apps/hub/test)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    },
+    {
+      "id": "L-016",
+      "key": "spec_deviation::when reusing an org scoped idempotency table for a project scoped resource include the projectid in the request digest or check resource ownership before the replay branch returns",
+      "text": "When reusing an org-scoped idempotency table for a project-scoped resource, include the projectId in the request digest or check resource ownership before the replay branch returns.",
+      "signal": "spec_deviation",
+      "scope": "apps/hub/src",
+      "status": "candidate",
+      "features": [
+        "slice-5-reversible-external-action"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/hub/src/evolution/github-connector.ts:144-165 (PROBE-B) (apps/hub/src)"
+      ],
+      "created": "2026-09-01T13:14:07Z",
+      "last_seen": "2026-09-01T13:14:07Z"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.evolutionos.io/v0/project.json",
+  "title": "EvolutionProject manifest v0",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "evolutionos.io/v1alpha1" },
+    "kind": { "const": "EvolutionProject" },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "slug", "type", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "examples": ["idea", "product", "system", "service", "repository", "harness", "portfolio"]
+        },
+        "status": { "type": "string", "minLength": 1 },
+        "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+        "annotations": { "type": "object", "additionalProperties": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "spec": {
+      "type": "object",
+      "properties": {
+        "intent": {
+          "type": "object",
+          "properties": {
+            "problem": { "type": "string", "minLength": 1 },
+            "audiences": { "type": "array", "items": { "type": "string" } },
+            "valueProposition": { "type": "string" },
+            "outcomes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "description"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "description": { "type": "string" },
+                  "metricRefs": { "type": "array", "items": { "type": "string" } },
+                  "horizon": { "type": "string" }
+                },
+                "additionalProperties": true
+              }
+            },
+            "nonGoals": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": true
+        },
+        "hypotheses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "statement", "type", "evidenceState", "status"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "statement": { "type": "string", "minLength": 1 },
+              "type": { "type": "string" },
+              "evidenceState": { "type": "string" },
+              "metric": { "type": "string" },
+              "threshold": { "type": "string" },
+              "status": { "type": "string", "minLength": 1 },
+              "reviewTrigger": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "statement", "severity"],
+            "properties": {
+              "id": { "type": "string" },
+              "category": { "type": "string" },
+              "statement": { "type": "string" },
+              "severity": { "enum": ["mandatory", "preferred"] },
+              "authority": { "type": "string" },
+              "validity": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "targetProjectRef"],
+            "properties": {
+              "type": { "type": "string", "minLength": 1 },
+              "targetProjectRef": { "type": "string", "minLength": 1 },
+              "direction": { "type": "string" },
+              "criticality": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "metadata": { "properties": { "type": { "const": "idea" } } } }
+      },
+      "then": {
+        "properties": {
+          "spec": {
+            "required": ["intent"],
+            "properties": {
+              "intent": { "required": ["problem"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "metadata": { "properties": { "type": { "const": "repository" } } } }
+      },
+      "then": {
+        "properties": {
+          "spec": { "required": ["sources"] }
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.evolutionos.io/v0/evidence.json",
+  "title": "Evidence record v0",
+  "type": "object",
+  "required": ["type", "status", "createdAt", "source", "integrity", "governance"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "tenantId": { "type": "string" },
+    "workspaceId": { "type": "string" },
+    "type": {
+      "enum": [
+        "sourceSnapshot",
+        "measurement",
+        "testResult",
+        "humanStatement",
+        "runtimeObservation",
+        "derivedEvidence",
+        "referenceOnly"
+      ]
+    },
+    "status": { "type": "string", "minLength": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "sourceUpdatedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "id": { "type": "string" },
+        "provider": { "type": "string" },
+        "type": { "type": "string", "minLength": 1 },
+        "externalId": { "type": "string" },
+        "uri": { "type": "string" },
+        "authority": { "type": "string" },
+        "retrievedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["contentDigest", "digestAlgorithm"],
+      "properties": {
+        "contentDigest": { "type": "string", "minLength": 1 },
+        "digestAlgorithm": { "type": "string", "examples": ["sha256"] },
+        "contentRef": { "type": "string" },
+        "referenceOnlyReason": { "type": "string" },
+        "captureMethod": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "lineage": {
+      "type": "object",
+      "properties": {
+        "parentEvidenceIds": { "type": "array", "items": { "type": "string" } },
+        "transformationType": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "governance": {
+      "type": "object",
+      "required": ["classification"],
+      "properties": {
+        "classification": { "type": "string", "minLength": 1 },
+        "residency": { "type": "string" },
+        "retentionPolicy": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
